@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<allocation:Allocation entityName="defaultAllocation" id="_cvJOgAzUEeSY_6m6oH98FQ" xmi:version="2.0" xmlns:allocation="http://sdq.ipd.uka.de/PalladioComponentModel/Allocation/5.0" xmlns:xmi="http://www.omg.org/XMI">
+    <targetResourceEnvironment_Allocation href="default.resourceenvironment#/"/>
+    <system_Allocation href="default.system#_Ph0kwAwoEeSMaZkt-OKzxA"/>
+    <allocationContexts_Allocation entityName="Allocation_Assembly_component1 &lt;component1&gt; &lt;component1&gt;" id="_ewbw0AzUEeSY_6m6oH98FQ">
+        <resourceContainer_AllocationContext href="default.resourceenvironment#_W057YAwpEeSMaZkt-OKzxA"/>
+        <assemblyContext_AllocationContext href="default.system#_4CUX8AwoEeSMaZkt-OKzxA"/>
+    </allocationContexts_Allocation>
+    <allocationContexts_Allocation entityName="Allocation_Assembly_component3 &lt;component3&gt; &lt;component3&gt;" id="_f7AGgAzUEeSY_6m6oH98FQ">
+        <resourceContainer_AllocationContext href="default.resourceenvironment#_W057YAwpEeSMaZkt-OKzxA"/>
+        <assemblyContext_AllocationContext href="default.system#_6Sqp8AwoEeSMaZkt-OKzxA"/>
+    </allocationContexts_Allocation>
+    <allocationContexts_Allocation entityName="Allocation_Assembly_frontEnd &lt;frontEnd&gt; &lt;frontEnd&gt;" id="_mhCmYAzUEeSY_6m6oH98FQ">
+        <resourceContainer_AllocationContext href="default.resourceenvironment#_W6tBYAwpEeSMaZkt-OKzxA"/>
+        <assemblyContext_AllocationContext href="default.system#_3SRbEAwoEeSMaZkt-OKzxA"/>
+    </allocationContexts_Allocation>
+    <allocationContexts_Allocation entityName="Allocation_Assembly_component2 &lt;component2&gt; &lt;component2&gt;" id="_nNh48AzUEeSY_6m6oH98FQ">
+        <resourceContainer_AllocationContext href="default.resourceenvironment#_W6tBYAwpEeSMaZkt-OKzxA"/>
+        <assemblyContext_AllocationContext href="default.system#_4cyGYAwoEeSMaZkt-OKzxA"/>
+    </allocationContexts_Allocation>
+</allocation:Allocation>

@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<system:System entityName="defaultSystem" id="_Ph0kwAwoEeSMaZkt-OKzxA" xmi:version="2.0" xmlns:composition="http://sdq.ipd.uka.de/PalladioComponentModel/Core/Composition/5.0" xmlns:repository="http://sdq.ipd.uka.de/PalladioComponentModel/Repository/5.0" xmlns:system="http://sdq.ipd.uka.de/PalladioComponentModel/System/5.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <assemblyContexts__ComposedStructure entityName="Assembly_frontEnd &lt;frontEnd&gt;" id="_3SRbEAwoEeSMaZkt-OKzxA">
+        <encapsulatedComponent__AssemblyContext href="default.repository#_BLVSQAwmEeSMaZkt-OKzxA" xsi:type="repository:BasicComponent"/>
+    </assemblyContexts__ComposedStructure>
+    <assemblyContexts__ComposedStructure entityName="Assembly_component1 &lt;component1&gt;" id="_4CUX8AwoEeSMaZkt-OKzxA">
+        <encapsulatedComponent__AssemblyContext href="default.repository#_hmsKUAwmEeSMaZkt-OKzxA" xsi:type="repository:BasicComponent"/>
+    </assemblyContexts__ComposedStructure>
+    <assemblyContexts__ComposedStructure entityName="Assembly_component2 &lt;component2&gt;" id="_4cyGYAwoEeSMaZkt-OKzxA">
+        <encapsulatedComponent__AssemblyContext href="default.repository#_hw2L4AwmEeSMaZkt-OKzxA" xsi:type="repository:BasicComponent"/>
+    </assemblyContexts__ComposedStructure>
+    <assemblyContexts__ComposedStructure entityName="Assembly_component3 &lt;component3&gt;" id="_6Sqp8AwoEeSMaZkt-OKzxA">
+        <encapsulatedComponent__AssemblyContext href="default.repository#_h1ieoAwmEeSMaZkt-OKzxA" xsi:type="repository:BasicComponent"/>
+    </assemblyContexts__ComposedStructure>
+    <connectors__ComposedStructure assemblyContext_ProvidedDelegationConnector="_3SRbEAwoEeSMaZkt-OKzxA" entityName="ProvDelegation Provided_ExternalIF -&gt; Provided_ExternalIF_Component1" id="_JAg-cAwpEeSMaZkt-OKzxA" outerProvidedRole_ProvidedDelegationConnector="_h7CXwAwoEeSMaZkt-OKzxA" xsi:type="composition:ProvidedDelegationConnector">
+        <innerProvidedRole_ProvidedDelegationConnector href="default.repository#_CbtVAAwmEeSMaZkt-OKzxA"/>
+    </connectors__ComposedStructure>
+    <connectors__ComposedStructure entityName="Connector Assembly_frontEnd &lt;frontEnd&gt; -&gt; Assembly_component3 &lt;component3&gt;" id="_J0uCkAwpEeSMaZkt-OKzxA" providingAssemblyContext_AssemblyConnector="_6Sqp8AwoEeSMaZkt-OKzxA" requiringAssemblyContext_AssemblyConnector="_3SRbEAwoEeSMaZkt-OKzxA" xsi:type="composition:AssemblyConnector">
+        <providedRole_AssemblyConnector href="default.repository#_uZ9BcAwmEeSMaZkt-OKzxA"/>
+        <requiredRole_AssemblyConnector href="default.repository#_w_MlYAwmEeSMaZkt-OKzxA"/>
+    </connectors__ComposedStructure>
+    <connectors__ComposedStructure entityName="Connector Assembly_frontEnd &lt;frontEnd&gt; -&gt; Assembly_component2 &lt;component2&gt;" id="_K3jYkAwpEeSMaZkt-OKzxA" providingAssemblyContext_AssemblyConnector="_4cyGYAwoEeSMaZkt-OKzxA" requiringAssemblyContext_AssemblyConnector="_3SRbEAwoEeSMaZkt-OKzxA" xsi:type="composition:AssemblyConnector">
+        <providedRole_AssemblyConnector href="default.repository#_uldG0AwmEeSMaZkt-OKzxA"/>
+        <requiredRole_AssemblyConnector href="default.repository#_wyp-MAwmEeSMaZkt-OKzxA"/>
+    </connectors__ComposedStructure>
+    <connectors__ComposedStructure entityName="Connector Assembly_frontEnd &lt;frontEnd&gt; -&gt; Assembly_component1 &lt;component1&gt;" id="_LLV3QAwpEeSMaZkt-OKzxA" providingAssemblyContext_AssemblyConnector="_4CUX8AwoEeSMaZkt-OKzxA" requiringAssemblyContext_AssemblyConnector="_3SRbEAwoEeSMaZkt-OKzxA" xsi:type="composition:AssemblyConnector">
+        <providedRole_AssemblyConnector href="default.repository#_uvyHgAwmEeSMaZkt-OKzxA"/>
+        <requiredRole_AssemblyConnector href="default.repository#_wp2AcAwmEeSMaZkt-OKzxA"/>
+    </connectors__ComposedStructure>
+    <providedRoles_InterfaceProvidingEntity entityName="Provided_ExternalIF" id="_h7CXwAwoEeSMaZkt-OKzxA" xsi:type="repository:OperationProvidedRole">
+        <providedInterface__OperationProvidedRole href="default.repository#_zi670AwlEeSMaZkt-OKzxA"/>
+    </providedRoles_InterfaceProvidingEntity>
+</system:System>
