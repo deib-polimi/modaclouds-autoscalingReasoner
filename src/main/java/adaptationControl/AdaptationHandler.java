@@ -9,6 +9,7 @@ public class AdaptationHandler {
 
 	private static final String projectPath="/Users/MIK/Documents/workspace kepler/DesignToRuntimeConnector";
 
+	
 	private static String pathToPCMResourceEnvironment=projectPath+"/INPUT/palladio_model/resource_environment";
 	private static String pathToPCMAllocation=projectPath+"/INPUT/palladio_model/allocation";
 	private static String pathToSPCMystem=projectPath+"/INPUT/palladio_model/system";
