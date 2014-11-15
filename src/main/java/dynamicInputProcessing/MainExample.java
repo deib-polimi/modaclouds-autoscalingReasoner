@@ -1,6 +1,5 @@
 package dynamicInputProcessing;
 
-import RHS4CloudExceptions.NotEnoughDynamicDataException;
 
 public class MainExample {
 

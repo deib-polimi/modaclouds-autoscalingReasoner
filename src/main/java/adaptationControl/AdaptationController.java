@@ -51,7 +51,11 @@ public class AdaptationController {
 				mm.getExecutions());
 		
 		DynamicInputWriter diw= new DynamicInputWriter();
+		
 		diw.writeDynamicInput(mm.getExecutions());
+		
+		
+		
 		}
 		else{
 			System.out.println("ERROR: ConfigManager not initialized");

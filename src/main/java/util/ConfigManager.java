@@ -28,7 +28,7 @@ import RHS4CloudExceptions.ProjectFileSystemException;
 
 public class ConfigManager {
 
-	private HashMap<String, String> configs = null;
+	private HashMap<String, String> configs = new HashMap<String, String>();
 	private static ConfigManager _instance=null;
 	
 	public static ConfigManager getInstance()
@@ -76,7 +76,6 @@ public class ConfigManager {
 		DocumentBuilder b;
 		Document d;
 		
-		this.configs= new HashMap<String, String>();
 
 		try {
 			b = f.newDocumentBuilder();

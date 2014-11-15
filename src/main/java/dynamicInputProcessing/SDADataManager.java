@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.Scanner;
 
 import model.OptimizerExecution;
-import RHS4CloudExceptions.NotEnoughDynamicDataException;
 
 public class SDADataManager {
 
 	private static SDADataManager _instance=null;
-	private  List<SDADatum> data=new ArrayList<>();
+	private  List<SDADatum> data=new ArrayList<SDADatum>();
+
 	
 	public static SDADataManager getInstance() {
 		if (_instance == null)
@@ -19,13 +19,15 @@ public class SDADataManager {
 		return _instance;
 	}
 	
-	public  void addDatum(String datum){
+	public  void addDatum(SDADatum toAdd){
 		
-		SDADatum toAdd=parseDatum(datum);
+		
 		data.add(toAdd);
+		
+		
 	}
 	
-	public  SDADatum getLastDatum(String metric, OptimizerExecution ex) throws NotEnoughDynamicDataException{
+	public  SDADatum getLastDatum(String metric, OptimizerExecution ex){
 		
 		SDADatum toReturn=null;
 
@@ -35,7 +37,7 @@ public class SDADataManager {
 		}
 				
 		
-		if(data.size()>0){
+		if(!this.isMetricEmpty(metric, ex)){
 			
 			Iterator  i= data.iterator();
 			int mostRecentTimestamp=Integer.MIN_VALUE;
@@ -49,17 +51,10 @@ public class SDADataManager {
 				}				
 			}
 			
-			if(toReturn!= null){
-				clearOldestDatum(metric, ex);
-				return toReturn;
-			}
-			else
-				throw new NotEnoughDynamicDataException("Not enough dynamic data available yet. They could require some time to be available...");
 		
 		}
-		else
-			throw new NotEnoughDynamicDataException("Not enough dynamic data available yet. They could require some time to be available...");
-	
+
+		return toReturn;
 	}
 	
 	private  void clearOldestDatum(String metric, OptimizerExecution ex){
@@ -101,8 +96,7 @@ public class SDADataManager {
 		boolean toReturn=false;
 		
 		int i=0;
-		
-		while(toReturn==false | this.data.size()==i){
+		while(toReturn==false && this.data.size()>i){
 			SDADatum temp=this.data.get(i);
 			
 			if(temp.getMetric().equals(metric))
