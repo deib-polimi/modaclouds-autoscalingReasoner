@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 
+import model.OptimizerExecution;
 import RHS4CloudExceptions.NotEnoughDynamicDataException;
 
 public class SDADataManager {
@@ -24,7 +25,7 @@ public class SDADataManager {
 		data.add(toAdd);
 	}
 	
-	public  SDADatum getLastDatum(String metric) throws NotEnoughDynamicDataException{
+	public  SDADatum getLastDatum(String metric, OptimizerExecution ex) throws NotEnoughDynamicDataException{
 		
 		SDADatum toReturn=null;
 
@@ -49,7 +50,7 @@ public class SDADataManager {
 			}
 			
 			if(toReturn!= null){
-				clearOldestDatum(metric);
+				clearOldestDatum(metric, ex);
 				return toReturn;
 			}
 			else
@@ -61,7 +62,7 @@ public class SDADataManager {
 	
 	}
 	
-	private  void clearOldestDatum(String metric){
+	private  void clearOldestDatum(String metric, OptimizerExecution ex){
 		
 		Iterator  i= data.iterator();
 		int oldestTimestamp=Integer.MAX_VALUE;
@@ -80,7 +81,7 @@ public class SDADataManager {
 		
 	}
 	
-	private static SDADatum parseDatum(String toParse){
+	private  SDADatum parseDatum(String toParse){
 		SDADatum toReturn=new SDADatum();
 		String[] parsedDatum=toParse.split(" ");
 		for(String s: parsedDatum)
@@ -94,5 +95,22 @@ public class SDADataManager {
 		toReturn.setTimestamp(Integer.parseInt(parsedDatum[4]));
 
 		return null;
+	}
+	
+	public boolean isMetricEmpty(String metric, OptimizerExecution ex){
+		boolean toReturn=false;
+		
+		int i=0;
+		
+		while(toReturn==false | this.data.size()==i){
+			SDADatum temp=this.data.get(i);
+			
+			if(temp.getMetric().equals(metric))
+				toReturn=true;
+			
+			i++;
+		}
+		
+		return toReturn;
 	}
 }

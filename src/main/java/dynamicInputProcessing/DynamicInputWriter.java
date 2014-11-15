@@ -26,19 +26,23 @@ public class DynamicInputWriter {
 	}
 	
 	public void writeDynamicInput(List<OptimizerExecution> executions){
+		
+		SDADataManager sdaManager= SDADataManager.getInstance();
+		
 		int i=1;
 		for (OptimizerExecution ex : executions) {
-
-			try {
-				this.writeFile("mu.dat", "Execution "+i, "let mu:=\n"
-						+ SDADataManager.getInstance().getLastDatum("Demand").getValue() + "\n;");
-			} catch (NotEnoughDynamicDataException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			
+				try {
+					this.writeFile("mu.dat", ex.toString(), "let mu:=\n"
+							+ SDADataManager.getInstance().getLastDatum("Demand", ex).getValue() + "\n;");
+				} catch (NotEnoughDynamicDataException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
+
 						
-			i++;
-		}
+		
 	}
 	
 	
@@ -50,10 +54,7 @@ public class DynamicInputWriter {
 		
 		
 			try {
-
-				file = new File(execution);
-				file.mkdir();
-				file = new File(execution + "/" + fileName);
+				file = new File("executions/execution_"+execution + "/" + fileName);
 				file.createNewFile();
 				fw = new FileWriter(file);
 				fw.append(fileContent);

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<properties>
+			<property name="pathToPCMResourceEnvironment" value="/home/mik/workspace/recedingHorizonScaling4Cloud/resource/palladio_model/resource_environment" />
+			<property name="pathToPCMAllocation" value="/home/mik/workspace/recedingHorizonScaling4Cloud/resource/palladio_model/allocation" />
+			<property name="pathToSPCMystem" value="/home/mik/workspace/recedingHorizonScaling4Cloud/resource/palladio_model/system" />
+			<property name="pathToS4CResourceModelExtension" value="/home/mik/workspace/recedingHorizonScaling4Cloud/resource/SPACE4Clouds_output/EXAMPLE/resource_model_extension.xml" />
+			<property name="pathToLineResult" value="/home/mik/workspace/recedingHorizonScaling4Cloud/resource/LINE/EXAMPLE/lineResult.xml" />
+			<property name="speedNorm" value="1200" />
+</properties>

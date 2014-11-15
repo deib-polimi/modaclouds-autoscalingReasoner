@@ -24,27 +24,29 @@ public class StaticInputWriter {
 		this.inputBuilder = new StaticInputBuilder();
 	}
 
-	public void writeStaticInput(String pathToLineResult, double speedNorm, List<OptimizerExecution> executions) {
-
+	public void writeStaticInput(String pathToLineResult, String sn, List<OptimizerExecution> executions) {
+			
+		double speedNorm=Double.parseDouble(sn);
 		this.inputBuilder.build(speedNorm, pathToLineResult, executions );
 
 		
 		int i=1;
 		for (OptimizerExecution ex : executions) {
 
-			this.writeFile("C.dat", "Execution "+i, "let C:=\n"
+			this.writeFile("C.dat", ex.toString(), "let C:=\n"
 					+ ex.getCapacity() + "\n;");
-			this.writeFile("W.dat", "Execution "+i, "let W:=\n"
+			this.writeFile("W.dat", ex.toString(), "let W:=\n"
 					+ ex.getW() + "\n;");
-			this.writeFile("delta.dat", "Execution "+i,
+			this.writeFile("delta.dat", ex.toString(),
 					"let delta:=\n" + ex.getOnDemandCost() + "\n;");
-			this.writeFile("rho.dat", "Execution "+i, "let rho:=\n"
+			this.writeFile("rho.dat", ex.toString(), "let rho:=\n"
 					+ ex.getReservedCost() + "\n;");
-						
+			
+			/*
 			for(ApplicationTier c: ex.getContainers()){
 				this.writeFile("Rcross.dat", "Execution "+i, Float.toString(c.getRcross()));
 			}
-						
+			*/			
 			i++;
 		}
 	}
@@ -57,10 +59,7 @@ public class StaticInputWriter {
 		
 		
 			try {
-
-				file = new File(execution);
-				file.mkdir();
-				file = new File(execution + "/" + fileName);
+				file = new File("executions/execution_"+execution+"/" + fileName);
 				file.createNewFile();
 				fw = new FileWriter(file);
 				fw.append(fileContent);

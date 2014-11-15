@@ -1,7 +1,10 @@
 package adaptationControl;
 
 
+import RHS4CloudExceptions.ConfigurationFileException;
+import RHS4CloudExceptions.ProjectFileSystemException;
 import staticInputProcessing.StaticInputWriter;
+import util.ConfigManager;
 import dynamicInputProcessing.DynamicInputWriter;
 import dynamicInputProcessing.SDADataManager;
 import it.polimi.modaclouds.space4cloud.milp.ssh.*;
@@ -11,27 +14,48 @@ public class AdaptationController {
 
 	
 	
-	private static final String projectPath="/home/mik/workspace/recedingHorizonScaling4Cloud";
-
-	
-	private static String pathToPCMResourceEnvironment=projectPath+"/resource/palladio_model/resource_environment";
-	private static String pathToPCMAllocation=projectPath+"/resource/palladio_model/allocation";
-	private static String pathToSPCMystem=projectPath+"/resource/palladio_model/system";
-	private static final String pathToS4CResourceModelExtension = projectPath+"/resource/SPACE4Clouds_output/EXAMPLE/resource_model_extension.xml";
-
-	private static final String pathToLineResult=projectPath+"/resource/LINE/EXAMPLE/lineResult.xml";
-	private static final double speedNorm = 1200.0;
-	
 	public static void main(String[] args) {
 
+		
 		ModelManager mm=new ModelManager();
-		mm.initializeModel(pathToS4CResourceModelExtension, pathToPCMAllocation, pathToSPCMystem, pathToPCMResourceEnvironment);
+		
+		ConfigManager cm=null;
+		
+		try {
+			cm = ConfigManager.getInstance();
+			cm.initializeConfig();
+		
+		} catch (ConfigurationFileException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+
+
+		if(cm!=null){
+		mm.initializeModel(cm.getConfig("pathToS4CResourceModelExtension"), 
+				cm.getConfig("pathToPCMAllocation"), 
+				cm.getConfig("pathToSPCMystem"), 
+				cm.getConfig("pathToPCMResourceEnvironment"));
+		
+		try {
+			cm.inizializeFileSystem(mm.getExecutions());
+		} catch (ProjectFileSystemException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		StaticInputWriter siw= new StaticInputWriter();
-		siw.writeStaticInput(pathToLineResult, speedNorm, mm.getExecutions());
+		siw.writeStaticInput(cm.getConfig("pathToLineResult"), 
+				cm.getConfig("speedNorm"), 
+				mm.getExecutions());
 		
 		DynamicInputWriter diw= new DynamicInputWriter();
 		diw.writeDynamicInput(mm.getExecutions());
+		}
+		else{
+			System.out.println("ERROR: ConfigManager not initialized");
+		}
 		
 		//SSH
 		

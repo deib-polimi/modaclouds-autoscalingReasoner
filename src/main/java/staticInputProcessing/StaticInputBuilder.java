@@ -75,12 +75,13 @@ public class StaticInputBuilder {
 				ex.setOnDemandCost(this.getResourceOnDemandCost(temp, ex.getResource().getRegion()));
 				ex.setReservedCost(this.getResourceReservedCost(temp, ex.getResource().getRegion()));
 				
+				/*
 				for(ApplicationTier container: ex.getContainers()){
 					
 					container.setRcross(this.getContainerRcross(container.getContainerName(), lineHelper));
 					
 				}
-				
+				*/
 				ex.setW(1);
 
 				
@@ -94,14 +95,16 @@ public class StaticInputBuilder {
 			System.out.println("on demand cost: "+ex.getOnDemandCost());
 			System.out.println("reserved cost: "+ex.getReservedCost());
 			System.out.println("W: "+ex.getW());
+			/*
 			for(ApplicationTier c:ex.getContainers())
 				System.out.println("container: "+ c.getContainerName()+" response time threshold: "+ c.getRcross());
-			
+			*/
 			i++;
 		}
 		
 	}
 	
+	/*
 	private float getContainerRcross(String containerName, LineResultManager lineHelper) throws StaticInputBuildingException{
 		
 		//caso calcolo del response time direttamente da quello globale al container riportato nell'output di line (caso più immediato)
@@ -127,7 +130,8 @@ public class StaticInputBuilder {
 					+ "element station in LINE result mathcing with the container:"+containerName+"not found");
 			
 	}
-
+	*/
+	
 	private double getResourceCapacity(CloudResource resource, double speedNorm) throws StaticInputBuildingException{
 		
 		double toReturn=0;
