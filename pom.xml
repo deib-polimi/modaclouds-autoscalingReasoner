@@ -63,7 +63,7 @@
 		<dependency>
 			<groupId>it.polimi.modaclouds.space4cloud</groupId>
 			<artifactId>milp</artifactId>
-			<version>0.0.8</version>
+			<version>0.0.18</version>
 		</dependency>
 
 		<dependency>
@@ -71,14 +71,14 @@
 			<artifactId>metrics-observer</artifactId>
 			<version>1.0.1</version>
 		</dependency>
-		
-				
- <dependency>
-    <groupId>it.polimi.modaclouds.monitoring</groupId>
-    <artifactId>data-collector-factory</artifactId>
-    <version>0.1</version>
-</dependency>
-		
+
+
+		<dependency>
+			<groupId>it.polimi.modaclouds.monitoring</groupId>
+			<artifactId>data-collector-factory</artifactId>
+			<version>0.1</version>
+		</dependency>
+
 
 	</dependencies>
 

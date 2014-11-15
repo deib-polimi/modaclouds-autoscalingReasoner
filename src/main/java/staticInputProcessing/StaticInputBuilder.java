@@ -13,10 +13,10 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
-import model.RHSContainer;
-import model.ExecutionContainer;
+import model.ApplicationTier;
+import model.ModelManager;
 import model.OptimizerExecution;
-import model.RHSResource;
+import model.Resource;
 
 import org.eclipse.emf.common.util.EList;
 import org.w3c.dom.Element;
@@ -40,100 +40,44 @@ import it.polimi.modaclouds.resourcemodel.cloud.Cost;
 import it.polimi.modaclouds.resourcemodel.cloud.Link;
 import it.polimi.modaclouds.resourcemodel.cloud.VirtualHWResource;
 import it.polimi.modaclouds.resourcemodel.cloud.VirtualHWResourceType;
-import it.polimi.modaclouds.space4clouds.milp.db.SQLParser;
 
 public class StaticInputBuilder {
 
 
 	
-	private final double speedNorm;	
-	private XMLHelper space4cloudSolutionParser;
-	private LineResultManager lineHelper;
 	private DataHandler dbHandler;
-	private PCMManager palladioManager;
 	
-	private ExecutionContainer executions;
 
-
-	public StaticInputBuilder(String pathToS4CResourceModelExtension,
-			 double speedNorm, String pathToLineResult, String pathToPCMResourceEnvironment, String pathToPCMAllocation, String pathToSPCMystem) {
-			
-		this.speedNorm=speedNorm;
-
-		this.space4cloudSolutionParser= new XMLHelper();
-		
-		this.lineHelper=new LineResultManager(pathToLineResult);
-		
-		this.palladioManager= new PCMManager(pathToPCMResourceEnvironment, pathToPCMAllocation, pathToSPCMystem);
+	public StaticInputBuilder() {
 			
 		try {
 			this.dbHandler = new DataHandler();
 		} catch (SQLException e1) {
 			e1.printStackTrace();
 		}
-		
-		this.executions=new ExecutionContainer();
-
-		try {
-			ResourceModelExtension solution = (ResourceModelExtension) space4cloudSolutionParser
-					.deserialize(new FileInputStream(pathToS4CResourceModelExtension),
-							ResourceModelExtension.class);
-
-			for (ResourceContainer tier : solution.getResourceContainer()) {
-				
-				RHSContainer tempContainer = new RHSContainer();
-				
-				tempContainer.setContainer(tier);
-				tempContainer.setContainerId(tier.getId());
-				tempContainer.setContainerName(this.palladioManager.getResEnvManager().getNameFromId(tier.getId()));
-				
-				RHSResource resource = new RHSResource();
-				resource.setName(tier.getCloudResource().getServiceName());
-				resource.setProvider(tier.getProvider());
-				resource.setServiceType(tier.getCloudResource().getServiceType());
-				resource.setSize(tier.getCloudResource().getResourceSizeID());
-				resource.setRegion(tier.getCloudResource().getLocation().getRegion());
-
-				OptimizerExecution execution= this.executions.getExecutionFromResource(resource);
-				
-				if(execution!=null){
-					execution.addContainer(tempContainer);
-						
-				} else {
-					execution= new OptimizerExecution();
-					execution.setResource(resource);
-					execution.addContainer(tempContainer);
-					this.executions.addExecution(execution);
-				}		
-			}
-		} catch (FileNotFoundException | JAXBException | SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (PalladioHelpingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	
 	}
 	
-	public void build(){
+	public void build(double speedNorm, String pathToLineResult, List <OptimizerExecution> executions){
 	
 		int i=1;
 		
-		for (OptimizerExecution ex : this.executions.getExecutions()) {
+		for (OptimizerExecution ex : executions) {
 			
-			RHSResource resource= ex.getResource();
+			Resource resource= ex.getResource();
 			
 			CloudResource temp=this.dbHandler.getCloudResource(resource.getProvider(), resource.getName(), resource.getSize());
 			
+			LineResultManager lineHelper= new LineResultManager(pathToLineResult);
+			
 			try {
-				ex.setCapacity(this.getResourceCapacity(temp));
+				ex.setCapacity(this.getResourceCapacity(temp, speedNorm));
 				ex.setOnDemandCost(this.getResourceOnDemandCost(temp, ex.getResource().getRegion()));
 				ex.setReservedCost(this.getResourceReservedCost(temp, ex.getResource().getRegion()));
 				
-				for(RHSContainer container: ex.getContainers()){
+				for(ApplicationTier container: ex.getContainers()){
 					
-					container.setRcross(this.getContainerRcross(container.getContainerName()));
+					container.setRcross(this.getContainerRcross(container.getContainerName(), lineHelper));
 					
 				}
 				
@@ -150,7 +94,7 @@ public class StaticInputBuilder {
 			System.out.println("on demand cost: "+ex.getOnDemandCost());
 			System.out.println("reserved cost: "+ex.getReservedCost());
 			System.out.println("W: "+ex.getW());
-			for(RHSContainer c:ex.getContainers())
+			for(ApplicationTier c:ex.getContainers())
 				System.out.println("container: "+ c.getContainerName()+" response time threshold: "+ c.getRcross());
 			
 			i++;
@@ -158,11 +102,11 @@ public class StaticInputBuilder {
 		
 	}
 	
-	private float getContainerRcross(String containerName) throws StaticInputBuildingException{
+	private float getContainerRcross(String containerName, LineResultManager lineHelper) throws StaticInputBuildingException{
 		
 		//caso calcolo del response time direttamente da quello globale al container riportato nell'output di line (caso più immediato)
 		
-		List<Element> stations= this.lineHelper.getElements("station");
+		List<Element> stations= lineHelper.getElements("station");
 		float toReturn=-1;
 
 		int i=0;
@@ -184,7 +128,7 @@ public class StaticInputBuilder {
 			
 	}
 
-	private double getResourceCapacity(CloudResource resource) throws StaticInputBuildingException{
+	private double getResourceCapacity(CloudResource resource, double speedNorm) throws StaticInputBuildingException{
 		
 		double toReturn=0;
 		
@@ -197,7 +141,7 @@ public class StaticInputBuilder {
 				toReturn= virtualResource
 						.getNumberOfReplicas()
 						* virtualResource.getProcessingRate()
-						/ this.speedNorm;
+						/ speedNorm;
 			}
 		}
 		if(toReturn==0)
@@ -257,9 +201,6 @@ public class StaticInputBuilder {
 		
 		return toReturn;
 	}
-	
-	public List<OptimizerExecution> getExecutions(){
-		return this.executions.getExecutions();
-	}
+
 	
 }

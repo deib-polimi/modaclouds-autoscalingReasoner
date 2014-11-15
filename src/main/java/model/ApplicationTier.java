@@ -4,7 +4,7 @@ import it.polimi.modaclouds.resourcemodel.cloud.CloudResource;
 import it.polimi.modaclouds.qos_models.schema.ResourceContainer;
 
 
-public class RHSContainer {
+public class ApplicationTier {
 
 	
 	private ResourceContainer container;
@@ -14,7 +14,7 @@ public class RHSContainer {
 	private String containerName;
 	private String containerId;
 	
-	public RHSContainer() {
+	public ApplicationTier() {
 
 	}
 	

@@ -1,7 +1,7 @@
 package model;
 
 
-public class RHSResource {
+public class Resource {
 	
 	private String provider;
 	private String region;

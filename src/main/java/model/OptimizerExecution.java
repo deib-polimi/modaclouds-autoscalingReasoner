@@ -15,7 +15,7 @@ import it.polimi.modaclouds.resourcemodel.cloud.VirtualHWResourceType;
 
 public class OptimizerExecution {
 	
-	private RHSResource resource;
+	private Resource resource;
 
 	private double capacity;
 	private double onDemandCost=0;
@@ -23,10 +23,10 @@ public class OptimizerExecution {
 	private int W;
 
 	
-	private List <RHSContainer> containers;
+	private List <ApplicationTier> containers;
 	
 	public OptimizerExecution(){
-		this.containers=new ArrayList<RHSContainer>();
+		this.containers=new ArrayList<ApplicationTier>();
 		
 	}
 
@@ -34,7 +34,7 @@ public class OptimizerExecution {
 	/**
 	 * @return the resource
 	 */
-	public RHSResource getResource() {
+	public Resource getResource() {
 		return resource;
 	}
 
@@ -42,7 +42,7 @@ public class OptimizerExecution {
 	/**
 	 * @param resource the resource to set
 	 */
-	public void setResource(RHSResource resource) {
+	public void setResource(Resource resource) {
 		this.resource = resource;
 	}
 
@@ -107,7 +107,7 @@ public class OptimizerExecution {
 	/**
 	 * @return the containers
 	 */
-	public List<RHSContainer> getContainers() {
+	public List<ApplicationTier> getContainers() {
 		return containers;
 	}
 
@@ -115,31 +115,31 @@ public class OptimizerExecution {
 	/**
 	 * @param containers the containers to set
 	 */
-	public void setContainers(List<RHSContainer> containers) {
+	public void setContainers(List<ApplicationTier> containers) {
 		this.containers = containers;
 	} 
 	
-	public void addContainer(RHSContainer container){
+	public void addContainer(ApplicationTier container){
 		this.containers.add(container);
 	}
 	
-	public RHSContainer getContainerById(String containerName){
-		for(RHSContainer c: this.containers){
+	public ApplicationTier getContainerById(String containerName){
+		for(ApplicationTier c: this.containers){
 			if(c.getContainerId().equals(containerName));
 				return c;
 		}
 		 return null;
 	}
 	
-	public RHSContainer getContainerByName( String containerName){
-		for(RHSContainer c: this.containers){
+	public ApplicationTier getContainerByName( String containerName){
+		for(ApplicationTier c: this.containers){
 			if(c.getContainerName().equals(containerName));
 				return c;
 		}
 		 return null;	}
 	
 	public boolean hasContainer(String containerId){
-		for(RHSContainer c: this.containers){
+		for(ApplicationTier c: this.containers){
 			if(c.getContainerId().equals(containerId))
 				return true;
 		}

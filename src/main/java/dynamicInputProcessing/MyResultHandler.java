@@ -21,7 +21,7 @@ public class MyResultHandler extends ResultsHandler {
                     datum += value + (i == last - 1 ? "" : " ");
                 }
             }
-            SDADatumContainer.addDatum(datum);
+            SDADataManager.getInstance().addDatum(datum);
         }
     }
 

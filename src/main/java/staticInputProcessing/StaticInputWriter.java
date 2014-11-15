@@ -5,34 +5,32 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Map;
 
 import com.hp.hpl.jena.rdf.model.Container;
 import com.hp.hpl.jena.sparql.algebra.Op;
 
 import PCMManaging.PCMManager;
-import model.RHSContainer;
-import model.ExecutionContainer;
+import model.ApplicationTier;
+import model.ModelManager;
 import model.OptimizerExecution;
-import it.polimi.modaclouds.space4clouds.milp.db.SQLParser;
 
 public class StaticInputWriter {
 
 	private StaticInputBuilder inputBuilder;
 
-	public StaticInputWriter(String pathToS4CResourceModelExtension, String pathToLineResult, double speedNorm , String pathToPCMResourceEnvironment, String pathToPCMAllocation, String pathToSPCMystem) {
-		
-		
-		this.inputBuilder = new StaticInputBuilder(pathToS4CResourceModelExtension,
-				speedNorm, pathToLineResult, pathToPCMResourceEnvironment, pathToPCMAllocation, pathToSPCMystem );
-		
-		this.inputBuilder.build();
+	public StaticInputWriter() {	
+		this.inputBuilder = new StaticInputBuilder();
 	}
 
-	public void writeStaticInput() {
+	public void writeStaticInput(String pathToLineResult, double speedNorm, List<OptimizerExecution> executions) {
 
+		this.inputBuilder.build(speedNorm, pathToLineResult, executions );
+
+		
 		int i=1;
-		for (OptimizerExecution ex : this.inputBuilder.getExecutions()) {
+		for (OptimizerExecution ex : executions) {
 
 			this.writeFile("C.dat", "Execution "+i, "let C:=\n"
 					+ ex.getCapacity() + "\n;");
@@ -43,7 +41,7 @@ public class StaticInputWriter {
 			this.writeFile("rho.dat", "Execution "+i, "let rho:=\n"
 					+ ex.getReservedCost() + "\n;");
 						
-			for(RHSContainer c: ex.getContainers()){
+			for(ApplicationTier c: ex.getContainers()){
 				this.writeFile("Rcross.dat", "Execution "+i, Float.toString(c.getRcross()));
 			}
 						
