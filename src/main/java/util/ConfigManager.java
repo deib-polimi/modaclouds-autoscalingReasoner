@@ -23,8 +23,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import RHS4CloudExceptions.ConfigurationFileException;
-import RHS4CloudExceptions.ProjectFileSystemException;
+import exceptions.ConfigurationFileException;
+import exceptions.ProjectFileSystemException;
 
 public class ConfigManager {
 

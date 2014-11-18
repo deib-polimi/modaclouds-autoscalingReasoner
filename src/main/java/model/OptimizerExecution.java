@@ -7,7 +7,7 @@ import org.eclipse.emf.common.util.EList;
 
 import com.hp.hpl.jena.vocabulary.DB;
 
-import RHS4CloudExceptions.StaticInputBuildingException;
+import exceptions.StaticInputBuildingException;
 import it.polimi.modaclouds.resourcemodel.cloud.CloudResource;
 import it.polimi.modaclouds.resourcemodel.cloud.Cost;
 import it.polimi.modaclouds.resourcemodel.cloud.VirtualHWResource;

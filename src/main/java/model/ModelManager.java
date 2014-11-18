@@ -15,9 +15,10 @@ import javax.xml.bind.JAXBException;
 import org.xml.sax.SAXException;
 
 import PCMManaging.PCMManager;
-import RHS4CloudExceptions.PalladioHelpingException;
 
 import com.hp.hpl.jena.sparql.algebra.Op;
+
+import exceptions.PalladioHelpingException;
 
 public class ModelManager {
 	

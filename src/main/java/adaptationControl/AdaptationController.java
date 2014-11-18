@@ -1,12 +1,11 @@
 package adaptationControl;
 
 
-import RHS4CloudExceptions.ConfigurationFileException;
-import RHS4CloudExceptions.ProjectFileSystemException;
 import staticInputProcessing.StaticInputWriter;
 import util.ConfigManager;
 import dynamicInputProcessing.DynamicInputWriter;
-import dynamicInputProcessing.SDADataManager;
+import exceptions.ConfigurationFileException;
+import exceptions.ProjectFileSystemException;
 import it.polimi.modaclouds.space4cloud.milp.ssh.*;
 import model.ModelManager;
 
@@ -62,6 +61,8 @@ public class AdaptationController {
 		}
 		
 		//SSH
+		
+		
 		
 		
 		

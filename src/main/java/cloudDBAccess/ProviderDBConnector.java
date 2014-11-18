@@ -16,7 +16,7 @@
 /*
  * 
  */
-package SPACE4CLOUD_DBaccess;
+package cloudDBAccess;
 
 import it.polimi.modaclouds.resourcemodel.cloud.Backend;
 import it.polimi.modaclouds.resourcemodel.cloud.BlobStorage;

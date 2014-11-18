@@ -16,7 +16,7 @@
 /*
  * 
  */
-package SPACE4CLOUD_DBaccess;
+package cloudDBAccess;
 
 import java.io.IOException;
 import java.io.InputStream;

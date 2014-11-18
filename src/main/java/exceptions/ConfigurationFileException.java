@@ -1,4 +1,4 @@
-package RHS4CloudExceptions;
+package exceptions;
 
 public class ConfigurationFileException extends Exception {
 

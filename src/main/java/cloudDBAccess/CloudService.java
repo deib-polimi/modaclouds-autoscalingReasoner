@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package SPACE4CLOUD_DBaccess;
+package cloudDBAccess;
 
 import java.io.Serializable;
 

@@ -3,7 +3,7 @@ package PCMManaging;
 import java.util.HashMap;
 import java.util.Map;
 
-import RHS4CloudExceptions.PalladioHelpingException;
+import exceptions.PalladioHelpingException;
 
 public class PCMManager {
 	

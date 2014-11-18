@@ -1,4 +1,4 @@
-package SPACE4CLOUD_DBaccess;
+package cloudDBAccess;
 
 public class DatabaseConnectionFailureExteption extends Exception {
 

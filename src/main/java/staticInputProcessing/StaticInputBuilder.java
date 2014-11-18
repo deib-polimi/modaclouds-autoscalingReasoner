@@ -24,14 +24,14 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import cloudDBAccess.DataHandler;
+import exceptions.PalladioHelpingException;
+import exceptions.StaticInputBuildingException;
 import util.GenericXMLHelper;
 import util.MILPInputDatParsed;
 import util.MILPInputDatParser;
 import PCMManaging.PCMManager;
 import PCMManaging.ResEnvManager;
-import RHS4CloudExceptions.PalladioHelpingException;
-import RHS4CloudExceptions.StaticInputBuildingException;
-import SPACE4CLOUD_DBaccess.DataHandler;
 import it.polimi.modaclouds.qos_models.util.XMLHelper;
 import it.polimi.modaclouds.qos_models.schema.ResourceContainer;
 import it.polimi.modaclouds.qos_models.schema.ResourceModelExtension;
