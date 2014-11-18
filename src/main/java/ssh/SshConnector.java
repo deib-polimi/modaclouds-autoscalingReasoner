@@ -22,6 +22,7 @@ import java.util.List;
 import model.ModelManager;
 import model.OptimizerExecution;
 import util.ConfigDictionary;
+import util.ConfigManager;
 
 //this class is used to create connection to AMPL server (wrapper)
 public class SshConnector {
@@ -41,8 +42,8 @@ public class SshConnector {
 				
 			if (directoryListing != null) {
 				for (File child : directoryListing) {
-					newScpTo.sendfile(child.getAbsolutePath(), ConfigDictionary.RUN_WORKING_DIRECTORY
-							+ ConfigDictionary.INPUT_FOLDER);
+					newScpTo.sendfile(child.getAbsolutePath(), ConfigManager.getConfig(ConfigDictionary.RUN_WORKING_DIRECTORY)
+							+ ConfigManager.getConfig(ConfigDictionary.INPUT_FOLDER));
 				}
 			} else {
 				System.out.println("Some error occurred: no files finded in the INPUT directory of the project file system");
@@ -55,8 +56,9 @@ public class SshConnector {
 			newExecSSH.mainExec();
 	
 			// this block downloads logs and results of AMPL
-			ScpFrom newScpFrom = new ScpFrom();
 			/*
+			ScpFrom newScpFrom = new ScpFrom();
+			
 			newScpFrom.receivefile(Configuration.RUN_LOG,
 			Configuration.RUN_WORKING_DIRECTORY + "/" + Configuration.RUN_LOG);
 			newScpFrom.receivefile(Configuration.RUN_RES,

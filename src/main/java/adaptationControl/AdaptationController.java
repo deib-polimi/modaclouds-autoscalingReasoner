@@ -20,24 +20,19 @@ public class AdaptationController {
 		
 		ModelManager mm=new ModelManager();
 		
-		ConfigManager cm=null;
+		ConfigManager cm=new ConfigManager();
 		
 		try {
-			cm = ConfigManager.getInstance();
 			cm.loadConfiguration();
-		
-		} catch (ConfigurationFileException e) {
+		} catch (ConfigurationFileException e1) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			e1.printStackTrace();
 		}
 		
 		
 
 		if(cm!=null){
-		mm.initializeModel(cm.getConfig(ConfigDictionary.pathToS4CResourceModelExtension), 
-				cm.getConfig(ConfigDictionary.pathToPCMAllocation), 
-				cm.getConfig(ConfigDictionary.pathToSPCMystem), 
-				cm.getConfig(ConfigDictionary.pathToPCMResourceEnvironment));
+		mm.initializeModel();
 		
 		try {
 			cm.inizializeFileSystem(mm.getExecutions());
@@ -47,9 +42,7 @@ public class AdaptationController {
 		}
 		
 		StaticInputWriter siw= new StaticInputWriter();
-		siw.writeStaticInput(cm.getConfig(ConfigDictionary.pathToLineResult), 
-				cm.getConfig(ConfigDictionary.speedNorm), 
-				mm.getExecutions());
+		siw.writeStaticInput(mm.getExecutions());
 		
 		//DynamicInputWriter diw= new DynamicInputWriter();
 		

@@ -11,4 +11,6 @@
 			<property name="SSH_PASSWORD" value="mahalkita1"/>
 			<property name="RUN_WORKING_DIRECTORY" value="/home/guerriero/molinari/k10"/>
 			<property name="INPUT_FOLDER" value="/second/data/IaaS_1"/>
+			<property name="DEFAULT_BASH" value="runShort.sh 1"/>
+			
 </properties>

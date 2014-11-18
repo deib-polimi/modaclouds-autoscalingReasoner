@@ -14,6 +14,8 @@ import javax.xml.bind.JAXBException;
 
 import org.xml.sax.SAXException;
 
+import util.ConfigDictionary;
+import util.ConfigManager;
 import PCMManaging.PCMManager;
 
 import com.hp.hpl.jena.sparql.algebra.Op;
@@ -28,14 +30,16 @@ public class ModelManager {
 		this.executions=new ArrayList<OptimizerExecution>();
 	}
 	
-	public void initializeModel(String pathToS4CResourceModelExtension, String pathToPCMAllocation, String pathToSPCMystem, String pathToPCMResourceEnvironment){
+	public void initializeModel(){
 		
-		PCMManager palladioManager= new PCMManager(pathToPCMResourceEnvironment, pathToPCMAllocation, pathToSPCMystem);
+		PCMManager palladioManager= new PCMManager(ConfigManager.getConfig(ConfigDictionary.pathToPCMResourceEnvironment),
+				ConfigManager.getConfig(ConfigDictionary.pathToPCMAllocation),
+						ConfigManager.getConfig(ConfigDictionary.pathToSPCMystem));
 		XMLHelper space4cloudSolutionParser=new XMLHelper();
 		
 		try {
 			ResourceModelExtension solution = (ResourceModelExtension) space4cloudSolutionParser
-					.deserialize(new FileInputStream(pathToS4CResourceModelExtension),
+					.deserialize(new FileInputStream(ConfigManager.getConfig(ConfigDictionary.pathToS4CResourceModelExtension)),
 							ResourceModelExtension.class);
 
 			for (ResourceContainer tier : solution.getResourceContainer()) {

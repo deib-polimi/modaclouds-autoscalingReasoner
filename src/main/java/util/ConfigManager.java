@@ -28,16 +28,9 @@ import exceptions.ProjectFileSystemException;
 
 public class ConfigManager {
 
-	private HashMap<String, String> configs = new HashMap<String, String>();
-	private static ConfigManager _instance=null;
-	
-	public static ConfigManager getInstance()
-			throws ConfigurationFileException {
-		if (_instance == null){
-			_instance = new ConfigManager();
-		}
-		return _instance;
-	}
+	private static HashMap<String, String> configs = new HashMap<String, String>();
+
+
 	
 	public void inizializeFileSystem(List<OptimizerExecution> executions) throws ProjectFileSystemException{
 
@@ -115,7 +108,7 @@ public class ConfigManager {
 								String key=map.getNamedItem("name").getNodeValue();
 								String value=map.getNamedItem("value").getNodeValue();
 								
-								this.configs.put(key,value);
+								configs.put(key,value);
 							}		
 		}
 		
@@ -136,16 +129,16 @@ public class ConfigManager {
 	
 	private void printConfig(){
 		
-		for(String key: this.configs.keySet()){
-			System.out.println(key+"="+this.configs.get(key));
+		for(String key: configs.keySet()){
+			System.out.println(key+"="+configs.get(key));
 		}
 	}
 	
-	public String getConfig(String name){
-		return this.configs.get(name);
+	public static String getConfig(String name){
+		return configs.get(name);
 	}
 	
-	public HashMap<String, String> getConfigs(){
-		return this.configs;
+	public static HashMap<String, String> getConfigs(){
+		return configs;
 	}
 }

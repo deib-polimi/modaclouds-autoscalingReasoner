@@ -19,6 +19,7 @@ package ssh;
 import com.jcraft.jsch.*;
 
 import util.ConfigDictionary;
+import util.ConfigManager;
 
 import javax.swing.*;
 
@@ -36,9 +37,9 @@ public class ScpTo {
 
 	// constructor
 	public ScpTo() {
-		ScpUserName = ConfigDictionary.SSH_USER_NAME;
-		ScpHost = ConfigDictionary.SSH_HOST;
-		ScpPasswd = ConfigDictionary.SSH_PASSWORD;
+		ScpUserName = ConfigManager.getConfig(ConfigDictionary.SSH_USER_NAME);
+		ScpHost = ConfigManager.getConfig(ConfigDictionary.SSH_HOST);
+		ScpPasswd = ConfigManager.getConfig(ConfigDictionary.SSH_PASSWORD);
 	}
 
 	// main execution function

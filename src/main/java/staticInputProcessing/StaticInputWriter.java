@@ -8,6 +8,9 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 
+import util.ConfigDictionary;
+import util.ConfigManager;
+
 import com.hp.hpl.jena.rdf.model.Container;
 import com.hp.hpl.jena.sparql.algebra.Op;
 
@@ -24,10 +27,12 @@ public class StaticInputWriter {
 		this.inputBuilder = new StaticInputBuilder();
 	}
 
-	public void writeStaticInput(String pathToLineResult, String sn, List<OptimizerExecution> executions) {
+	public void writeStaticInput(List<OptimizerExecution> executions) {
 			
-		double speedNorm=Double.parseDouble(sn);
-		this.inputBuilder.build(speedNorm, pathToLineResult, executions );
+		double speedNorm=Double.parseDouble(ConfigManager.getConfig(ConfigDictionary.speedNorm));
+		this.inputBuilder.build(Double.parseDouble(ConfigManager.getConfig(ConfigDictionary.speedNorm)),
+				ConfigManager.getConfig(ConfigDictionary.pathToLineResult),
+				executions );
 
 		
 		int i=1;

@@ -49,21 +49,14 @@ public class ExecSSH {
 
 	// constructor
 	public ExecSSH() {
-		ConfigManager cm;
 		
-		try {
-			cm = ConfigManager.getInstance();
-			
-			ScpUserName = cm.getConfig(ConfigDictionary.SSH_USER_NAME);
-			ScpHost = cm.getConfig(ConfigDictionary.SSH_HOST);
-			ScpPasswd = cm.getConfig(ConfigDictionary.SSH_PASSWORD);
-			UploadPath = cm.getConfig(ConfigDictionary.RUN_WORKING_DIRECTORY);
-			DefaultBash= cm.getConfig(ConfigDictionary.DEFAULT_BASH);
-			
-		} catch (ConfigurationFileException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
+			ScpUserName = ConfigManager.getConfig(ConfigDictionary.SSH_USER_NAME);
+			ScpHost = ConfigManager.getConfig(ConfigDictionary.SSH_HOST);
+			ScpPasswd = ConfigManager.getConfig(ConfigDictionary.SSH_PASSWORD);
+			UploadPath = ConfigManager.getConfig(ConfigDictionary.RUN_WORKING_DIRECTORY);
+			DefaultBash= ConfigManager.getConfig(ConfigDictionary.DEFAULT_BASH);
+
 		
 	
 	}
