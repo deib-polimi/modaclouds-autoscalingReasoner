@@ -1,8 +1,10 @@
 package adaptationControl;
 
 
+import ssh.SshConnector;
 import staticInputProcessing.StaticInputWriter;
 import util.ConfigManager;
+import util.ConfigDictionary;
 import dynamicInputProcessing.DynamicInputWriter;
 import exceptions.ConfigurationFileException;
 import exceptions.ProjectFileSystemException;
@@ -22,20 +24,20 @@ public class AdaptationController {
 		
 		try {
 			cm = ConfigManager.getInstance();
-			cm.initializeConfig();
+			cm.loadConfiguration();
 		
 		} catch (ConfigurationFileException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-
+		
 
 		if(cm!=null){
-		mm.initializeModel(cm.getConfig("pathToS4CResourceModelExtension"), 
-				cm.getConfig("pathToPCMAllocation"), 
-				cm.getConfig("pathToSPCMystem"), 
-				cm.getConfig("pathToPCMResourceEnvironment"));
+		mm.initializeModel(cm.getConfig(ConfigDictionary.pathToS4CResourceModelExtension), 
+				cm.getConfig(ConfigDictionary.pathToPCMAllocation), 
+				cm.getConfig(ConfigDictionary.pathToSPCMystem), 
+				cm.getConfig(ConfigDictionary.pathToPCMResourceEnvironment));
 		
 		try {
 			cm.inizializeFileSystem(mm.getExecutions());
@@ -45,13 +47,13 @@ public class AdaptationController {
 		}
 		
 		StaticInputWriter siw= new StaticInputWriter();
-		siw.writeStaticInput(cm.getConfig("pathToLineResult"), 
-				cm.getConfig("speedNorm"), 
+		siw.writeStaticInput(cm.getConfig(ConfigDictionary.pathToLineResult), 
+				cm.getConfig(ConfigDictionary.speedNorm), 
 				mm.getExecutions());
 		
-		DynamicInputWriter diw= new DynamicInputWriter();
+		//DynamicInputWriter diw= new DynamicInputWriter();
 		
-		diw.writeDynamicInput(mm.getExecutions());
+		//diw.writeDynamicInput(mm.getExecutions());
 		
 		
 		
@@ -62,7 +64,7 @@ public class AdaptationController {
 		
 		//SSH
 		
-		
+		SshConnector.run(mm.getExecutions());
 		
 		
 		

@@ -71,7 +71,7 @@ public class ConfigManager {
 		}
 	}
 	
-	public void initializeConfig() throws ConfigurationFileException {
+	public void loadConfiguration() throws ConfigurationFileException {
 		DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
 		DocumentBuilder b;
 		Document d;
@@ -137,7 +137,7 @@ public class ConfigManager {
 	private void printConfig(){
 		
 		for(String key: this.configs.keySet()){
-			System.out.println("name="+key+" value="+this.configs.get(key));
+			System.out.println(key+"="+this.configs.get(key));
 		}
 	}
 	
