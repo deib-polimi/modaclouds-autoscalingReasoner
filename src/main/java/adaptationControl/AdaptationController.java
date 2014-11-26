@@ -10,6 +10,10 @@ import exceptions.ConfigurationFileException;
 import exceptions.ProjectFileSystemException;
 import it.polimi.modaclouds.space4cloud.milp.ssh.*;
 import model.ModelManager;
+import model.OptimizationExecution;
+import util.InputSupplier;
+
+
 
 public class AdaptationController {
 
@@ -48,12 +52,19 @@ public class AdaptationController {
 		
 		//diw.writeDynamicInput(mm.getExecutions());
 		
+		//SUYPPLING THE STILL NOT AVAILABLE INPUT FILES
+		
+		InputSupplier newSupplier= new InputSupplier();
+		
+		for(OptimizationExecution ex: mm.getExecutions()){
+			newSupplier.supplyInput(ex.toString());
+
+		}
+		
 		
 		
 		}
-		else{
-			System.out.println("ERROR: ConfigManager not initialized");
-		}
+		
 		
 		//SSH
 		

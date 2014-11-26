@@ -17,7 +17,7 @@ import com.hp.hpl.jena.sparql.algebra.Op;
 import PCMManaging.PCMManager;
 import model.ApplicationTier;
 import model.ModelManager;
-import model.OptimizerExecution;
+import model.OptimizationExecution;
 
 public class StaticInputWriter {
 
@@ -27,7 +27,7 @@ public class StaticInputWriter {
 		this.inputBuilder = new StaticInputBuilder();
 	}
 
-	public void writeStaticInput(List<OptimizerExecution> executions) {
+	public void writeStaticInput(List<OptimizationExecution> executions) {
 			
 		double speedNorm=Double.parseDouble(ConfigManager.getConfig(ConfigDictionary.speedNorm));
 		this.inputBuilder.build(Double.parseDouble(ConfigManager.getConfig(ConfigDictionary.speedNorm)),
@@ -36,7 +36,7 @@ public class StaticInputWriter {
 
 		
 		int i=1;
-		for (OptimizerExecution ex : executions) {
+		for (OptimizationExecution ex : executions) {
 
 			this.writeFile("C.dat", ex.toString(), "let C:=\n"
 					+ ex.getCapacity() + "\n;");
@@ -64,7 +64,7 @@ public class StaticInputWriter {
 		
 		
 			try {
-				file = new File("executions/execution_"+execution+"/" + fileName);
+				file = new File("executions/execution_"+execution+"/IaaS_1/" + fileName);
 				file.createNewFile();
 				fw = new FileWriter(file);
 				fw.append(fileContent);

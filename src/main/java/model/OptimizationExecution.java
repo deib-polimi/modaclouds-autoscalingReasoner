@@ -13,7 +13,7 @@ import it.polimi.modaclouds.resourcemodel.cloud.Cost;
 import it.polimi.modaclouds.resourcemodel.cloud.VirtualHWResource;
 import it.polimi.modaclouds.resourcemodel.cloud.VirtualHWResourceType;
 
-public class OptimizerExecution {
+public class OptimizationExecution {
 	
 	private Resource resource;
 
@@ -25,7 +25,7 @@ public class OptimizerExecution {
 	
 	private List <ApplicationTier> containers;
 	
-	public OptimizerExecution(){
+	public OptimizationExecution(){
 		this.containers=new ArrayList<ApplicationTier>();
 		
 	}

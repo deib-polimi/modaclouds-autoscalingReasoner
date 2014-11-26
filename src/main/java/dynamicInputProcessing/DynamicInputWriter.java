@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.List;
 
 import model.ApplicationTier;
-import model.OptimizerExecution;
+import model.OptimizationExecution;
 
 import com.hp.hpl.jena.sparql.algebra.optimize.Optimize;
 
@@ -24,11 +24,11 @@ public class DynamicInputWriter {
 		// necessarie observer
 	}
 
-	public void writeDynamicInput(List<OptimizerExecution> executions) {
+	public void writeDynamicInput(List<OptimizationExecution> executions) {
 
 		SDADataManager sdaManager = SDADataManager.getInstance();
 
-		for (OptimizerExecution ex : executions) {
+		for (OptimizationExecution ex : executions) {
 
 			System.out.println("Writing mu.dat for execution: "+ex.toString());
 

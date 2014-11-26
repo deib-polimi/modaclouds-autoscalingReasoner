@@ -42,10 +42,9 @@ public class ExecSSH {
 	public String ScpHost;
 	// password for account on AMPL server
 	public String ScpPasswd;
-	// directory on server with model (file model.mod)
-	public String UploadPath;
+
 	// the default bash to run on server
-	public String DefaultBash;
+	public String optLauncher;
 
 	// constructor
 	public ExecSSH() {
@@ -54,8 +53,7 @@ public class ExecSSH {
 			ScpUserName = ConfigManager.getConfig(ConfigDictionary.SSH_USER_NAME);
 			ScpHost = ConfigManager.getConfig(ConfigDictionary.SSH_HOST);
 			ScpPasswd = ConfigManager.getConfig(ConfigDictionary.SSH_PASSWORD);
-			UploadPath = ConfigManager.getConfig(ConfigDictionary.RUN_WORKING_DIRECTORY);
-			DefaultBash= ConfigManager.getConfig(ConfigDictionary.DEFAULT_BASH);
+			optLauncher= ConfigManager.getConfig(ConfigDictionary.OPTIMIZATION_LAUNCHER);
 
 		
 	
@@ -96,14 +94,16 @@ public class ExecSSH {
 
 			// disabling of certificate checks
 			session.setConfig("StrictHostKeyChecking", "no");
+			
+			
 			// creating connection
 			session.connect();
 
 			// creating channel in execution mod
 			Channel channel = session.openChannel("exec");
 			// sending command which runs bash-script in UploadPath directory
-			((ChannelExec) channel).setCommand("bash " + this.UploadPath + "/"
-					+ this.DefaultBash);
+			((ChannelExec) channel).setCommand("bash " 
+					+ this.optLauncher);
 			// taking input stream
 			channel.setInputStream(null);
 			((ChannelExec) channel).setErrStream(System.err);

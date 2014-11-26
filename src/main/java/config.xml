@@ -10,7 +10,8 @@
 			<property name="SSH_HOST" value="specclient1.dei.polimi.it"/>
 			<property name="SSH_PASSWORD" value="mahalkita1"/>
 			<property name="RUN_WORKING_DIRECTORY" value="/home/guerriero/molinari/k10"/>
-			<property name="INPUT_FOLDER" value="/second/data/IaaS_1"/>
+			<property name="INPUT_FOLDER" value="/second/data/IaaS_1/"/>
+			<property name="OUTPUT_FILE" value="/second/data/IaaS_1/rawGlobal/dati.txt"/>
 			<property name="DEFAULT_BASH" value="runShort.sh 1"/>
 			
 </properties>

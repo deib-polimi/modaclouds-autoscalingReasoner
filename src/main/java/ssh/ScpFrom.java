@@ -19,6 +19,7 @@ package ssh;
 import com.jcraft.jsch.*;
 
 import util.ConfigDictionary;
+import util.ConfigManager;
 import it.polimi.modaclouds.space4cloud.milp.ssh.ScpTo.MyUserInfo;
 
 import javax.swing.*;
@@ -37,9 +38,9 @@ public class ScpFrom {
 
 	// constructor
 	public ScpFrom() {
-		ScpUserName = ConfigDictionary.SSH_USER_NAME;
-		ScpHost = ConfigDictionary.SSH_HOST;
-		ScpPasswd = ConfigDictionary.SSH_PASSWORD;
+		ScpUserName = ConfigManager.getConfig(ConfigDictionary.SSH_USER_NAME);
+		ScpHost = ConfigManager.getConfig(ConfigDictionary.SSH_HOST);
+		ScpPasswd = ConfigManager.getConfig(ConfigDictionary.SSH_PASSWORD);
 	}
 
 	// main execution function

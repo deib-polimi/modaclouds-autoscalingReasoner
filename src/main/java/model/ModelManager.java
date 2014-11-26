@@ -24,10 +24,10 @@ import exceptions.PalladioHelpingException;
 
 public class ModelManager {
 	
-	private List <OptimizerExecution> executions;
+	private List <OptimizationExecution> executions;
 	
 	public ModelManager(){
-		this.executions=new ArrayList<OptimizerExecution>();
+		this.executions=new ArrayList<OptimizationExecution>();
 	}
 	
 	public void initializeModel(){
@@ -57,13 +57,13 @@ public class ModelManager {
 				resource.setSize(tier.getCloudResource().getResourceSizeID());
 				resource.setRegion(tier.getCloudResource().getLocation().getRegion());
 
-				OptimizerExecution execution= this.getExecutionFromResource(resource);
+				OptimizationExecution execution= this.getExecutionFromResource(resource);
 				
 				if(execution!=null){
 					execution.addContainer(tempContainer);
 						
 				} else {
-					execution= new OptimizerExecution();
+					execution= new OptimizationExecution();
 					execution.setResource(resource);
 					execution.addContainer(tempContainer);
 					this.addExecution(execution);
@@ -79,22 +79,22 @@ public class ModelManager {
 		
 	}
 	
-	public List <OptimizerExecution> getExecutions(){
+	public List <OptimizationExecution> getExecutions(){
 		return this.executions;
 	}
 	
-	public void setExecution(List<OptimizerExecution> toSet){
+	public void setExecution(List<OptimizationExecution> toSet){
 		this.executions=toSet;
 	}
 	
-	public void addExecution(OptimizerExecution toAdd){
+	public void addExecution(OptimizationExecution toAdd){
 		this.executions.add(toAdd);
 	}
 	
-	public OptimizerExecution getExecutionFromResource(Resource resource) {
+	public OptimizationExecution getExecutionFromResource(Resource resource) {
 		
 		
-		for(OptimizerExecution ex: this.executions){
+		for(OptimizationExecution ex: this.executions){
 			Resource temp= ex.getResource();
 			
 			if(temp.getName().equals(resource.getName()) &&
@@ -109,9 +109,9 @@ public class ModelManager {
 		
 	}
 	
-	public OptimizerExecution getExecutionFromContainer(ResourceContainer container) {
+	public OptimizationExecution getExecutionFromContainer(ResourceContainer container) {
 		
-		for(OptimizerExecution ex: this.executions){
+		for(OptimizationExecution ex: this.executions){
 			Resource temp= ex.getResource();
 			
 			if(temp.getName().equals(container.getCloudResource().getServiceName()) &&

@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 
-import model.OptimizerExecution;
+import model.OptimizationExecution;
 
 public class SDADataManager {
 
@@ -27,7 +27,7 @@ public class SDADataManager {
 		
 	}
 	
-	public  SDADatum getLastDatum(String metric, OptimizerExecution ex){
+	public  SDADatum getLastDatum(String metric, OptimizationExecution ex){
 		
 		SDADatum toReturn=null;
 
@@ -57,7 +57,7 @@ public class SDADataManager {
 		return toReturn;
 	}
 	
-	private  void clearOldestDatum(String metric, OptimizerExecution ex){
+	private  void clearOldestDatum(String metric, OptimizationExecution ex){
 		
 		Iterator  i= data.iterator();
 		int oldestTimestamp=Integer.MAX_VALUE;
@@ -92,7 +92,7 @@ public class SDADataManager {
 		return null;
 	}
 	
-	public boolean isMetricEmpty(String metric, OptimizerExecution ex){
+	public boolean isMetricEmpty(String metric, OptimizationExecution ex){
 		boolean toReturn=false;
 		
 		int i=0;

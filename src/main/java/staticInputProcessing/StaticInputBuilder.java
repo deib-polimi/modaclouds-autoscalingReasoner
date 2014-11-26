@@ -15,7 +15,7 @@ import javax.xml.bind.Unmarshaller;
 
 import model.ApplicationTier;
 import model.ModelManager;
-import model.OptimizerExecution;
+import model.OptimizationExecution;
 import model.Resource;
 
 import org.eclipse.emf.common.util.EList;
@@ -58,11 +58,11 @@ public class StaticInputBuilder {
 	
 	}
 	
-	public void build(double speedNorm, String pathToLineResult, List <OptimizerExecution> executions){
+	public void build(double speedNorm, String pathToLineResult, List <OptimizationExecution> executions){
 	
 		int i=1;
 		
-		for (OptimizerExecution ex : executions) {
+		for (OptimizationExecution ex : executions) {
 			
 			Resource resource= ex.getResource();
 			

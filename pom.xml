@@ -25,7 +25,13 @@
 		</repository>
 	</repositories>
 
-	<dependencies>
+	<dependencies>	
+		<dependency>
+			<groupId>org.eclipse.jetty.websocket</groupId>
+			<artifactId>websocket-client</artifactId>
+			<version>9.3.0.M1</version>
+		</dependency>
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

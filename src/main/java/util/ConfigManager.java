@@ -12,7 +12,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import model.OptimizerExecution;
+import model.OptimizationExecution;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.core.runtime.Path;
@@ -32,20 +32,20 @@ public class ConfigManager {
 
 
 	
-	public void inizializeFileSystem(List<OptimizerExecution> executions) throws ProjectFileSystemException{
+	public void inizializeFileSystem(List<OptimizationExecution> executions) throws ProjectFileSystemException{
 
 		File file = null;
 		
 		
 		this.clearFileSystem();
 		
-		for(OptimizerExecution ex: executions){
-			file = new File("executions/execution_"+ex.toString()+"/");
+		for(OptimizationExecution ex: executions){
+			file = new File("executions/execution_"+ex.toString()+"/IaaS_1");
 			boolean success=file.mkdirs();
 			
 			if(!success)
 				throw new ProjectFileSystemException("Error initializing the project file system: the following folder cannot be created: "
-						+ "executions/execution_"+ex.toString()+"/");
+						+ "executions/execution_"+ex.toString()+"/IaaS_1");
 
 		}
 		

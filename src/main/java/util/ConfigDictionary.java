@@ -11,8 +11,9 @@ public class ConfigDictionary {
 	public static final String SSH_USER_NAME="SSH_USER_NAME";
 	public static final String SSH_HOST="SSH_HOST";
 	public static final String SSH_PASSWORD="SSH_PASSWORD";
-	public static final String RUN_WORKING_DIRECTORY="RUN_WORKING_DIRECTORY";
-	public static final String DEFAULT_BASH="DEFAULT_BASH";
-	public static final String INPUT_FOLDER="INPUT_FOLDER";
+	public static final String OPTIMIZATION_LAUNCHER="DEFAULT_BASH";
+	public static final String OPTIMIZATION_INPUT_FOLDER="INPUT_FOLDER";
+	public static final String OPTIMIZATION_OUTPUT_FILE="OUTPUT_FILE";
+
 
 }

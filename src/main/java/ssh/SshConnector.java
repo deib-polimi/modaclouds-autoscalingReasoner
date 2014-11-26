@@ -20,7 +20,7 @@ import java.io.File;
 import java.util.List;
 
 import model.ModelManager;
-import model.OptimizerExecution;
+import model.OptimizationExecution;
 import util.ConfigDictionary;
 import util.ConfigManager;
 
@@ -28,42 +28,48 @@ import util.ConfigManager;
 public class SshConnector {
 
 	// main execution function
-	public static void run(List<OptimizerExecution> executions) {
+	public static void run(List<OptimizationExecution> executions) {
+		
+		
 		// this block uploads files data.dat and AMPL.run on AMPL server
 		ScpTo newScpTo = new ScpTo();
 		
 		
 		
-		for(OptimizerExecution ex: executions){
+		for(OptimizationExecution ex: executions){
 			
-			File dir = new File("executions/execution_"+ex.toString()+"/");
+			
+			File dir = new File("executions/execution_"+ex.toString()+"/IaaS_1");
 			File[] directoryListing = dir.listFiles();
 				
 				
 			if (directoryListing != null) {
 				for (File child : directoryListing) {
-					newScpTo.sendfile(child.getAbsolutePath(), ConfigManager.getConfig(ConfigDictionary.RUN_WORKING_DIRECTORY)
-							+ ConfigManager.getConfig(ConfigDictionary.INPUT_FOLDER));
+					newScpTo.sendfile(child.getAbsolutePath(), ConfigManager.getConfig(ConfigDictionary.OPTIMIZATION_INPUT_FOLDER));
+					
+					try {
+					    Thread.sleep(10000);                 //1000 milliseconds is one second.
+					} catch(InterruptedException e) {
+					    Thread.currentThread().interrupt();
+					}				
 				}
 			} else {
 				System.out.println("Some error occurred: no files finded in the INPUT directory of the project file system");
 			}
-	
-
-	
+			
 			// this block runs bash-script on AMPL server
 			ExecSSH newExecSSH = new ExecSSH();
 			newExecSSH.mainExec();
 	
 			// this block downloads logs and results of AMPL
-			/*
+			
 			ScpFrom newScpFrom = new ScpFrom();
 			
-			newScpFrom.receivefile(Configuration.RUN_LOG,
-			Configuration.RUN_WORKING_DIRECTORY + "/" + Configuration.RUN_LOG);
-			newScpFrom.receivefile(Configuration.RUN_RES,
-			Configuration.RUN_WORKING_DIRECTORY + "/" + Configuration.RUN_RES);
-			*/
+			newScpFrom.receivefile("executions/execution_"+ex.toString()+"/IaaS_1/output.out",
+					ConfigManager.getConfig(ConfigDictionary.OPTIMIZATION_OUTPUT_FILE));			
+	
+
+			
 		}
 	}
 
