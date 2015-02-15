@@ -9,9 +9,9 @@
 			<property name="SSH_USER_NAME" value="guerriero"/>
 			<property name="SSH_HOST" value="specclient1.dei.polimi.it"/>
 			<property name="SSH_PASSWORD" value="mahalkita1"/>
-			<property name="RUN_WORKING_DIRECTORY" value="/home/guerriero/molinari/k10"/>
-			<property name="INPUT_FOLDER" value="/second/data/IaaS_1/"/>
-			<property name="OUTPUT_FILE" value="/second/data/IaaS_1/rawGlobal/dati.txt"/>
-			<property name="DEFAULT_BASH" value="runShort.sh 1"/>
+			<property name="OPTIMIZATION_INPUT_FOLDER" value="/home/guerriero/molinari/k10/second/data/IaaS_1"/>
+			<property name="OPTIMIZATION_OUTPUT_FILE" value="/home/guerriero/molinari/k10/second/data/IaaS_1/rawGlobal/dati.txt"/>
+			<property name="OPTIMIZATION_LAUNCHER" value="/home/guerriero/molinari/k10/run_Short.sh 1"/>
+			
 			
 </properties>

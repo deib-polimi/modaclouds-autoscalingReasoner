@@ -1,5 +1,9 @@
 package util;
 
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.OptimizationExecution;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -12,8 +16,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import model.OptimizationExecution;
-
 import org.apache.commons.io.FileUtils;
 import org.eclipse.core.runtime.Path;
 import org.w3c.dom.Document;
@@ -22,9 +24,6 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
-import exceptions.ConfigurationFileException;
-import exceptions.ProjectFileSystemException;
 
 public class ConfigManager {
 

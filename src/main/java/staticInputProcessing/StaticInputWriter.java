@@ -1,57 +1,41 @@
 package staticInputProcessing;
 
-import java.io.BufferedWriter;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.List;
-import java.util.Map;
 
-import util.ConfigDictionary;
-import util.ConfigManager;
-
-import com.hp.hpl.jena.rdf.model.Container;
-import com.hp.hpl.jena.sparql.algebra.Op;
-
-import PCMManaging.PCMManager;
-import model.ApplicationTier;
-import model.ModelManager;
-import model.OptimizationExecution;
 
 public class StaticInputWriter {
 
-	private StaticInputBuilder inputBuilder;
 
 	public StaticInputWriter() {	
-		this.inputBuilder = new StaticInputBuilder();
 	}
 
-	public void writeStaticInput(List<OptimizationExecution> executions) {
-			
-		double speedNorm=Double.parseDouble(ConfigManager.getConfig(ConfigDictionary.speedNorm));
-		this.inputBuilder.build(Double.parseDouble(ConfigManager.getConfig(ConfigDictionary.speedNorm)),
-				ConfigManager.getConfig(ConfigDictionary.pathToLineResult),
-				executions );
+	public void writeStaticInput(Containers containers) {
 
 		
 		int i=1;
-		for (OptimizationExecution ex : executions) {
-
-			this.writeFile("C.dat", ex.toString(), "let C:=\n"
-					+ ex.getCapacity() + "\n;");
-			this.writeFile("W.dat", ex.toString(), "let W:=\n"
-					+ ex.getW() + "\n;");
-			this.writeFile("delta.dat", ex.toString(),
-					"let delta:=\n" + ex.getOnDemandCost() + "\n;");
-			this.writeFile("rho.dat", ex.toString(), "let rho:=\n"
-					+ ex.getReservedCost() + "\n;");
+		
+		for (Container c : containers.getContainer()) {
 			
-			/*
-			for(ApplicationTier c: ex.getContainers()){
-				this.writeFile("Rcross.dat", "Execution "+i, Float.toString(c.getRcross()));
+			this.writeFile("C.dat", c.toString(), "let C:=\n"
+					+ c.getCapacity() + "\n;");
+			this.writeFile("W.dat", c.toString(), "let W:=\n"
+					+ c.getMaxReserved() + "\n;");
+			this.writeFile("delta.dat", c.toString(),
+					"let delta:=\n" + c.getOnDemandCost() + "\n;");
+			this.writeFile("rho.dat", c.toString(), "let rho:=\n"
+					+ c.getReservedCost() + "\n;");
+			
+			
+			for(ApplicationTier t: c.getApplicationTier()){
+				
+				this.writeFile("Rcross.dat", "Execution "+i, Float.toString(t.getResponseTimeThreshold().get(0).getValue()));
 			}
-			*/			
+					
 			i++;
 		}
 	}
