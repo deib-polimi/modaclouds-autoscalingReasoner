@@ -1,6 +1,11 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector;
 
 
+import java.io.StringWriter;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
+
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -8,7 +13,6 @@ import com.sun.jersey.api.client.WebResource;
 import it.polimi.modaclouds.qos_models.schema.Action;
 import it.polimi.modaclouds.qos_models.schema.CollectedMetric;
 import it.polimi.modaclouds.qos_models.schema.MonitoredTarget;
-import it.polimi.modaclouds.qos_models.schema.MonitoringMetricAggregation;
 import it.polimi.modaclouds.qos_models.schema.MonitoringRule;
 import it.polimi.modaclouds.qos_models.schema.MonitoringRules;
 import it.polimi.modaclouds.qos_models.schema.ObjectFactory;
@@ -21,15 +25,26 @@ public class MonitoringPlatformAdapter {
 	
 	
 	private String monitoringPlatformIP;
+	private ObjectFactory factory=new ObjectFactory();
 	
 	public MonitoringPlatformAdapter(String monitoringPlatformIP){
 		this.monitoringPlatformIP=monitoringPlatformIP;
 	}
 	
-	public void installRule(MonitoringRule toInstall){
+	public void installRules(MonitoringRules toInstall){
 		
 		try {
 			 
+			
+			JAXBContext context = JAXBContext.newInstance("it.polimi.modaclouds.qos_models.schema");
+			Marshaller marshaller = context.createMarshaller();
+			marshaller.setProperty("jaxb.formatted.output",Boolean.TRUE);
+			StringWriter sw = new StringWriter();
+			
+			marshaller.marshal(toInstall,sw);
+			
+			System.out.println(sw.toString());
+			
 			Client client = Client.create();
 	 
 			WebResource webResource = client
@@ -37,9 +52,9 @@ public class MonitoringPlatformAdapter {
 	 
 	 
 			ClientResponse response = webResource.type("application/json")
-			   .post(ClientResponse.class, toInstall);
+			   .post(ClientResponse.class, sw.toString());
 	 
-			if (response.getStatus() != 201) {
+			if (response.getStatus() != 204) {
 				throw new RuntimeException("Failed : HTTP error code : "
 				     + response.getStatus());
 			}
@@ -86,7 +101,6 @@ public class MonitoringPlatformAdapter {
 	
 	public  MonitoringRules buildDemandRule(Containers containers){
 		
-		ObjectFactory factory= new ObjectFactory();
 		MonitoringRules toReturn= factory.createMonitoringRules();
 		MonitoringRule rule;
 		MonitoredTarget target;
@@ -94,20 +108,18 @@ public class MonitoringPlatformAdapter {
 		CollectedMetric collectedMetric;
 		Parameter tempParam;
 		
+		rule=factory.createMonitoringRule();
 
+		rule.setId("sdaHaproxy");
+		rule.setTimeStep("10");
+		rule.setTimeWindow("10");
+		rule.setMonitoredTargets(factory.createMonitoredTargets());
 
 		for(Container c: containers.getContainer()){
 			
-			rule=factory.createMonitoringRule();
 
-			rule.setId("sdaHaproxy_"+c.getCapacity());
-			rule.setTimeStep("10");
-			rule.setTimeWindow("10");
-			rule.setMonitoredTargets(factory.createMonitoredTargets());
-			
 			for(ApplicationTier t: c.getApplicationTier()){
 				
-					
 
 					target=factory.createMonitoredTarget();
 					target.setClazz("VM");
@@ -115,71 +127,73 @@ public class MonitoringPlatformAdapter {
 					rule.getMonitoredTargets().getMonitoredTargets().add(target);
 
 			}
-			
-			collectedMetric=factory.createCollectedMetric();
-			collectedMetric.setMetricName("EstimationUBR");
-
-			tempParam=factory.createParameter();
-			tempParam.setName("window");
-			tempParam.setValue("60000");
-			collectedMetric.getParameters().add(tempParam);
-			
-			tempParam=factory.createParameter();
-			tempParam.setName("nCPU");
-			tempParam.setValue("4");
-			collectedMetric.getParameters().add(tempParam);
-			
-			tempParam=factory.createParameter();
-			tempParam.setName("CPUUtilTarget");
-			tempParam.setValue("MIC");
-			collectedMetric.getParameters().add(tempParam);
-			
-			tempParam=factory.createParameter();
-			tempParam.setName("CPUUtilMetric");
-			tempParam.setValue("FrontendCPUUtilization");
-			collectedMetric.getParameters().add(tempParam);
-			
-			tempParam=factory.createParameter();
-			tempParam.setName("targetMetric");
-			tempParam.setValue("AvarageResponseTime");
-			collectedMetric.getParameters().add(tempParam);
-			
-			tempParam=factory.createParameter();
-			tempParam.setName("samplingTime");
-			tempParam.setValue("300");
-			collectedMetric.getParameters().add(tempParam);
-			
-			tempParam=factory.createParameter();
-			tempParam.setName("filePath");
-			tempParam.setValue("/home/ubuntu/modaclouds-sda-1.2.2/");
-			collectedMetric.getParameters().add(tempParam);
-			
-			action=factory.createAction();
-			action.setName("OutputMetric");
-		
-			tempParam=factory.createParameter();
-			tempParam.setName("metric");
-			tempParam.setValue("EstimatedDemand");
-			action.getParameters().add(tempParam);
-			
-			tempParam=factory.createParameter();
-			tempParam.setName("value");
-			tempParam.setValue("METRIC");
-			action.getParameters().add(tempParam);
-			
-			tempParam=factory.createParameter();
-			tempParam.setName("resourceId");
-			tempParam.setValue("ID");
-			action.getParameters().add(tempParam);
-			
-			rule.setActions(factory.createActions());
-			
-			rule.getActions().getActions().add(action);
-
-			toReturn.getMonitoringRules().add(rule);
-
 		
 		}
+		
+		collectedMetric=factory.createCollectedMetric();
+		collectedMetric.setMetricName("EstimationUBR");
+
+		tempParam=factory.createParameter();
+		tempParam.setName("window");
+		tempParam.setValue("60000");
+		collectedMetric.getParameters().add(tempParam);
+		
+		tempParam=factory.createParameter();
+		tempParam.setName("nCPU");
+		tempParam.setValue("4");
+		collectedMetric.getParameters().add(tempParam);
+		
+		tempParam=factory.createParameter();
+		tempParam.setName("CPUUtilTarget");
+		tempParam.setValue("MIC");
+		collectedMetric.getParameters().add(tempParam);
+		
+		tempParam=factory.createParameter();
+		tempParam.setName("CPUUtilMetric");
+		tempParam.setValue("FrontendCPUUtilization");
+		collectedMetric.getParameters().add(tempParam);
+		
+		tempParam=factory.createParameter();
+		tempParam.setName("targetMetric");
+		tempParam.setValue("AvarageResponseTime");
+		collectedMetric.getParameters().add(tempParam);
+		
+		tempParam=factory.createParameter();
+		tempParam.setName("samplingTime");
+		tempParam.setValue("300");
+		collectedMetric.getParameters().add(tempParam);
+		
+		tempParam=factory.createParameter();
+		tempParam.setName("filePath");
+		tempParam.setValue("/home/ubuntu/modaclouds-sda-1.2.2/");
+		collectedMetric.getParameters().add(tempParam);
+		
+		rule.setCollectedMetric(collectedMetric);
+		
+		action=factory.createAction();
+		action.setName("OutputMetric");
+	
+		tempParam=factory.createParameter();
+		tempParam.setName("metric");
+		tempParam.setValue("EstimatedDemand");
+		action.getParameters().add(tempParam);
+		
+		tempParam=factory.createParameter();
+		tempParam.setName("value");
+		tempParam.setValue("METRIC");
+		action.getParameters().add(tempParam);
+		
+		tempParam=factory.createParameter();
+		tempParam.setName("resourceId");
+		tempParam.setValue("ID");
+		action.getParameters().add(tempParam);
+		
+		rule.setActions(factory.createActions());
+		
+		rule.getActions().getActions().add(action);
+
+		toReturn.getMonitoringRules().add(rule);
+
 		
 		return toReturn;
 
@@ -187,7 +201,6 @@ public class MonitoringPlatformAdapter {
 
 	
 	public  MonitoringRules buildWorkloadForecastRule(	Containers containers, int timestepAhead){
-		ObjectFactory factory= new ObjectFactory();
 		MonitoringRules toReturn= factory.createMonitoringRules();
 		MonitoringRule rule;
 		MonitoredTarget target;
@@ -195,17 +208,17 @@ public class MonitoringPlatformAdapter {
 		CollectedMetric collectedMetric;
 		Parameter tempParam;
 		
+		rule=factory.createMonitoringRule();
 
+		rule.setId("sdaForecast"+timestepAhead);
+		rule.setTimeStep("10");
+		rule.setTimeWindow("10");
+		rule.setMonitoredTargets(factory.createMonitoredTargets());
+		
 
 		for(Container c: containers.getContainer()){
 			
-			rule=factory.createMonitoringRule();
 
-			rule.setId("sdaForecast"+timestepAhead+"_"+c.getCapacity());
-			rule.setTimeStep("10");
-			rule.setTimeWindow("10");
-			rule.setMonitoredTargets(factory.createMonitoredTargets());
-			
 			for(ApplicationTier t: c.getApplicationTier()){
 				
 					
@@ -216,67 +229,67 @@ public class MonitoringPlatformAdapter {
 					rule.getMonitoredTargets().getMonitoredTargets().add(target);
 
 			}
-			
-			collectedMetric=factory.createCollectedMetric();
-			collectedMetric.setMetricName("ForecastingTimeSeriesARIMA5Min");
-
-			tempParam=factory.createParameter();
-			tempParam.setName("targetMetric");
-			tempParam.setValue("Workload");
-			collectedMetric.getParameters().add(tempParam);
-			
-			tempParam=factory.createParameter();
-			tempParam.setName("forecastPeriod");
-			tempParam.setValue(Integer.toString(30*timestepAhead));
-			collectedMetric.getParameters().add(tempParam);
-			
-			tempParam=factory.createParameter();
-			tempParam.setName("autoregressive");
-			tempParam.setValue("1");
-			collectedMetric.getParameters().add(tempParam);
-			
-			tempParam=factory.createParameter();
-			tempParam.setName("movingAverage");
-			tempParam.setValue("1");
-			collectedMetric.getParameters().add(tempParam);
-			
-			tempParam=factory.createParameter();
-			tempParam.setName("integrated");
-			tempParam.setValue("1");
-			collectedMetric.getParameters().add(tempParam);
-			
-			tempParam=factory.createParameter();
-			tempParam.setName("samplingTime");
-			tempParam.setValue("300");
-			collectedMetric.getParameters().add(tempParam);
-
-			
-			action=factory.createAction();
-			action.setName("OutputMetric");
-		
-			tempParam=factory.createParameter();
-			tempParam.setName("metric");
-			tempParam.setValue("ForecastedWorkload"+timestepAhead);
-			action.getParameters().add(tempParam);
-			
-			tempParam=factory.createParameter();
-			tempParam.setName("value");
-			tempParam.setValue("METRIC");
-			action.getParameters().add(tempParam);
-			
-			tempParam=factory.createParameter();
-			tempParam.setName("resourceId");
-			tempParam.setValue("ID");
-			action.getParameters().add(tempParam);
-			
-			rule.setActions(factory.createActions());
-			
-			rule.getActions().getActions().add(action);
-
-			toReturn.getMonitoringRules().add(rule);
-
 		
 		}
+		collectedMetric=factory.createCollectedMetric();
+		collectedMetric.setMetricName("ForecastingTimeSeriesARIMA5Min");
+
+		tempParam=factory.createParameter();
+		tempParam.setName("targetMetric");
+		tempParam.setValue("Workload");
+		collectedMetric.getParameters().add(tempParam);
+		
+		tempParam=factory.createParameter();
+		tempParam.setName("forecastPeriod");
+		tempParam.setValue(Integer.toString(30*timestepAhead));
+		collectedMetric.getParameters().add(tempParam);
+		
+		tempParam=factory.createParameter();
+		tempParam.setName("autoregressive");
+		tempParam.setValue("1");
+		collectedMetric.getParameters().add(tempParam);
+		
+		tempParam=factory.createParameter();
+		tempParam.setName("movingAverage");
+		tempParam.setValue("1");
+		collectedMetric.getParameters().add(tempParam);
+		
+		tempParam=factory.createParameter();
+		tempParam.setName("integrated");
+		tempParam.setValue("1");
+		collectedMetric.getParameters().add(tempParam);
+		
+		tempParam=factory.createParameter();
+		tempParam.setName("samplingTime");
+		tempParam.setValue("300");
+		collectedMetric.getParameters().add(tempParam);
+		
+		rule.setCollectedMetric(collectedMetric);
+
+		
+		action=factory.createAction();
+		action.setName("OutputMetric");
+	
+		tempParam=factory.createParameter();
+		tempParam.setName("metric");
+		tempParam.setValue("ForecastedWorkload"+timestepAhead);
+		action.getParameters().add(tempParam);
+		
+		tempParam=factory.createParameter();
+		tempParam.setName("value");
+		tempParam.setValue("METRIC");
+		action.getParameters().add(tempParam);
+		
+		tempParam=factory.createParameter();
+		tempParam.setName("resourceId");
+		tempParam.setValue("ID");
+		action.getParameters().add(tempParam);
+		
+		rule.setActions(factory.createActions());
+		
+		rule.getActions().getActions().add(action);
+
+		toReturn.getMonitoringRules().add(rule);
 		
 		return toReturn;
 	}

@@ -23,43 +23,42 @@ public class AdaptationController {
 
 			ModelManager mm=ModelManager.getInstance();
 		
-			MonitoringPlatformAdapter mp=new MonitoringPlatformAdapter("127.0.0.1");
+			mm.loadModel("/home/mik/workspace/recedingHorizonScaling4Cloud/resource/outputModelExample.xml");
+
+			MonitoringPlatformAdapter mp=new MonitoringPlatformAdapter("54.154.45.180");
 			
 			Observer tempObs;
 		
 
-			mm.loadModel("/home/mik/workspace/recedingHorizonScaling4Cloud/resource/outputModelExample.xml");
 			
 			MonitoringRules demandRules=mp.buildDemandRule(mm.getModel());
 			
 			
 			//costruisce ed installa le regole necessari per monitorare la demand a livello di tier applicativo
-			for(MonitoringRule rule: demandRules.getMonitoringRules()){
-				mp.installRule(rule);
-			}
+			mp.installRules(demandRules);
+	
 			
 			//installa gli observer necessari per ricevere la demand stimaTA e lancia lobserver relativo
-			mp.attachObserver("EstimatedDemand", "127.0.0.1", "8179");
+			mp.attachObserver("EstimatedDemand", "131.175.135.243", "8179");
 			tempObs=new Observer(8179);
 
 			
 			
 			//costruisce ed installa le regole per il monitoraggio del workload a livello di tier applicativo
-			for(int i=0; i<5;i++){
+			for(int i=0; i<1;i++){
 				MonitoringRules workloadRules=mp.buildWorkloadForecastRule(mm.getModel(), i);
-				for(MonitoringRule rule: workloadRules.getMonitoringRules()){
-					mp.installRule(rule);
-				}
+					mp.installRules(workloadRules);
+		
 				
 				//installa gli observer necessari per ricevere il workload monitoraton e lancia l'observer relativo
-				mp.attachObserver("ForecastedWorkload"+i, "127.0.0.1", Integer.toString(8180+i));
+				mp.attachObserver("ForecastedWorkload"+i, "131.175.135.243", Integer.toString(8180+i));
 				tempObs=new Observer(8180+i);
 
 			}
 
 			//costruisce i file di tipo statico per molinari
-			StaticInputWriter siw= new StaticInputWriter();
-			siw.writeStaticInput(mm.getModel());
+			//StaticInputWriter siw= new StaticInputWriter();
+			//siw.writeStaticInput(mm.getModel());
 			
 			
 			

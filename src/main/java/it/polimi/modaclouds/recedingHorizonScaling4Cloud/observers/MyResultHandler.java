@@ -20,11 +20,13 @@ public class MyResultHandler extends MonitoringDatumHandler {
 		+ monitoringDatum.getValue() + ","
 		+ monitoringDatum.getTimestamp());
 		
+		/*
 		SDADatum toAdd= new SDADatum();
 		toAdd.setValue(Float.parseFloat(monitoringDatum.getValue()));
 		toAdd.setMetric(monitoringDatum.getMetric());
 		
         SDADataManager.getInstance().addDatum(toAdd);
+        */
         }
     }
 

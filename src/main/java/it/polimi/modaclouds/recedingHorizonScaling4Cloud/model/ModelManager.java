@@ -71,6 +71,8 @@ public class ModelManager {
 					tempThreshold.setValue(Float.parseFloat(rtt.getAttribute("value")));
 				}
 				
+				toAdd.getApplicationTier().add(tempTier);
+				
 				
 			}
 			
