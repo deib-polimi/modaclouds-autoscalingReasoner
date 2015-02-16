@@ -16,20 +16,20 @@
  */
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.sshConnector;
 
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.OptimizationExecution;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigDictionary;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 
 import java.io.File;
 import java.util.List;
-
-import util.ConfigDictionary;
-import util.ConfigManager;
 
 //this class is used to create connection to AMPL server (wrapper)
 public class SshAdapter {
 
 	// main execution function
-	public static void run(List<OptimizationExecution> executions) {
+	public static void run(Containers containers) {
 		
 		
 		// this block uploads files data.dat and AMPL.run on AMPL server
@@ -37,10 +37,10 @@ public class SshAdapter {
 		
 		
 		
-		for(OptimizationExecution ex: executions){
+		for(Container c: containers.getContainer()){
 			
 			
-			File dir = new File("executions/execution_"+ex.toString()+"/IaaS_1");
+			File dir = new File("executions/execution_"+c.toString()+"/IaaS_1");
 			File[] directoryListing = dir.listFiles();
 				
 				
@@ -67,7 +67,7 @@ public class SshAdapter {
 			
 			ScpFrom newScpFrom = new ScpFrom();
 			
-			newScpFrom.receivefile("executions/execution_"+ex.toString()+"/IaaS_1/output.out",
+			newScpFrom.receivefile("executions/execution_"+c.toString()+"/IaaS_1/output.out",
 					ConfigManager.getConfig(ConfigDictionary.OPTIMIZATION_OUTPUT_FILE));			
 	
 

@@ -18,8 +18,8 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.sshConnector;
 
 import com.jcraft.jsch.*;
 
-import util.ConfigDictionary;
-import util.ConfigManager;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigDictionary;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 import it.polimi.modaclouds.space4cloud.milp.ssh.ScpTo.MyUserInfo;
 
 import javax.swing.*;

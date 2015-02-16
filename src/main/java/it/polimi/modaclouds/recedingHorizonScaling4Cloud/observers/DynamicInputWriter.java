@@ -12,7 +12,7 @@ import com.hp.hpl.jena.sparql.algebra.optimize.Optimize;
 public class DynamicInputWriter {
 
 	public DynamicInputWriter() {
-		ExampleObserver observer = new ExampleObserver(8176);
+		Observer observer = new Observer(8176);
 		try {
 			observer.start();
 		} catch (Exception e) {

@@ -1,4 +1,4 @@
-package util;
+package it.polimi.modaclouds.recedingHorizonScaling4Cloud.util;
 
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
@@ -36,7 +36,7 @@ public class ExecutionOutputParser {
 			br = new BufferedReader(new FileReader(pathToOutput));
 			String line;
 			
-			for(int i=1; i<= toUpdate.getnClasses();i++){
+			for(int i=1; i<= toUpdate.getApplicationTier().size();i++){
 				boolean finded=false;
 				
 				while ((line = br.readLine()) != null && finded==false) {
@@ -45,7 +45,7 @@ public class ExecutionOutputParser {
 						System.out.println(line);
 						String[] splitted= line.split("\\s+");
 						System.out.println(splitted[8]);
-						toUpdate.updateExecutionResult(i, Integer.parseInt(splitted[8]));
+						//toUpdate.updateExecutionResult(i, Integer.parseInt(splitted[8]));
 					}
 					
 				}

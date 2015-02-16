@@ -28,9 +28,9 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.UserInfo;
 
-import util.ConfigDictionary;
-import util.ConfigManager;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigDictionary;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 import it.polimi.modaclouds.space4cloud.milp.ssh.ScpTo.MyUserInfo;
 
 //this class allows to execute commands on AMPL server

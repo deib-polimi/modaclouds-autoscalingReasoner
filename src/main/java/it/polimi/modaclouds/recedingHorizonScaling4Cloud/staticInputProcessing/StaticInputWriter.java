@@ -1,4 +1,4 @@
-package staticInputProcessing;
+package it.polimi.modaclouds.recedingHorizonScaling4Cloud.staticInputProcessing;
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;

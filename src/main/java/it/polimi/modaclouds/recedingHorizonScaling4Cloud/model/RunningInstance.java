@@ -15,15 +15,16 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for functionality complex type.
+ * <p>Java class for runningInstance complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="functionality">
+ * &lt;complexType name="runningInstance">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;attribute name="id" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       &lt;attribute name="remainingChargedMinute" use="required" type="{http://www.w3.org/2001/XMLSchema}int" />
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -32,11 +33,13 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "functionality")
-public class Functionality {
+@XmlType(name = "runningInstance")
+public class RunningInstance {
 
     @XmlAttribute(name = "id", required = true)
     protected String id;
+    @XmlAttribute(name = "remainingChargedMinute", required = true)
+    protected int remainingChargedMinute;
 
     /**
      * Gets the value of the id property.
@@ -60,6 +63,22 @@ public class Functionality {
      */
     public void setId(String value) {
         this.id = value;
+    }
+
+    /**
+     * Gets the value of the remainingChargedMinute property.
+     * 
+     */
+    public int getRemainingChargedMinute() {
+        return remainingChargedMinute;
+    }
+
+    /**
+     * Sets the value of the remainingChargedMinute property.
+     * 
+     */
+    public void setRemainingChargedMinute(int value) {
+        this.remainingChargedMinute = value;
     }
 
 }

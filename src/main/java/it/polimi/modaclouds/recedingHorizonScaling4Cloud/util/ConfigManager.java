@@ -1,9 +1,9 @@
-package util;
+package it.polimi.modaclouds.recedingHorizonScaling4Cloud.util;
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.OptimizationExecution;
-
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -31,20 +31,20 @@ public class ConfigManager {
 
 
 	
-	public void inizializeFileSystem(List<OptimizationExecution> executions) throws ProjectFileSystemException{
+	public void inizializeFileSystem(Containers containers) throws ProjectFileSystemException{
 
 		File file = null;
 		
 		
 		this.clearFileSystem();
 		
-		for(OptimizationExecution ex: executions){
-			file = new File("executions/execution_"+ex.toString()+"/IaaS_1");
+		for(Container c: containers.getContainer()){
+			file = new File("executions/execution_"+c.toString()+"/IaaS_1");
 			boolean success=file.mkdirs();
 			
 			if(!success)
 				throw new ProjectFileSystemException("Error initializing the project file system: the following folder cannot be created: "
-						+ "executions/execution_"+ex.toString()+"/IaaS_1");
+						+ "executions/execution_"+c.toString()+"/IaaS_1");
 
 		}
 		

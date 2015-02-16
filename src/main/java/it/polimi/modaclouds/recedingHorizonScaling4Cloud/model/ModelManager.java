@@ -1,11 +1,11 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.model;
 
 
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.GenericXMLHelper;
+
 import java.nio.file.Path;
 
 import org.w3c.dom.Element;
-
-import util.GenericXMLHelper;
 
 public class ModelManager {
 	
@@ -15,7 +15,7 @@ public class ModelManager {
 	
 
 	
-	public static ModelManager getModel() {
+	public static ModelManager getInstance() {
 		if (instance == null) {
 			
 			instance=new ModelManager();
@@ -24,7 +24,15 @@ public class ModelManager {
 		return instance;
 	}
 	
-	private void loadModel(String pathToSourceModel){
+	public Containers getModel(){
+		if(this.model!=null){
+			return this.model;
+		}
+		
+		return null;
+	}
+	
+	public void loadModel(String pathToSourceModel){
 		
 		ObjectFactory factory=new ObjectFactory();
 		this.model=factory.createContainers();
