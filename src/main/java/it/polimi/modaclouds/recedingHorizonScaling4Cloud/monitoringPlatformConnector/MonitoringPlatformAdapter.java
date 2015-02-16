@@ -76,11 +76,11 @@ public class MonitoringPlatformAdapter {
 			Client client = Client.create();
 	 
 			WebResource webResource = client
-			   .resource("http://"+this.monitoringPlatformIP+":8170/v1/metrics/"+targetMetric+"/");
+			   .resource("http://"+this.monitoringPlatformIP+":8170/v1/metrics/"+targetMetric+"/observers");
 	 
 			String input = "http://"+observerIP+":"+observerPort+"/v1/results";
 			
-			ClientResponse response = webResource.type("application/json")
+			ClientResponse response = webResource
 			   .post(ClientResponse.class, input);
 	 
 			if (response.getStatus() != 201) {

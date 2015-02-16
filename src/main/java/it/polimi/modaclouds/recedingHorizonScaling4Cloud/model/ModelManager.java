@@ -69,6 +69,7 @@ public class ModelManager {
 					
 					tempThreshold.setHour(Integer.parseInt(rtt.getAttribute("hour")));
 					tempThreshold.setValue(Float.parseFloat(rtt.getAttribute("value")));
+					tempTier.getResponseTimeThreshold().add(tempThreshold);
 				}
 				
 				toAdd.getApplicationTier().add(tempTier);

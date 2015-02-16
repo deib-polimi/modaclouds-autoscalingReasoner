@@ -3,9 +3,12 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.staticInputProcessing;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
+
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 
 public class StaticInputWriter {
@@ -30,33 +33,28 @@ public class StaticInputWriter {
 			this.writeFile("rho.dat", c.toString(), "let rho:=\n"
 					+ c.getReservedCost() + "\n;");
 			
-			
+			int cont=1;
 			for(ApplicationTier t: c.getApplicationTier()){
 				
-				this.writeFile("Rcross.dat", "Execution "+i, Float.toString(t.getResponseTimeThreshold().get(0).getValue()));
+				this.writeFile("Rcross.dat", c.toString(), "let Rcross["+cont+"]:=\n"+Float.toString(t.getResponseTimeThreshold().get(0).getValue())+"\n;");
+				cont++;
 			}
 					
 			i++;
 		}
 	}
 
-	// problema: sovrascrive i file conteneti parametri vettoriale: modificare per eseguire solo un "append"
 	private void writeFile(String fileName, String execution,
 			String fileContent) {
 		FileWriter fw = null;
 		File file = null;
-		
-		
-			try {
-				file = new File("executions/execution_"+execution+"/IaaS_1/" + fileName);
-				file.createNewFile();
-				fw = new FileWriter(file);
-				fw.append(fileContent);
-				fw.flush();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+		file = new File("executions/execution_"+execution+"/IaaS_1/" + fileName);
 
+		try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file, true)))) {
+		    out.println(fileContent);
+		}catch (IOException e) {
+		e.printStackTrace();
+		}
 	}
 	
 }

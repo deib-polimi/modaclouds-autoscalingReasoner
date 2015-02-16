@@ -6,11 +6,14 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl;
 import it.polimi.modaclouds.qos_models.schema.MonitoringRule;
 import it.polimi.modaclouds.qos_models.schema.MonitoringRules;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector.SimpleEchoSocket;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector.MonitoringPlatformAdapter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.observers.Observer;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.sshConnector.SshAdapter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.staticInputProcessing.StaticInputWriter;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ExecutionOutputParser;
 import it.polimi.modaclouds.space4cloud.milp.ssh.SshConnector;
 
@@ -28,6 +31,17 @@ public class AdaptationController {
 			MonitoringPlatformAdapter mp=new MonitoringPlatformAdapter("54.154.45.180");
 			
 			Observer tempObs;
+			
+			ConfigManager cm=new ConfigManager();
+			
+			try {
+				
+				cm.loadConfiguration();
+				cm.inizializeFileSystem(mm.getModel());
+			} catch (ConfigurationFileException | ProjectFileSystemException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		
 
 			
@@ -57,8 +71,8 @@ public class AdaptationController {
 			}
 
 			//costruisce i file di tipo statico per molinari
-			//StaticInputWriter siw= new StaticInputWriter();
-			//siw.writeStaticInput(mm.getModel());
+			StaticInputWriter siw= new StaticInputWriter();
+			siw.writeStaticInput(mm.getModel());
 			
 			
 			
