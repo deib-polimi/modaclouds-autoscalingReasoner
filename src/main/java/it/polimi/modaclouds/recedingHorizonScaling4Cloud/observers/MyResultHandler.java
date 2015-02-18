@@ -7,6 +7,7 @@ import java.util.Map;
 import it.polimi.modaclouds.monitoring.metrics_observer.MonitoringDatum;
 import it.polimi.modaclouds.monitoring.metrics_observer.MonitoringDatumHandler;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl.AdaptationController;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
 
 
 public class MyResultHandler extends MonitoringDatumHandler {
@@ -19,7 +20,14 @@ public class MyResultHandler extends MonitoringDatumHandler {
 		+ monitoringDatum.getResourceId() + ","
 		+ monitoringDatum.getMetric() + ","
 		+ monitoringDatum.getValue() + ","
-		+ monitoringDatum.getTimestamp());
+		+ monitoringDatum.getTimestamp());		
+
+		if(monitoringDatum.getMetric().equals("EstimatedDemand")){
+			ModelManager.updateDemand(monitoringDatum.getResourceId(), new Float(monitoringDatum.getValue()));
+		}
+		else if(monitoringDatum.getMetric().contains("ForecastedWorkload")){
+			ModelManager.updateWorkloadPrediction(monitoringDatum.getResourceId(), monitoringDatum.getMetric(), new Float(monitoringDatum.getValue()));
+		}
 
 		/*
 		SDADatum toAdd= new SDADatum();

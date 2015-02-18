@@ -25,9 +25,13 @@ public class AdaptationController {
 	public static void main(String[] args) {
 
 			ModelManager mm=ModelManager.getInstance();
-		
+			//path al modello di design dato in input come argomento/prelevato dall'object store
 			mm.loadModel("/home/mik/workspace/recedingHorizonScaling4Cloud/resource/outputModelExample.xml");
-
+			
+			//orizzonta predittivo da considerare dato in inpout come argomento
+			mm.setOptimizationHorizon(1);
+			
+			//IP della MP dato in input come argomento
 			MonitoringPlatformAdapter mp=new MonitoringPlatformAdapter("54.154.45.180");
 			
 			Observer tempObs;
@@ -65,13 +69,13 @@ public class AdaptationController {
 			
 			
 			//costruisce ed installa le regole per il monitoraggio del workload a livello di tier applicativo
-			for(int i=0; i<1;i++){
+			for(int i=1; i<=mm.getOptimizationHorizon();i++){
 				MonitoringRules workloadRules=mp.buildWorkloadForecastRule(mm.getModel(), i);
 					mp.installRules(workloadRules);
 		
 				
 				//installa gli observer necessari per ricevere il workload monitoraton e lancia l'observer relativo
-				mp.attachObserver("ForecastedWorkload"+i, "131.175.135.243", Integer.toString(8180+i));
+				mp.attachObserver("ForecastedWorkload"+i, "131.175.135.243", Integer.toString(8180+i-1));
 				tempObs=new Observer(8180+i);
 				try {
 					tempObs.start();
@@ -88,12 +92,12 @@ public class AdaptationController {
 			
 			
 			//test observer
+			//va tutto parametrizzato compresi i nomi delle metriche scelti, l'ip della macchia su cui si trova il componente e òle porte da utilizzare
 			mp.attachObserver("FrontendCPUUtilization", "131.175.135.243", "8177");
 			tempObs=new Observer(8177);
 			try {
 				tempObs.start();
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 

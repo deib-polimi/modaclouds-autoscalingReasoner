@@ -20,33 +20,30 @@ public class StaticInputWriter {
 	public void writeStaticInput(Containers containers) {
 
 		
-		int i=1;
 		
 		for (Container c : containers.getContainer()) {
 			
-			this.writeFile("C.dat", c.toString(), "let C:=\n"
+			writeFile("C.dat", c.toString(), "let C:=\n"
 					+ c.getCapacity() + "\n;");
-			this.writeFile("W.dat", c.toString(), "let W:=\n"
+			writeFile("W.dat", c.toString(), "let W:=\n"
 					+ c.getMaxReserved() + "\n;");
-			this.writeFile("delta.dat", c.toString(),
+			writeFile("delta.dat", c.toString(),
 					"let delta:=\n" + c.getOnDemandCost() + "\n;");
-			this.writeFile("rho.dat", c.toString(), "let rho:=\n"
+			writeFile("rho.dat", c.toString(), "let rho:=\n"
 					+ c.getReservedCost() + "\n;");
 			
 			int cont=1;
 			for(ApplicationTier t: c.getApplicationTier()){
 				
-				this.writeFile("Rcross.dat", c.toString(), "let Rcross["+cont+"]:=\n"+Float.toString(t.getResponseTimeThreshold().get(0).getValue())+"\n;");
+				writeFile("Rcross.dat", c.toString(), "let Rcross["+cont+"]:=\n"+Float.toString(t.getResponseTimeThreshold().get(0).getValue())+"\n;");
 				cont++;
 			}
 					
-			i++;
 		}
 	}
 
-	private void writeFile(String fileName, String execution,
+	public static void writeFile(String fileName, String execution,
 			String fileContent) {
-		FileWriter fw = null;
 		File file = null;
 		file = new File("executions/execution_"+execution+"/IaaS_1/" + fileName);
 
