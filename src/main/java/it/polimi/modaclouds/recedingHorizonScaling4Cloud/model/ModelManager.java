@@ -4,6 +4,10 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.model;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.GenericXMLHelper;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.w3c.dom.Element;
 
@@ -13,12 +17,17 @@ public class ModelManager {
 	private static ModelManager instance=null;
 	private Containers model;
 	
-
+	private Map<String,TierTempRuntimeData> tempData;
+	
+	private ModelManager(){
+		this.tempData=new HashMap<String, TierTempRuntimeData>();
+	}
 	
 	public static ModelManager getInstance() {
 		if (instance == null) {
 			
 			instance=new ModelManager();
+			
 
 		}
 		return instance;

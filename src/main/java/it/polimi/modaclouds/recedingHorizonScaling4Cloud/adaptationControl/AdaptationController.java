@@ -55,6 +55,12 @@ public class AdaptationController {
 			//installa gli observer necessari per ricevere la demand stimaTA e lancia lobserver relativo
 			mp.attachObserver("EstimatedDemand", "131.175.135.243", "8179");
 			tempObs=new Observer(8179);
+			try {
+				tempObs.start();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
 			
 			
@@ -67,6 +73,12 @@ public class AdaptationController {
 				//installa gli observer necessari per ricevere il workload monitoraton e lancia l'observer relativo
 				mp.attachObserver("ForecastedWorkload"+i, "131.175.135.243", Integer.toString(8180+i));
 				tempObs=new Observer(8180+i);
+				try {
+					tempObs.start();
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 
 			}
 
@@ -75,7 +87,16 @@ public class AdaptationController {
 			siw.writeStaticInput(mm.getModel());
 			
 			
-			
+			//test observer
+			mp.attachObserver("FrontendCPUUtilization", "131.175.135.243", "8177");
+			tempObs=new Observer(8177);
+			try {
+				tempObs.start();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
 	
 		}
 	
@@ -118,6 +139,11 @@ public class AdaptationController {
 			
 			SimpleEchoSocket cloudMLconn=new SimpleEchoSocket();
 			
+		}
+		
+		
+		public static void printObserved(String toPrint){
+			System.out.println(toPrint);
 		}
 		
 		

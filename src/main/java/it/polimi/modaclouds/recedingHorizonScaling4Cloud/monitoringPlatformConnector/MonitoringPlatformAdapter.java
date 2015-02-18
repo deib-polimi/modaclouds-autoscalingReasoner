@@ -42,9 +42,7 @@ public class MonitoringPlatformAdapter {
 			StringWriter sw = new StringWriter();
 			
 			marshaller.marshal(toInstall,sw);
-			
-			System.out.println(sw.toString());
-			
+						
 			Client client = Client.create();
 	 
 			WebResource webResource = client
@@ -59,10 +57,11 @@ public class MonitoringPlatformAdapter {
 				     + response.getStatus());
 			}
 	 
+			/*
 			System.out.println("Output from Server .... \n");
 			String output = response.getEntity(String.class);
 			System.out.println(output);
-	 
+			 */
 		  } catch (Exception e) {
 	 
 			e.printStackTrace();
@@ -80,6 +79,8 @@ public class MonitoringPlatformAdapter {
 	 
 			String input = "http://"+observerIP+":"+observerPort+"/v1/results";
 			
+			System.out.println(input);
+			
 			ClientResponse response = webResource
 			   .post(ClientResponse.class, input);
 	 
@@ -88,10 +89,11 @@ public class MonitoringPlatformAdapter {
 				     + response.getStatus());
 			}
 	 
+			
 			System.out.println("Output from Server .... \n");
 			String output = response.getEntity(String.class);
 			System.out.println(output);
-	 
+	 		
 		  } catch (Exception e) {
 	 
 			e.printStackTrace();
