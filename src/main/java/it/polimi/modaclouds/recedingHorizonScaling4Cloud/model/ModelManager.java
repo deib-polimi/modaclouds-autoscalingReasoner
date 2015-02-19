@@ -1,7 +1,8 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.model;
 
 
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.staticInputProcessing.StaticInputWriter;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl.AdaptationController;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.staticInputProcessing.OptimizerInputWriter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.GenericXMLHelper;
 
 import java.nio.file.Path;
@@ -18,20 +19,21 @@ public class ModelManager {
 	private static ModelManager instance=null;
 	private static Containers model;
 	
-	private static int optimizatiopnHorizon;
+	private static int optimizationHorizon;
 	
 	private static Map<String,TierTempRuntimeData> tempMonitoringData;
 	
 	private ModelManager(){
 		tempMonitoringData=new HashMap<String, TierTempRuntimeData>();
+		
 	}
 	
 	public void setOptimizationHorizon(int horizon){
-		this.optimizatiopnHorizon=horizon;
+		optimizationHorizon=horizon;
 	}
 	
 	public int getOptimizationHorizon(){
-		return this.optimizatiopnHorizon;
+		return optimizationHorizon;
 	}
 	
 	public static ModelManager getInstance() {
@@ -94,7 +96,7 @@ public class ModelManager {
 				
 				toAdd.getApplicationTier().add(tempTier);
 				
-				
+				tempMonitoringData.put(tempTier.getId(), new TierTempRuntimeData(tempTier.getFunctionality().size(), optimizationHorizon));
 			}
 			
 			
@@ -107,6 +109,7 @@ public class ModelManager {
 	public static void updateDemand(String monitoredResource, Float monitoredValue){
 		
 		for(String key: tempMonitoringData.keySet() ){			
+			
 			if(key.equals(monitoredResource)){
 				tempMonitoringData.get(key).addDemandValue(monitoredValue);	
 				checkContainerReadyForOptimization(monitoredResource);
@@ -119,12 +122,16 @@ public class ModelManager {
 	}
 	
 	public static void updateWorkloadPrediction(String monitoredResource, String monitoredMetric, Float monitoredValue){
+		
+
 		for(String key: tempMonitoringData.keySet() ){
+			
+
 			if(key.equals(monitoredResource)){
 				
-				for(int i=1; i<=optimizatiopnHorizon; i++){
+				for(int i=1; i<=optimizationHorizon; i++){
 					if(monitoredMetric.contains(Integer.toString(i))){
-						tempMonitoringData.get(key).addWorkloadForecastValuie(monitoredValue, i);	
+						tempMonitoringData.get(key).addWorkloadForecastValue(monitoredValue, i);	
 						checkContainerReadyForOptimization(monitoredResource);
 
 					}
@@ -158,9 +165,56 @@ public class ModelManager {
 	}
 	
 	private static void checkContainerReadyForOptimization(String lastUpdatedTierId){
-		//controlla dopo ogni update di un dato dinamico relativo ad un tier se il tier è pronto e se lo è se sono pronti 
-		//anche tutti gli altri tier coinvolti nell stessa ottimizzazione
-		//solo in caso positivo scrive i file mancanti per l'ottimizzazione (tutti in una volta) e lancia l'ottimizzazione
+		
+		
+		Container toCheck=getContainerByTierId(lastUpdatedTierId);
+		
+		
+		boolean allReady=true;
+		
+		for(ApplicationTier t: toCheck.getApplicationTier()){
+			if(!tempMonitoringData.get(t.getId()).getReady()){
+				allReady=false;
+			}
+		}
+		
+		if(allReady){
+			//aggrega le demand e i workload ricevuti per ogni tier contenuto nel container pronto per l'ottimizzazione
+			//scrive i file mancanti chiamando statiINputWrite
+			//lancia l'ottimizzazione per il container corente
+			
+			int cont=1;
+			for(ApplicationTier t: toCheck.getApplicationTier()){
+				t.setDemand(tempMonitoringData.get(t.getId()).getTierCurrentDemand());
+				
+				for(int i=1; i<=optimizationHorizon; i++){
+					WorkloadForecast tempForecast= new WorkloadForecast();
+					tempForecast.setTimeStepAhead(i);
+					tempForecast.setValue(tempMonitoringData.get(t.id).getTierCurrentWorkloadPredictions()[i-1]);
+					t.getWorkloadForecast().add(tempForecast);
+				}
+				OptimizerInputWriter.writeFile("mu.dat", toCheck.toString(), "let mu["+cont+"]:=\n"+(1/t.getDemand())+"\n;");
+				
+				for(WorkloadForecast wf:t.getWorkloadForecast()){
+					OptimizerInputWriter.writeFile("workload_class"+cont+".dat", toCheck.toString(), "let lambda["+cont+","+wf.getTimeStepAhead()+"]:=\n"+wf.getValue()+"\n;");
+				}
+				cont++;
+			}
+			
+			AdaptationController.applyAdaptation(toCheck.toString());
+		}
+	}
+	
+	private static Container getContainerByTierId(String tierId){
+		for(Container c: model.getContainer()){
+			for(ApplicationTier t: c.getApplicationTier()){
+				if(t.getId().equals(tierId)){
+					return c;
+				}
+			}
+		}
+		
+		return null;
 	}
 
 }

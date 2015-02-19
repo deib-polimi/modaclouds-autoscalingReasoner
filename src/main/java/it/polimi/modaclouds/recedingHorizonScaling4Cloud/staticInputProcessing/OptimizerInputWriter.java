@@ -11,10 +11,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 
-public class StaticInputWriter {
+public class OptimizerInputWriter {
 
 
-	public StaticInputWriter() {	
+	public OptimizerInputWriter() {	
 	}
 
 	public void writeStaticInput(Containers containers) {
