@@ -1,4 +1,4 @@
-package it.polimi.modaclouds.recedingHorizonScaling4Cloud.util;
+package it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing;
 
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
@@ -13,19 +13,19 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Scanner;
 
-public class ExecutionOutputParser {
+public class OptimizerOutputParser {
 
 	private final static Charset ENCODING = StandardCharsets.UTF_8;
 
 	
 	public static void main(String[] args) {
 		
-		ExecutionOutputParser p= new ExecutionOutputParser();
+		OptimizerOutputParser p= new OptimizerOutputParser();
 		p.parseExecutionOutput("executions/execution_model.OptimizationExecution@7049cca1/IaaS_1/output.out", null);
 	}
 	
 	
-	public ExecutionOutputParser(){
+	public OptimizerOutputParser(){
 		
 	}
 	

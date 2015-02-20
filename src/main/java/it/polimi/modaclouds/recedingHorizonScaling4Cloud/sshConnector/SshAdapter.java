@@ -29,7 +29,7 @@ import java.util.List;
 public class SshAdapter {
 
 	// main execution function
-	public static void run(Containers containers) {
+	public static void run(Container c) {
 		
 		
 		// this block uploads files data.dat and AMPL.run on AMPL server
@@ -37,16 +37,15 @@ public class SshAdapter {
 		
 		
 		
-		for(Container c: containers.getContainer()){
 			
 			
-			File dir = new File("executions/execution_"+c.toString()+"/IaaS_1");
+			File dir = new File("executions/execution_"+c.getId()+"/IaaS_1");
 			File[] directoryListing = dir.listFiles();
 				
 				
 			if (directoryListing != null) {
 				for (File child : directoryListing) {
-					System.out.println("sending file");
+					System.out.println("sending file: "+child.toString());
 					newScpTo.sendfile(child.getAbsolutePath(), ConfigManager.getConfig(ConfigDictionary.OPTIMIZATION_INPUT_FOLDER));
 					
 					try {
@@ -67,12 +66,12 @@ public class SshAdapter {
 			
 			ScpFrom newScpFrom = new ScpFrom();
 			
-			newScpFrom.receivefile("executions/execution_"+c.toString()+"/IaaS_1/output.out",
+			newScpFrom.receivefile("executions/execution_"+c.getId()+"/IaaS_1/output.out",
 					ConfigManager.getConfig(ConfigDictionary.OPTIMIZATION_OUTPUT_FILE));			
 	
 
 			
 		}
-	}
+	
 
 }

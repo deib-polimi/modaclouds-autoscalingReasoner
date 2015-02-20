@@ -8,14 +8,15 @@ import it.polimi.modaclouds.qos_models.schema.MonitoringRules;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector.SimpleEchoSocket;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector.MonitoringPlatformAdapter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.observers.FakeObserver;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.observers.Observer;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing.OptimizerOutputParser;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing.OptimizerInputWriter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.sshConnector.SshAdapter;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.staticInputProcessing.OptimizerInputWriter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ExecutionOutputParser;
 import it.polimi.modaclouds.space4cloud.milp.ssh.SshConnector;
 
 
@@ -101,24 +102,21 @@ public class AdaptationController {
 		}
 	
 	
-		public static void applyAdaptation(String containerToAdapt){
-			//scrive file di tipo dinamico
-			
-			//richiama molinari per ogni container per effettuare l ottimizzazione
-			
-			//SshAdapter ssh=new SshAdapter();
-			
-			//ssh.run(ModelManager.getInstance().getModel());
+		public static void applyAdaptation(Container toAdapt){
 			
 			
-			//ExecutionOutputParser outputParser= new ExecutionOutputParser();
+			SshAdapter ssh=new SshAdapter();
+			
+			ssh.run(toAdapt);
 			
 			
-			/*
-			for(OptimizationExecution ex: mm.getExecutions()){
-				outputParser.parseExecutionOutput("executions/execution_"+ex+"/IaaS_1/output.out", ex);
-			}
-			*/
+			OptimizerOutputParser outputParser= new OptimizerOutputParser();
+			
+			
+			
+			outputParser.parseExecutionOutput("executions/execution_"+toAdapt.getId()+"/IaaS_1/output.out", toAdapt);
+			
+			
 			
 			
 			//recupera per ogni ottimizzazione i risultati ed aggiorna il modello richiamando model manager.upodatemodel

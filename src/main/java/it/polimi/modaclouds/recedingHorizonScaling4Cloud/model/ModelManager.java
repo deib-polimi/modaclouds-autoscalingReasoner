@@ -2,7 +2,7 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.model;
 
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl.AdaptationController;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.staticInputProcessing.OptimizerInputWriter;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing.OptimizerInputWriter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.GenericXMLHelper;
 
 import java.nio.file.Path;
@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.w3c.dom.Element;
 
@@ -66,7 +67,7 @@ public class ModelManager {
 			toAdd.setMaxReserved(Integer.parseInt(c.getAttribute("maxReserved")));
 			toAdd.setOnDemandCost(Float.parseFloat(c.getAttribute("onDemandCost")));
 			toAdd.setReservedCost(Float.parseFloat(c.getAttribute("reservedCost")));
-			
+			toAdd.setId(UUID.randomUUID().toString());
 			
 			ApplicationTier tempTier;
 			
@@ -152,7 +153,7 @@ public class ModelManager {
 		
 	}
 	
-	private static ApplicationTier getTierById(String id){
+	public static ApplicationTier getTierById(String id){
 		for(Container c: model.getContainer()){
 			for(ApplicationTier t: c.getApplicationTier()){
 				if(t.getId().equals(id)){
@@ -193,24 +194,39 @@ public class ModelManager {
 					tempForecast.setValue(tempMonitoringData.get(t.id).getTierCurrentWorkloadPredictions()[i-1]);
 					t.getWorkloadForecast().add(tempForecast);
 				}
-				OptimizerInputWriter.writeFile("mu.dat", toCheck.toString(), "let mu["+cont+"]:=\n"+(1/t.getDemand())+"\n;");
+				OptimizerInputWriter.writeFile("mu.dat", toCheck.getId(), "let mu["+cont+"]:=\n"+(1/t.getDemand())+"\n;");
+				OptimizerInputWriter.writeFile("Delay.dat", toCheck.getId(), "let D["+cont+"]:=\n"+0+"\n;");
+
 				
 				for(WorkloadForecast wf:t.getWorkloadForecast()){
-					OptimizerInputWriter.writeFile("workload_class"+cont+".dat", toCheck.toString(), "let lambda["+cont+","+wf.getTimeStepAhead()+"]:=\n"+wf.getValue()+"\n;");
+					OptimizerInputWriter.writeFile("workload_class"+cont+".dat", toCheck.getId(), "let Lambda["+cont+","+wf.getTimeStepAhead()+"]:=\n"+wf.getValue()+"\n;");
 				}
+				
+				//necessary to write also the initialVM.dat file
+				
 				cont++;
 			}
 			
-			AdaptationController.applyAdaptation(toCheck.toString());
+			AdaptationController.applyAdaptation(toCheck);
 		}
 	}
 	
-	private static Container getContainerByTierId(String tierId){
+	public static Container getContainerByTierId(String tierId){
 		for(Container c: model.getContainer()){
 			for(ApplicationTier t: c.getApplicationTier()){
 				if(t.getId().equals(tierId)){
 					return c;
 				}
+			}
+		}
+		
+		return null;
+	}
+	
+	public static Container getContainerById(String containerId){
+		for(Container c:model.getContainer()){
+			if(c.getId().equals(containerId)){
+				return c;
 			}
 		}
 		

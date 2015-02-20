@@ -39,12 +39,12 @@ public class ConfigManager {
 		this.clearFileSystem();
 		
 		for(Container c: containers.getContainer()){
-			file = new File("executions/execution_"+c.toString()+"/IaaS_1");
+			file = new File("executions/execution_"+c.getId()+"/IaaS_1");
 			boolean success=file.mkdirs();
 			
 			if(!success)
 				throw new ProjectFileSystemException("Error initializing the project file system: the following folder cannot be created: "
-						+ "executions/execution_"+c.toString()+"/IaaS_1");
+						+ "executions/execution_"+c.getId()+"/IaaS_1");
 
 		}
 		

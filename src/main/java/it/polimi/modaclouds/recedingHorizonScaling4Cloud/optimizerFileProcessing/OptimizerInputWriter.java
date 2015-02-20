@@ -1,4 +1,4 @@
-package it.polimi.modaclouds.recedingHorizonScaling4Cloud.staticInputProcessing;
+package it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing;
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;
@@ -23,19 +23,22 @@ public class OptimizerInputWriter {
 		
 		for (Container c : containers.getContainer()) {
 			
-			writeFile("C.dat", c.toString(), "let C:=\n"
+			writeFile("C.dat", c.getId(), "let C:=\n"
 					+ c.getCapacity() + "\n;");
-			writeFile("W.dat", c.toString(), "let W:=\n"
+			writeFile("W.dat", c.getId(), "let W:=\n"
 					+ c.getMaxReserved() + "\n;");
-			writeFile("delta.dat", c.toString(),
+			writeFile("delta.dat", c.getId(),
 					"let delta:=\n" + c.getOnDemandCost() + "\n;");
-			writeFile("rho.dat", c.toString(), "let rho:=\n"
+			writeFile("rho.dat", c.getId(), "let rho:=\n"
 					+ c.getReservedCost() + "\n;");
+
 			
 			int cont=1;
 			for(ApplicationTier t: c.getApplicationTier()){
 				
-				writeFile("Rcross.dat", c.toString(), "let Rcross["+cont+"]:=\n"+Float.toString(t.getResponseTimeThreshold().get(0).getValue())+"\n;");
+				writeFile("Rcross.dat", c.getId(), "let Rcross["+cont+"]:=\n"+Float.toString(t.getResponseTimeThreshold().get(0).getValue())+"\n;");
+				writeFile("initialVM.dat", c.getId(), "let Nond["+cont+",1]:=\n"+Integer.toString(t.getInitialNumberOfVMs())+"\n;");
+
 				cont++;
 			}
 					
