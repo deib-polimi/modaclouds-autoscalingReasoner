@@ -11,6 +11,7 @@ import org.eclipse.jetty.websocket.client.WebSocketClient;
 
 import it.polimi.modaclouds.qos_models.schema.MonitoringRule;
 import it.polimi.modaclouds.qos_models.schema.MonitoringRules;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector.CloudMLAdapter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector.ScaleOutSocket;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
@@ -149,7 +150,7 @@ public class AdaptationController {
 		private static void scaleOut(ApplicationTier toScaleOut){
 			
 			
-			
+			/*
 			//CLoutML IP and port required
 			String destUri = "ws://127.0.0.1:9000";
 			
@@ -177,6 +178,10 @@ public class AdaptationController {
 	                e.printStackTrace();
 	            }
 	        }
+	        */
+			CloudMLAdapter cloudml=new CloudMLAdapter("ws://127.0.0.1:9000");
+			
+			cloudml.getDeploymentModel();
 	    
 			
 		}
