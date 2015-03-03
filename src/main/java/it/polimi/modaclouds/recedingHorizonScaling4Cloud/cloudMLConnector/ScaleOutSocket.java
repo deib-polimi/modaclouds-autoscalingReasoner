@@ -14,14 +14,16 @@ import org.eclipse.jetty.websocket.api.annotations.WebSocket;
  * Basic Echo Client Socket
  */
 @WebSocket(maxTextMessageSize = 64 * 1024)
-public class SimpleEchoSocket {
+public class ScaleOutSocket {
  
     private final CountDownLatch closeLatch;
+    
+    public static String instanceToScale;
  
     @SuppressWarnings("unused")
     private Session session;
  
-    public SimpleEchoSocket() {
+    public ScaleOutSocket() {
         this.closeLatch = new CountDownLatch(1);
     }
  
@@ -42,7 +44,7 @@ public class SimpleEchoSocket {
         this.session = session;
         try {
             Future<Void> fut;
-            fut = session.getRemote().sendStringByFuture("!extended { name: ScaleOut, params: [eu-west-1/i-98b2b17c] }");
+            fut = session.getRemote().sendStringByFuture("!extended { name: ScaleOut, params: ["+instanceToScale+"] }");
             fut.get(2, TimeUnit.SECONDS);
             session.close(StatusCode.NORMAL, "I'm done");
         } catch (Throwable t) {

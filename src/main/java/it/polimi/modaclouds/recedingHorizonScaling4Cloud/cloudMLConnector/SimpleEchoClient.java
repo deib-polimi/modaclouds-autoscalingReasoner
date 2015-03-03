@@ -13,7 +13,7 @@ public class SimpleEchoClient {
             destUri = args[0];
         }
         WebSocketClient client = new WebSocketClient();
-        SimpleEchoSocket socket = new SimpleEchoSocket();
+        ScaleOutSocket socket = new ScaleOutSocket();
         try {
             client.start();
             URI echoUri = new URI(destUri);

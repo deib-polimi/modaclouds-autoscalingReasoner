@@ -3,11 +3,18 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl;
 
 
 
+import java.net.URI;
+import java.util.concurrent.TimeUnit;
+
+import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
+import org.eclipse.jetty.websocket.client.WebSocketClient;
+
 import it.polimi.modaclouds.qos_models.schema.MonitoringRule;
 import it.polimi.modaclouds.qos_models.schema.MonitoringRules;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector.SimpleEchoSocket;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector.ScaleOutSocket;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector.MonitoringPlatformAdapter;
@@ -25,15 +32,20 @@ public class AdaptationController {
 
 	
 	public static void main(String[] args) {
+		
 			Thread thread;
 			ModelManager mm=ModelManager.getInstance();
+			
+			
 			//path al modello di design dato in input come argomento/prelevato dall'object store
-			mm.setOptimizationHorizon(1);
 
 			mm.loadModel("/home/mik/workspace/recedingHorizonScaling4Cloud/resource/outputModelExample.xml");
+		
 			
+			/*
 			//orizzonta predittivo da considerare dato in inpout come argomento
-			
+			mm.setOptimizationHorizon(1);
+
 			//IP della MP dato in input come argomento
 			MonitoringPlatformAdapter mp=new MonitoringPlatformAdapter("54.154.45.180");
 			
@@ -97,14 +109,22 @@ public class AdaptationController {
 			System.out.println("sto per lanciare fake");
 			FakeObserver fake=new FakeObserver();
 			fake.startCollectData(mm.getModel(), mm.getOptimizationHorizon());
-
+		
+		
+			*/
+			
+			//working with CloudML
+			
+			applyAdaptation(mm.getModel().getContainer().get(0));
+		
 	
 		}
 	
 	
+		
 		public static void applyAdaptation(Container toAdapt){
 			
-			
+			/*
 			SshAdapter ssh=new SshAdapter();
 			
 			ssh.run(toAdapt);
@@ -115,27 +135,49 @@ public class AdaptationController {
 			
 			
 			outputParser.parseExecutionOutput("executions/execution_"+toAdapt.getId()+"/IaaS_1/output.out", toAdapt);
+			*/
+			
+			
+			// working with cloudml
+			scaleOut(toAdapt.getApplicationTier().get(0));
+
+			
+
+			
+		}
+	
+		private static void scaleOut(ApplicationTier toScaleOut){
 			
 			
 			
+			//CLoutML IP and port required
+			String destUri = "ws://127.0.0.1:9000";
 			
-			//recupera per ogni ottimizzazione i risultati ed aggiorna il modello richiamando model manager.upodatemodel
+			//retreive instance toscale asking CLoudML model via web socket
 			
-			//DynamicInputWriter diw= new DynamicInputWriter();
+			ScaleOutSocket.instanceToScale="eu-west-1/i-8b891f6c";
+
 			
-			//diw.writeDynamicInput(mm.getExecutions());
-			
-			//SUYPPLING THE STILL NOT AVAILABLE INPUT FILES
-			
-			//InputSupplier newSupplier= new InputSupplier();
-			
-			//for(OptimizationExecution ex: mm.getExecutions()){
-			//	newSupplier.supplyInput(ex.toString());
-			
-			//invoca il connettore con cloudml passandogli il modello e questo tramite il suo modello interno 
-			//effettua tutte le verifiche (temporizzazioni) necessarie per decidere quante macchine effettivamente vanno inizializzate da zero ecc
-			
-			//SimpleEchoSocket cloudMLconn=new SimpleEchoSocket();
+			//run scaling
+	        WebSocketClient client = new WebSocketClient();
+	        ScaleOutSocket socket = new ScaleOutSocket();
+	        try {
+	            client.start();
+	            URI echoUri = new URI(destUri);
+	            ClientUpgradeRequest request = new ClientUpgradeRequest();
+	            client.connect(socket, echoUri, request);
+	            System.out.printf("Connecting to : %s%n", echoUri);
+	            socket.awaitClose(5, TimeUnit.SECONDS);
+	        } catch (Throwable t) {
+	            t.printStackTrace();
+	        } finally {
+	            try {
+	                client.stop();
+	            } catch (Exception e) {
+	                e.printStackTrace();
+	            }
+	        }
+	    
 			
 		}
 		

@@ -205,9 +205,13 @@ public class ModelManager {
 				//necessary to write also the initialVM.dat file
 				
 				cont++;
+				
+
 			}
 			
 			AdaptationController.applyAdaptation(toCheck);
+
+			
 		}
 	}
 	
