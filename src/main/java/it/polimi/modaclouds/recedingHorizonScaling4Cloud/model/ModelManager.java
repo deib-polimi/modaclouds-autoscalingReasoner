@@ -23,9 +23,11 @@ public class ModelManager {
 	private static int optimizationHorizon;
 	
 	private static Map<String,TierTempRuntimeData> tempMonitoringData;
+	private static Map<String,Integer> algorithmTierIndexes;
 	
 	private ModelManager(){
 		tempMonitoringData=new HashMap<String, TierTempRuntimeData>();
+		algorithmTierIndexes=new HashMap<String, Integer>();
 		
 	}
 	
@@ -57,6 +59,7 @@ public class ModelManager {
 	
 	public void loadModel(String pathToSourceModel){
 		
+		
 		ObjectFactory factory=new ObjectFactory();
 		model=factory.createContainers();
 		GenericXMLHelper xmlHelper= new GenericXMLHelper(pathToSourceModel);
@@ -70,6 +73,8 @@ public class ModelManager {
 			toAdd.setId(UUID.randomUUID().toString());
 			
 			ApplicationTier tempTier;
+			
+			int index=1;
 			
 			for(Element t: xmlHelper.getElements(c, "applicationTier")){
 				tempTier= factory.createApplicationTier();
@@ -98,6 +103,8 @@ public class ModelManager {
 				toAdd.getApplicationTier().add(tempTier);
 				
 				tempMonitoringData.put(tempTier.getId(), new TierTempRuntimeData(tempTier.getFunctionality().size(), optimizationHorizon));
+				algorithmTierIndexes.put(tempTier.getId(), new Integer(index));
+
 			}
 			
 			
@@ -131,7 +138,7 @@ public class ModelManager {
 			if(key.equals(monitoredResource)){
 				
 				for(int i=1; i<=optimizationHorizon; i++){
-					if(monitoredMetric.contains(Integer.toString(i))){
+					if(monitoredMetric.contains(Integer.toString(i))){						
 						tempMonitoringData.get(key).addWorkloadForecastValue(monitoredValue, i);	
 						checkContainerReadyForOptimization(monitoredResource);
 
@@ -183,9 +190,9 @@ public class ModelManager {
 			//aggrega le demand e i workload ricevuti per ogni tier contenuto nel container pronto per l'ottimizzazione
 			//scrive i file mancanti chiamando statiINputWrite
 			//lancia l'ottimizzazione per il container corente
-			
-			int cont=1;
+			int index;
 			for(ApplicationTier t: toCheck.getApplicationTier()){
+				index=algorithmTierIndexes.get(t.getId()).intValue();
 				t.setDemand(tempMonitoringData.get(t.getId()).getTierCurrentDemand());
 				
 				for(int i=1; i<=optimizationHorizon; i++){
@@ -194,17 +201,15 @@ public class ModelManager {
 					tempForecast.setValue(tempMonitoringData.get(t.id).getTierCurrentWorkloadPredictions()[i-1]);
 					t.getWorkloadForecast().add(tempForecast);
 				}
-				OptimizerInputWriter.writeFile("mu.dat", toCheck.getId(), "let mu["+cont+"]:=\n"+(1/t.getDemand())+"\n;");
-				OptimizerInputWriter.writeFile("Delay.dat", toCheck.getId(), "let D["+cont+"]:=\n"+0+"\n;");
+				OptimizerInputWriter.writeFile("mu.dat", toCheck.getId(), "let mu["+index+"]:=\n"+(1/t.getDemand())+"\n;");
+				OptimizerInputWriter.writeFile("Delay.dat", toCheck.getId(), "let D["+index+"]:=\n"+0+"\n;");
 
 				
 				for(WorkloadForecast wf:t.getWorkloadForecast()){
-					OptimizerInputWriter.writeFile("workload_class"+cont+".dat", toCheck.getId(), "let Lambda["+cont+","+wf.getTimeStepAhead()+"]:=\n"+wf.getValue()+"\n;");
+					OptimizerInputWriter.writeFile("workload_class"+index+".dat", toCheck.getId(), "let Lambda["+index+","+wf.getTimeStepAhead()+"]:=\n"+wf.getValue()+"\n;");
 				}
 				
-				//necessary to write also the initialVM.dat file
 				
-				cont++;
 				
 
 			}
@@ -235,6 +240,15 @@ public class ModelManager {
 		}
 		
 		return null;
+	}
+
+	public static Map<String, Integer> getAlgorithmTierIndexes() {
+		return algorithmTierIndexes;
+	}
+
+	public static void setAlgorithmTierIndexes(
+			Map<String, Integer> algorithmTierIndexes) {
+		ModelManager.algorithmTierIndexes = algorithmTierIndexes;
 	}
 
 }

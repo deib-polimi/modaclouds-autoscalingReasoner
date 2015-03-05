@@ -3,6 +3,9 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
 import org.java_websocket.handshake.ServerHandshake;
+
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl.AdaptationController;
+
 import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,7 +15,6 @@ import java.util.logging.Logger;
  */
 public class ScalingWSClient extends WebSocketClient {
 	private Boolean connected = false;
-	private boolean forwardOutput=false;
 	private static final Logger journal = Logger
 			.getLogger(ScalingWSClient.class.getName());
 
@@ -20,10 +22,7 @@ public class ScalingWSClient extends WebSocketClient {
 		super(serverURI, new Draft_17());
 	}
 	
-	public void setForwardOutput(){
-		this.forwardOutput=true;
-	}
-
+	
 	@Override
 	public void onOpen(ServerHandshake serverHandshake) {
 		journal.log(Level.INFO, ">> Connected to the CloudML server");
@@ -32,13 +31,11 @@ public class ScalingWSClient extends WebSocketClient {
 
 	@Override
 	public void onMessage(String s) {
+		journal.log(Level.INFO, ">> " + s);
+
+		AdaptationController.handleCloudMLResponse(s);
+
 		
-		if(this.forwardOutput){
-			CloudMLAdapter.receiveDeploymentModel(s);
-			this.forwardOutput=false;
-		}else{
-			journal.log(Level.INFO, ">> " + s);
-		}
 	}
 
 	@Override

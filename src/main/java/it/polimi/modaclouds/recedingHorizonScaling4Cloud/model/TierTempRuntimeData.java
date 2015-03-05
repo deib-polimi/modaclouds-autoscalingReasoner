@@ -47,7 +47,7 @@ public class TierTempRuntimeData {
 	}
 	
 	public void addWorkloadForecastValue(Float value, int timestepPrediction){
-				
+
 		this.functWorkloadForecast.get(Integer.valueOf(timestepPrediction)).add(value);
 		
 		if(this.functWorkloadForecast.get(Integer.valueOf(timestepPrediction)).size()==this.nFunct){

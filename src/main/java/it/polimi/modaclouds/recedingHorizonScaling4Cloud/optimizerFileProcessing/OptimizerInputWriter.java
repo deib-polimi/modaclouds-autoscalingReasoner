@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Map;
 
 
 public class OptimizerInputWriter {
@@ -17,7 +18,7 @@ public class OptimizerInputWriter {
 	public OptimizerInputWriter() {	
 	}
 
-	public void writeStaticInput(Containers containers) {
+	public void writeStaticInput(Containers containers, Map<String,Integer> algorithmTierIndexes) {
 
 		
 		
@@ -32,14 +33,10 @@ public class OptimizerInputWriter {
 			writeFile("rho.dat", c.getId(), "let rho:=\n"
 					+ c.getReservedCost() + "\n;");
 
-			
-			int cont=1;
+			int index;
 			for(ApplicationTier t: c.getApplicationTier()){
-				
-				writeFile("Rcross.dat", c.getId(), "let Rcross["+cont+"]:=\n"+Float.toString(t.getResponseTimeThreshold().get(0).getValue())+"\n;");
-				writeFile("initialVM.dat", c.getId(), "let Nond["+cont+",1]:=\n"+Integer.toString(t.getInitialNumberOfVMs())+"\n;");
-
-				cont++;
+				index=algorithmTierIndexes.get(t.getId()).intValue();
+				writeFile("Rcross.dat", c.getId(), "let Rcross["+index+"]:=\n"+Float.toString(t.getResponseTimeThreshold().get(0).getValue())+"\n;");
 			}
 					
 		}

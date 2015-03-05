@@ -1,7 +1,11 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector;
 
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
+
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.cloudml.facade.RemoteFacade;
 import org.cloudml.facade.commands.*;
@@ -11,11 +15,12 @@ import org.json.JSONException;
 
 public class CloudMLAdapter {
 	
-	private RemoteFacade facade=new RemoteFacade("ws://127.0.0.1:9000");
-	private ScalingWSClient wsClient;
+	private static ScalingWSClient wsClient;
 	private Thread t;
+	private static String lastCommand;
 	
 	public CloudMLAdapter(String serverURI){
+				
 		
 		try {
 		wsClient=new ScalingWSClient(new URI(serverURI));
@@ -32,21 +37,16 @@ public class CloudMLAdapter {
 	}
 	
 	public void scaleOut(ScaleOut command) {
-		wsClient.send("!extended { name: ScaleOut, params: ["+command.getVmId()+"] }");
+			wsClient.send("!extended { name: ScaleOut, params: ["+command.getVmId()+"] }");
+		
 	}
 	
 	public void getDeploymentModel() {
-		wsClient.setForwardOutput();
+		
 		wsClient.send("!getSnapshot { path : / }");
 	}
 	
-	public static void receiveDeploymentModel(String model){
-		try {  
-			
-			JSONObject jsonObject = new JSONObject(model.substring(27));
-				System.out.println("\n\njsonArray: " + jsonObject.toString());
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
+	public void updateRunningInstances(String tierId){
+		
 	}
 }
