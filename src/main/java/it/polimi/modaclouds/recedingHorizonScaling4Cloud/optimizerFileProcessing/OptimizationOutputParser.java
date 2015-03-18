@@ -15,45 +15,36 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Scanner;
 
-public class OptimizerOutputParser {
+public class OptimizationOutputParser {
 
 	private final static Charset ENCODING = StandardCharsets.UTF_8;
 
+
 	
-	public static void main(String[] args) {
-		
-		OptimizerOutputParser p= new OptimizerOutputParser();
-		p.parseExecutionOutput("executions/execution_model.OptimizationExecution@7049cca1/IaaS_1/output.out", null);
-	}
-	
-	
-	public OptimizerOutputParser(){
+	public OptimizationOutputParser(){
 		
 	}
 	
-	public int[] parseExecutionOutput(String pathToOutput, Container toUpdate){
+	public int[] parseExecutionOutput(String pathToOutput, int nTier){
 		
 		BufferedReader br;
 		
-		int[] toReturn=new int[toUpdate.getApplicationTier().size()];
+		int[] toReturn=new int[nTier];
 		try {
 			br = new BufferedReader(new FileReader(pathToOutput));
 			String line;
 			int cont=0;
 			
-			for(int i=1; i<= toUpdate.getApplicationTier().size();i++){
+			for(int i=0; i< nTier;i++){
 				boolean finded=false;
 				
 				while ((line = br.readLine()) != null && finded==false) {
-					if(line.startsWith(String.valueOf(i))){
+					if(line.startsWith(String.valueOf(i+1))){
 						finded=true;
 						System.out.println(line);
 						String[] splitted= line.split("\\s+");
 						System.out.println(splitted[8]);
-						String tierId;
 						toReturn[i]=Integer.parseInt(splitted[8]);
-
-						//toUpdate.updateExecutionResult(i, Integer.parseInt(splitted[8]));
 					}
 					
 				}

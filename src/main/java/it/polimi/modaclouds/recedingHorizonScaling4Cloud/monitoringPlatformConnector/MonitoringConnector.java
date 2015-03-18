@@ -21,13 +21,13 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
 
-public class MonitoringPlatformAdapter {
+public class MonitoringConnector {
 	
 	
 	private String monitoringPlatformIP;
 	private ObjectFactory factory=new ObjectFactory();
 	
-	public MonitoringPlatformAdapter(String monitoringPlatformIP){
+	public MonitoringConnector(String monitoringPlatformIP){
 		this.monitoringPlatformIP=monitoringPlatformIP;
 	}
 	
@@ -294,5 +294,9 @@ public class MonitoringPlatformAdapter {
 		toReturn.getMonitoringRules().add(rule);
 		
 		return toReturn;
+	}
+	
+	public void getMonitoringRules(){
+		
 	}
 }

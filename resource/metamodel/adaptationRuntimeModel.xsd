@@ -22,15 +22,17 @@
 			<xs:element maxOccurs="24" name="responseTimeThreshold" type="responseTimeThreshold"/>		
 			<xs:element maxOccurs="unbounded" name="functionality" type="functionality"/>
 			<xs:element maxOccurs="unbounded" name="workloadForecast" type="workloadForecast"/>
-			<xs:element maxOccurs="unbounded" name="runningInstance" type="runningInstance"/>
 		</xs:sequence>	
-		<xs:attribute name="demand" type="xs:float" use="required"/>
-		<xs:attribute name="delay" type="xs:float" use="required"/>
-		<xs:attribute name="initialNumberOfVMs" type="xs:int" use="required"/>
-		<xs:attribute name="id" type="xs:string" use="required"/>
+		<xs:attribute name="demand" type="xs:float"/>
+		<xs:attribute name="delay" type="xs:float"/>
+		<xs:attribute name="id" type="xs:string"/>
 	</xs:complexType>
 	<xs:complexType name="functionality">
+		<xs:sequence>
+			<xs:element maxOccurs="unbounded" name="workloadForecast" type="workloadForecast"/>
+		</xs:sequence>	
 		<xs:attribute name="id" type="xs:string" use="required"/>
+		<xs:attribute name="demand" type="xs:float"/>
 	</xs:complexType>
 	<xs:complexType name="responseTimeThreshold">
 		<xs:attribute name="hour" type="xs:int" use="required"/>
@@ -39,9 +41,5 @@
 	<xs:complexType name="workloadForecast">
 		<xs:attribute name="timeStepAhead" type="xs:int" use="required"/>
 		<xs:attribute name="value" type="xs:float" use="required"/>
-	</xs:complexType>
-	<xs:complexType name="runningInstance">
-		<xs:attribute name="id" type="xs:string" use="required"/>
-		<xs:attribute name="remainingChargedMinute" type="xs:int" use="required"/>
 	</xs:complexType>
 </xs:schema>

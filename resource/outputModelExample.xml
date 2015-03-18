@@ -2,30 +2,9 @@
 <containers>
     <container capacity="13.0" maxReserved="0" reservedCost="795.0" onDemandCost="0.702">
         <applicationTier initialNumberOfVMs="1" id="MIC">
-            <responseTimeThreshold hour="0" value="0.46421775"/>
-            <responseTimeThreshold hour="1" value="0.46421775"/>
-            <responseTimeThreshold hour="2" value="0.46421775"/>
-            <responseTimeThreshold hour="3" value="0.46421775"/>
-            <responseTimeThreshold hour="4" value="0.46421775"/>
-            <responseTimeThreshold hour="5" value="0.46421775"/>
-            <responseTimeThreshold hour="6" value="0.46417925"/>
-            <responseTimeThreshold hour="7" value="0.46417925"/>
-            <responseTimeThreshold hour="8" value="0.4641664"/>
-            <responseTimeThreshold hour="9" value="0.464147"/>
-            <responseTimeThreshold hour="10" value="0.4641431"/>
-            <responseTimeThreshold hour="11" value="0.46414196"/>
-            <responseTimeThreshold hour="12" value="0.46414444"/>
-            <responseTimeThreshold hour="13" value="0.4641436"/>
-            <responseTimeThreshold hour="14" value="0.4641431"/>
-            <responseTimeThreshold hour="15" value="0.46414244"/>
-            <responseTimeThreshold hour="16" value="0.46414196"/>
-            <responseTimeThreshold hour="17" value="0.4641431"/>
-            <responseTimeThreshold hour="18" value="0.4641483"/>
-            <responseTimeThreshold hour="19" value="0.4641599"/>
-            <responseTimeThreshold hour="20" value="0.46417925"/>
-            <responseTimeThreshold hour="21" value="0.46421775"/>
-            <responseTimeThreshold hour="22" value="0.46421775"/>
-            <responseTimeThreshold hour="23" value="0.46421775"/>
+            <responseTimeThreshold hour="0" value="2.3677"/>
+            <responseTimeThreshold hour="1" value="2.1356"/>
+            <responseTimeThreshold hour="2" value="2.0875"/>
             <functionality id="register"/>
             <functionality id="saveAnswers"/>
             <functionality id="answerQuestions"/>

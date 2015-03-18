@@ -6,7 +6,7 @@ import it.polimi.modaclouds.monitoring.metrics_observer.MetricsObServer;
 public class Observer extends MetricsObServer implements Runnable {
 
     public Observer(int listeningPort) {
-		super(listeningPort, "/v1/results", MyResultHandler.class);
+		super(listeningPort, "/v1/results", ObservedMetricHandler.class);
     }
 
 	@Override

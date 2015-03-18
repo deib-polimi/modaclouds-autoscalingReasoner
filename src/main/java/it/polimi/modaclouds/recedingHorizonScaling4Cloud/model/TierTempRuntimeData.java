@@ -13,13 +13,12 @@ public class TierTempRuntimeData {
 	private List<Float> demands;
 	private Map<Integer,List<Float>> functWorkloadForecast;
 	
-	public TierTempRuntimeData(int nFunct, int adaptationHorizon){
+	public TierTempRuntimeData(int nFunct, int optimizationWindow){
 		this.nFunct=nFunct;
 		this.demands=new ArrayList<Float>();
-		float[] f=new float[4];
 		this.functWorkloadForecast=new HashMap<Integer, List<Float>>();
 		
-		for(int i=1; i<=adaptationHorizon;i++){
+		for(int i=1; i<=optimizationWindow;i++){
 			this.functWorkloadForecast.put(Integer.valueOf(i), new ArrayList<Float>());
 		}
 	}
@@ -27,6 +26,16 @@ public class TierTempRuntimeData {
 	public boolean getReady(){
 		return this.ready;
 	}
+	
+	public void refreshBuffers(int optimizationWindow){
+		this.demands=new ArrayList<Float>();
+		this.functWorkloadForecast=new HashMap<Integer, List<Float>>();
+		for(int i=1; i<=optimizationWindow;i++){
+			this.functWorkloadForecast.put(Integer.valueOf(i), new ArrayList<Float>());
+		}
+		this.ready=false;
+	}
+	
 	
 	public void addDemandValue(Float value){
 		this.demands.add(value);
@@ -48,7 +57,7 @@ public class TierTempRuntimeData {
 	
 	public void addWorkloadForecastValue(Float value, int timestepPrediction){
 
-		this.functWorkloadForecast.get(Integer.valueOf(timestepPrediction)).add(value);
+		this.functWorkloadForecast.get(Integer.valueOf(timestepPrediction)).add(value/(ModelManager.getTimestepDuration()*60));
 		
 		if(this.functWorkloadForecast.get(Integer.valueOf(timestepPrediction)).size()==this.nFunct){
 			boolean workloadReady=true;
@@ -56,9 +65,10 @@ public class TierTempRuntimeData {
 			for(Integer key:this.functWorkloadForecast.keySet()){
 
 				if(key.intValue()!=timestepPrediction){
-					if(this.functWorkloadForecast.get(key).size()!=this.nFunct)
+					if(this.functWorkloadForecast.get(key).size()!=this.nFunct){
 						workloadReady=false;
-					break;
+						break;
+					}
 				}
 			}
 			
@@ -94,7 +104,7 @@ public class TierTempRuntimeData {
 			toReturn=toReturn+f.floatValue();
 		}
 		
-		return toReturn/this.demands.size();
+		return toReturn;
 	}
 	
 	public float[] getTierCurrentWorkloadPredictions(){
@@ -109,10 +119,18 @@ public class TierTempRuntimeData {
 			}
 			
 
-			toReturn[i.intValue()-1]=temp/this.functWorkloadForecast.get(i).size();
+			toReturn[i.intValue()-1]=temp;
 		}
 		
 		return toReturn;
+	}
+
+	public int getnFunct() {
+		return nFunct;
+	}
+
+	public void setnFunct(int nFunct) {
+		this.nFunct = nFunct;
 	}
 
 }

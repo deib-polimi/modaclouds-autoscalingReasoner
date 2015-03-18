@@ -11,6 +11,7 @@ public class ApplicationTierAtRuntime {
 	private String tierId;
 	private Map<String,Date> instancesStartTimes;
 	private String instanceToScale;
+	private int algorithmIndex;
 	
 	public ApplicationTierAtRuntime(){
 		instancesStartTimes=new HashMap<String, Date>();
@@ -40,6 +41,14 @@ public class ApplicationTierAtRuntime {
 		Calendar cal = Calendar.getInstance();
 		
 		instancesStartTimes.put(instanceId, cal.getTime());
+	}
+
+	public int getAlgorithmIndex() {
+		return algorithmIndex;
+	}
+
+	public void setAlgorithmIndex(int algorithmIndex) {
+		this.algorithmIndex = algorithmIndex;
 	}
 
 }

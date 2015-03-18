@@ -29,7 +29,7 @@ import java.util.List;
 public class SshAdapter {
 
 	// main execution function
-	public static void run(Container c) {
+	public static void executeOptimization(Container c) {
 		
 		
 		// this block uploads files data.dat and AMPL.run on AMPL server

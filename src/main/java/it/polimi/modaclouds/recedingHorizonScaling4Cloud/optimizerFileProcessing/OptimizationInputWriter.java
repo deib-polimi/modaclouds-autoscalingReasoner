@@ -1,24 +1,28 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing;
 
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.TierNotFoudException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTierAtRuntime;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Map;
 
 
-public class OptimizerInputWriter {
+public class OptimizationInputWriter {
 
 
-	public OptimizerInputWriter() {	
+	public OptimizationInputWriter() {	
 	}
 
-	public void writeStaticInput(Containers containers, Map<String,Integer> algorithmTierIndexes) {
+	public void writeStaticInput(Containers containers){
 
 		
 		
@@ -35,8 +39,14 @@ public class OptimizerInputWriter {
 
 			int index;
 			for(ApplicationTier t: c.getApplicationTier()){
-				index=algorithmTierIndexes.get(t.getId()).intValue();
-				writeFile("Rcross.dat", c.getId(), "let Rcross["+index+"]:=\n"+Float.toString(t.getResponseTimeThreshold().get(0).getValue())+"\n;");
+				try {
+					index=ModelManager.getApplicationTierAtRuntime(t.getId()).getAlgorithmIndex();
+					writeFile("Rcross.dat", c.getId(), "let Rcross["+index+"]:=\n"+Float.toString(t.getResponseTimeThreshold().get(0).getValue())+"\n;");
+
+				} catch (TierNotFoudException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 					
 		}
