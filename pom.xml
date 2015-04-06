@@ -7,7 +7,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>FirstShortTermSolver</name>
+	<name>recedingHorizonScaling4Cloud</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>
@@ -40,11 +40,6 @@
 			<groupId>org.cloudml</groupId>
 			<artifactId>facade</artifactId>
 			<version>2.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jetty.websocket</groupId>
-			<artifactId>websocket-client</artifactId>
-			<version>9.3.0.M1</version>
 		</dependency>
 		<dependency>
     		<groupId>org.apache.jclouds.provider</groupId>
@@ -104,15 +99,16 @@
 			<version>1.18.1</version>
 		</dependency>
 
-		<dependency>
-			<groupId>com.sun.jersey</groupId>
-			<artifactId>jersey-core</artifactId>
-			<version>1.18.1</version>
-		</dependency>
-
 	</dependencies>
 
 	<build>
+	    
+	    <resources>
+	        <resource>
+	            <directory>META-INF</directory>
+	        </resource>
+    	</resources>
+	    
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -123,23 +119,41 @@
 					<target>1.7</target>
 				</configuration>
 			</plugin>
-			<!-- Build an executable JAR 
+			 
 			<plugin>
-      
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-jar-plugin</artifactId>
-      <version>2.4</version>
-      <configuration>
-        <archive>
-          <manifest>
-            <addClasspath>true</addClasspath>
-            <classpathPrefix>lib/</classpathPrefix>
-            <mainClass>it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl.Main</mainClass>
-          </manifest>
-        </archive>
-      </configuration>
-    </plugin>
-    -->
+   		      <groupId>org.apache.maven.plugins</groupId>
+		      <artifactId>maven-jar-plugin</artifactId>
+		      <version>2.4</version>
+		      <configuration>
+		        <archive>
+		          <manifest>
+		          	<addClasspath>true</addClasspath>
+                	<classpathPrefix>lib/</classpathPrefix>
+		            <mainClass>it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl.Main</mainClass>
+		          </manifest>
+		        </archive>
+		      </configuration>
+		    </plugin>
+		     
+		    
+			<plugin>
+			    <groupId>org.apache.maven.plugins</groupId>
+			    <artifactId>maven-dependency-plugin</artifactId>
+			    <executions>
+			        <execution>
+			            <id>copy</id>
+			            <phase>package</phase>
+			            <goals>
+			                <goal>copy-dependencies</goal>
+			            </goals>
+			            <configuration>
+			                <outputDirectory>
+			                    ${project.build.directory}/lib
+			                </outputDirectory>
+			            </configuration>
+			        </execution>
+			    </executions>
+			</plugin>
 		</plugins>
 	</build>
 	

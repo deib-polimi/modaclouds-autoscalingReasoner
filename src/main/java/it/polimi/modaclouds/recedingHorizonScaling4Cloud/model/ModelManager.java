@@ -2,8 +2,6 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.model;
 
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl.AdaptationController;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl.AdaptationInitializer;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector.WSClient;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.TierNotFoudException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing.OptimizationInputWriter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.GenericXMLHelper;
@@ -26,7 +24,7 @@ import org.w3c.dom.Element;
 
 public class ModelManager {
 	private static final Logger journal = Logger
-			.getLogger(WSClient.class.getName());
+			.getLogger(ModelManager.class.getName());
 	
 	private static Containers model;
 	private static List<ApplicationTierAtRuntime> runtimeEnv;
@@ -91,7 +89,7 @@ public class ModelManager {
 				
 				Functionality tempFunc;
 				
-				for(Element f: xmlHelper.getElements(t, "functionality")){
+				for(Element f: xmlHelper.getElements(t, "Functionality")){
 					tempFunc=new Functionality();
 					tempFunc.setId(f.getAttribute("id"));
 					
@@ -110,7 +108,7 @@ public class ModelManager {
 				
 				toAdd.getApplicationTier().add(tier);
 				
-				tempMonitoringData.put(tier.getId(), new TierTempRuntimeData(tier.getFunctionality().size(), optimizationWindow));
+				tempMonitoringData.put(tier.getId(), new TierTempRuntimeData(tier.getFunctionality(), optimizationWindow));
 				
 				runtimeTier.setTierId(tier.getId());
 				runtimeTier.setAlgorithmIndex(index);
@@ -129,7 +127,7 @@ public class ModelManager {
 	public static void flushTemporaryMonitoringData(Container c){
 			for(ApplicationTier t: c.getApplicationTier()){
 				TierTempRuntimeData temp=tempMonitoringData.get(t.getId());
-				temp.refreshBuffers(optimizationWindow);
+				temp.refreshBuffers(t.getFunctionality(),optimizationWindow);
 			}
 		
 	}
@@ -154,7 +152,6 @@ public class ModelManager {
 						journal.log(Level.INFO, instance+ "started at "+rt.getInstancesStartTimes().get(instance));
 					}
 				} catch (TierNotFoudException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				
@@ -163,53 +160,17 @@ public class ModelManager {
 		}
 	}
 	
-	private static void printTemporaryMonitoringInfo(){
-		
-		journal.log(Level.INFO, "printing monitoring data received so far");
-		
-		for(String tier: tempMonitoringData.keySet()){
-			TierTempRuntimeData temp=tempMonitoringData.get(tier);
-
-			journal.log(Level.INFO, "tier: "+tier);
-			journal.log(Level.INFO, " number of functionalities hoste: "+temp.getnFunct());
-			
-			journal.log(Level.INFO, "received functionality demands:");
-			
-			for(Float f: temp.getDemands()){
-				journal.log(Level.INFO, f.toString());
-			}
-			
-			journal.log(Level.INFO, "actual tier level demand"+temp.getTierCurrentDemand());
-			
-			journal.log(Level.INFO, "received functionality workload forecasts");
-			
-			for(Integer i: temp.getFunctWorkloadForecast().keySet()){
-				journal.log(Level.INFO, "forecasts "+i.toString()+" timestep in ahead");
-				
-				for(Float f: temp.getFunctWorkloadForecast().get(i)){
-					journal.log(Level.INFO, f.toString());
-				}
-			}
-			
-			journal.log(Level.INFO, "actual tier level worklaod forecasts");
-			float[] forecasts=temp.getTierCurrentWorkloadPredictions();
-			for (int i=0; i<forecasts.length; i++){
-				
-				journal.log(Level.INFO, (i+1)+" timestep ahead: "+forecasts[i]);
-			}
-			
-			
-		}
-	}
 	
-	public static void updateDemand(String monitoredResource, Float monitoredValue) {
+	
+	public static void updateDemand(String monitoredResource, Float monitoredValue, String functionality) {
+		
+		System.out.println("Updating demand for resource "+monitoredResource+" with value: "+monitoredValue
+				+"relative to functionality "+ functionality);
 		
 		for(String key: tempMonitoringData.keySet() ){			
-			
 			if(key.equals(monitoredResource)){
-				tempMonitoringData.get(key).addDemandValue(monitoredValue);	
-				checkContainerReadyForOptimization(monitoredResource);
-
+				System.out.println("updating...");
+				tempMonitoringData.get(key).addDemandValue(monitoredValue, functionality);	
 			}
 		}
 		
@@ -217,19 +178,20 @@ public class ModelManager {
 		
 	}
 	
-	public static void updateWorkloadPrediction(String monitoredResource, String monitoredMetric, Float monitoredValue) {
+	public static void updateWorkloadPrediction(String monitoredResource, String monitoredMetric, Float monitoredValue, String functionality) {
 		
 
+		System.out.println("updating workload forecast for resource "+monitoredResource+" and for time step ahead "+monitoredMetric+" with value: "+monitoredValue
+				+"relative to functionality "+ functionality);
 		for(String key: tempMonitoringData.keySet() ){
 			
 
 			if(key.equals(monitoredResource)){
 				
 				for(int i=1; i<=optimizationWindow; i++){
-					if(monitoredMetric.contains(Integer.toString(i))){						
-						tempMonitoringData.get(key).addWorkloadForecastValue(monitoredValue, i);	
-						checkContainerReadyForOptimization(monitoredResource);
-
+					if(monitoredMetric.contains(Integer.toString(i))){	
+						System.out.println("updating...");
+						tempMonitoringData.get(key).addWorkloadForecastValue(monitoredValue, i, functionality);	
 					}
 				}
 			}		
@@ -239,16 +201,41 @@ public class ModelManager {
 		
 	}
 	
+	public static String getLastInstanceCreated(String tierId) throws TierNotFoudException{
+		String toReturn=null;
+		Date maxDate=null;
+
+		ApplicationTierAtRuntime tier=getApplicationTierAtRuntime(tierId);
+		Map<String,Date> instances=tier.getInstancesStartTimes();
+		
+		for(String instance: instances.keySet()){
+			if(maxDate==null){
+				maxDate=instances.get(instance);
+				toReturn=instance;
+			}
+			else{
+				if(instances.get(instance).after(maxDate)){
+					maxDate=instances.get(instance);
+					toReturn=instance;
+				}
+			}
+			
+		}
+		
+		return toReturn;
+		
+		
+	
+	}
+	
 
 	
-	private static void checkContainerReadyForOptimization(String lastUpdatedTierId) {
+	public static void checkContainerReadyForOptimization(String lastUpdatedTierId) {
 		
-		journal.log(Level.INFO, "checking container ready for optimization after new monitoring data received for tier: "+lastUpdatedTierId);
-		
-		printTemporaryMonitoringInfo();
 		
 		Container toCheck=getContainerByTierId(lastUpdatedTierId);
 		
+		System.out.println("checking container "+toCheck.getId()+" ready for optimization");
 		
 		boolean allReady=true;
 		
@@ -259,16 +246,15 @@ public class ModelManager {
 		}
 		
 		if(allReady){
-
-			journal.log(Level.INFO, "container "+toCheck.getId()+ " ready for optimization");
-			//aggrega le demand e i workload ricevuti per ogni tier contenuto nel container pronto per l'ottimizzazione
-			//scrive i file mancanti chiamando statiINputWrite
-			//lancia l'ottimizzazione per il container corente
+			
+			System.out.println("container is ready!");
 			int index;
 			for(ApplicationTier t: toCheck.getApplicationTier()){
 				try {
 					index=getApplicationTierAtRuntime(t.getId()).getAlgorithmIndex();
 					t.setDemand(tempMonitoringData.get(t.getId()).getTierCurrentDemand());
+					
+					t.getWorkloadForecast().clear();
 					
 					for(int i=1; i<=optimizationWindow; i++){
 						WorkloadForecast tempForecast= new WorkloadForecast();
@@ -276,6 +262,7 @@ public class ModelManager {
 						tempForecast.setValue(tempMonitoringData.get(t.id).getTierCurrentWorkloadPredictions()[i-1]);
 						t.getWorkloadForecast().add(tempForecast);
 					}
+					
 					OptimizationInputWriter.writeFile("mu.dat", toCheck.getId(), "let mu["+index+"]:=\n"+(1/t.getDemand())+"\n;");
 					OptimizationInputWriter.writeFile("Delay.dat", toCheck.getId(), "let D["+index+"]:=\n"+0+"\n;");
 
@@ -284,10 +271,8 @@ public class ModelManager {
 						OptimizationInputWriter.writeFile("workload_class"+index+".dat", toCheck.getId(), "let Lambda["+index+","+wf.getTimeStepAhead()+"]:=\n"+wf.getValue()+"\n;");
 					}
 					
-					journal.log(Level.INFO, "demand delay and workload files written");
 
 				} catch (TierNotFoudException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				
@@ -296,13 +281,15 @@ public class ModelManager {
 				
 
 			}
-			
+			flushTemporaryMonitoringData(toCheck);
 			AdaptationController controller=new AdaptationController();
 			controller.setToAdapt(toCheck);
 			Thread toRun=new Thread(controller);
 			toRun.start();
 
 			
+		}else{
+			System.out.println("container not ready");
 		}
 	}
 	
@@ -312,12 +299,16 @@ public class ModelManager {
 
 		for(int i=0; i<instances.length(); i++){
 			JSONObject instance=instances.getJSONObject(i);
-			System.out.println("checking instance "+instance.get("id")+" on tier "+instance.get("type").toString().substring(4, instance.get("type").toString().length()-1));
-			temp=getApplicationTierAtRuntime(instance.get("type").toString().substring(4, instance.get("type").toString().length()-1));
-			if(!containInstance(temp, instance.get("id").toString())){
-				temp.addNewInstance(instance.get("id").toString());
-				if(temp.getInstanceToScale()==null){
-					temp.setInstanceToScale(instance.getString("id").toString());
+			if(instance.get("id")!=null){
+				System.out.println("checking instance "+instance.get("id")+" on tier "+instance.get("type").toString().substring(4, instance.get("type").toString().length()-1));
+				temp=getApplicationTierAtRuntime(instance.get("type").toString().substring(4, instance.get("type").toString().length()-1));
+				if(!containInstance(temp, instance.get("id").toString())){
+					temp.addNewInstance(instance.get("id").toString());
+					
+					if(temp.getInstanceToScale()==null){
+					//if(instance.getString("id").toString().equals("eu-west-1/i-6c307c8b")){
+						temp.setInstanceToScale(instance.getString("id").toString());
+					}
 				}
 			}
 		}
@@ -365,8 +356,8 @@ public class ModelManager {
 		return runtimeEnv;
 	}
 
-	public static void setRuntimeEnv(List<ApplicationTierAtRuntime> runtimeEnv) {
-		runtimeEnv = runtimeEnv;
+	public static void setRuntimeEnv(List<ApplicationTierAtRuntime> runtimeModel) {
+		runtimeEnv = runtimeModel;
 	}
 	
 	public static  ApplicationTierAtRuntime getApplicationTierAtRuntime(String tierId) throws TierNotFoudException{
@@ -379,64 +370,69 @@ public class ModelManager {
 		throw new TierNotFoudException("in the runtime model there is no tier with the specified id");
 	}
 	
-	public static Map<String,List<String>> getNextTimestepExpiringInstances(List<ApplicationTier> toCheck) {
-		Map<String,List<String>> toReturn=new HashMap<String,List<String>>();
+	public static List<String> getExpiringInstances(ApplicationTier toCheck,  int lookAhead) {
+		List<String> toReturn=new ArrayList<String>();
 		Calendar cal = Calendar.getInstance();
 		
-		for(ApplicationTier t: toCheck){
-			toReturn.put(t.getId(), new ArrayList<String>());
+		System.out.println("START LOOKING FOR EXPIRING INSTANCES");
+		
 			ApplicationTierAtRuntime tier;
 			try {
-				tier = getApplicationTierAtRuntime(t.getId());
+				tier = getApplicationTierAtRuntime(toCheck.getId());
 				Map<String,Date> instancesStartTimes=tier.getInstancesStartTimes();
+				Date actual=cal.getTime();
+
 				
-				
-				cal.add(Calendar.MINUTE, -(55-timestepDuration));
+				cal.add(Calendar.MINUTE, -(60-timestepDuration*lookAhead));
 				Date oneHourBack = cal.getTime();
 
 				
 				for(String instance: instancesStartTimes.keySet()){		
 					if(instancesStartTimes.get(instance).before(oneHourBack)){
-						toReturn.get(t.getId()).add(instance);
-					}
+						System.out.println("expiring instance found within "+lookAhead+" timesteps! id: "+instance+" instanceStartTime: "+instancesStartTimes.get(instance).toString()+""
+								+ " one hour bofere it is: "+oneHourBack.toString()+"actual checking time: "+actual);
+						toReturn.add(instance);
+											}
 				}
 			} catch (TierNotFoudException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
-		}
+		
 		
 		return toReturn;
 	}
 	
-	public static Map<String,List<String>> getNextTimestepAvailableInstances(List<ApplicationTier> toCheck) {
-		Map<String,List<String>> toReturn=new HashMap<String,List<String>>();
+	public static List<String> getAvailableInstances(ApplicationTier toCheck, int lookAhead) {
+		List<String> toReturn=new ArrayList<String>();
 		Calendar cal = Calendar.getInstance();
 		
-		for(ApplicationTier t: toCheck){
-			toReturn.put(t.getId(), new ArrayList<String>());
+		System.out.println("START LOOKING FOR AVAILABLE INSTANCES");
+
+		
 			ApplicationTierAtRuntime tier;
 			try {
-				tier = getApplicationTierAtRuntime(t.getId());
+				tier = getApplicationTierAtRuntime(toCheck.getId());
 				Map<String,Date> instancesStartTimes=tier.getInstancesStartTimes();
-				cal.add(Calendar.MINUTE, -(55-timestepDuration));
+				Date actual=cal.getTime();
+				cal.add(Calendar.MINUTE, -(60-timestepDuration*lookAhead));
 				Date oneHourBack = cal.getTime();
 
 				
 				for(String instance: instancesStartTimes.keySet()){		
 					if(instancesStartTimes.get(instance).after(oneHourBack)){
-						toReturn.get(t.getId()).add(instance);
+						System.out.println("available instance found within "+lookAhead+" timesteps! id: "+instance+" instanceStartTime: "+instancesStartTimes.get(instance).toString()+""
+								+ " one hour bofere it is: "+oneHourBack.toString()+"actual checking time: "+actual);
+						toReturn.add(instance);
 					}
 				}
 			} catch (TierNotFoudException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
 			
 			
-		}
+		
 		
 		return toReturn;
 	}
@@ -459,6 +455,18 @@ public class ModelManager {
 		
 		
 		return false;
+	}
+	
+	public static void deleteInstance(String instanceId, String tierId) throws TierNotFoudException{
+			ApplicationTierAtRuntime toUpdate=getApplicationTierAtRuntime(tierId);
+			toUpdate.deleteInstance(instanceId);
+	}
+	
+	
+	
+	public static void addInstance(String instanceId, String tierId) throws TierNotFoudException{
+		ApplicationTierAtRuntime toUpdate=getApplicationTierAtRuntime(tierId);
+		toUpdate.addNewInstance(instanceId);
 	}
 
 }

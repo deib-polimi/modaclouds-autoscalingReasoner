@@ -35,35 +35,37 @@ public class WSClient extends WebSocketClient {
 
 	@Override
 	public void onMessage(String s) {
-		journal.log(Level.INFO, ">> " + s);
 		
-		
-		/*
-		//se è stato lanciato uno scale out sveglia il processo in attesa		
-		*/
-		if(s.contains("ack")){
-			synchronized(waiting) {
-				  this.setWaiting(null);
-		          waiting.notify();
-		    }
-		}
+		if(s.contains("ack") & s.contains("ScaleOut")){
+			System.out.println(s);
 
-		
-		// se è stata chiamata la getDeployment chiama l'update runtime env	
-		//aggiungere opportuno check sul messaggio che sia uno snapshot dello modello
-		
+			synchronized(waiting) {
+				System.out.println("ricevuto ack di scaleout completato, notifico a cloudmlAdapter");
+		          waiting.notify();
+				  this.setWaiting(null);
+		    }
+		}else if(s.contains("return of GetSnapshot")){
+
+		System.out.println("ricevuto snapshot del deployment model");
+		System.out.println(s);
 		JSONObject jsonObject;
 		try {
 			jsonObject = new JSONObject(s.substring(27));
 			JSONArray instances=jsonObject.getJSONArray("vmInstances");
+			System.out.println("sto per chiamare l update runtime environment");
 			ModelManager.updateRuntimeEnv(instances);
 		} catch (JSONException | TierNotFoudException e) {
 			e.printStackTrace();
 		}
-		
-		
+		}else if(s.contains("ack") & s.contains("StopComponent")){
+			System.out.println(s);
 
-		
+			synchronized(waiting) {
+				System.out.println("ricevuto ack di stop component completato, notifico a cloudmlAdapter");
+		          waiting.notify();
+				  this.setWaiting(null);
+		    }
+		}		
 	}
 
 	@Override

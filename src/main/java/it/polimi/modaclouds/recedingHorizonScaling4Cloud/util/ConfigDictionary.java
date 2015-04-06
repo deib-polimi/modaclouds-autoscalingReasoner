@@ -2,6 +2,7 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.util;
 
 public class ConfigDictionary {
 
+	public static final String OWNIP = "OWNIP";
 	public static final String pathToDesignAdaptationModel = "pathToDesignAdaptationModel";
 	public static final String SSH_USER_NAME="SSH_USER_NAME";
 	public static final String SSH_HOST="SSH_HOST";

@@ -41,9 +41,7 @@ public class OptimizationOutputParser {
 				while ((line = br.readLine()) != null && finded==false) {
 					if(line.startsWith(String.valueOf(i+1))){
 						finded=true;
-						System.out.println(line);
 						String[] splitted= line.split("\\s+");
-						System.out.println(splitted[8]);
 						toReturn[i]=Integer.parseInt(splitted[8]);
 					}
 					

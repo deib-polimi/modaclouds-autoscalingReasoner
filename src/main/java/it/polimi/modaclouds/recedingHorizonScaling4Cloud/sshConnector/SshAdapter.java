@@ -45,14 +45,17 @@ public class SshAdapter {
 				
 			if (directoryListing != null) {
 				for (File child : directoryListing) {
-					System.out.println("sending file: "+child.toString());
-					newScpTo.sendfile(child.getAbsolutePath(), ConfigManager.getConfig(ConfigDictionary.OPTIMIZATION_INPUT_FOLDER));
 					
-					try {
-					    Thread.sleep(10000);                 //1000 milliseconds is one second.
-					} catch(InterruptedException e) {
-					    Thread.currentThread().interrupt();
-					}				
+					if(!child.getAbsolutePath().contains("output")){
+						System.out.println("sending file: "+child.toString());
+						newScpTo.sendfile(child.getAbsolutePath(), ConfigManager.getConfig(ConfigDictionary.OPTIMIZATION_INPUT_FOLDER));
+						
+						try {
+						    Thread.sleep(10000);                 //1000 milliseconds is one second.
+						} catch(InterruptedException e) {
+						    Thread.currentThread().interrupt();
+						}	
+					}
 				}
 			} else {
 				System.out.println("Some error occurred: no files finded in the INPUT directory of the project file system");

@@ -39,8 +39,7 @@ public class ApplicationTierAtRuntime {
 	
 	public void addNewInstance(String instanceId){
 		Calendar cal = Calendar.getInstance();
-		
-		instancesStartTimes.put(instanceId, cal.getTime());
+		this.instancesStartTimes.put(instanceId, cal.getTime());
 	}
 
 	public int getAlgorithmIndex() {
@@ -49,6 +48,12 @@ public class ApplicationTierAtRuntime {
 
 	public void setAlgorithmIndex(int algorithmIndex) {
 		this.algorithmIndex = algorithmIndex;
+	}
+	
+	public void deleteInstance(String instanceId){
+		if(this.instancesStartTimes.containsKey(instanceId))
+			this.instancesStartTimes.remove(instanceId);
+		
 	}
 
 }

@@ -40,11 +40,10 @@ public class CloudMLAdapter {
 		
 			for(int i=1; i<=times;i++){
 				while(wsClient.getWaiting()!=null){
-					journal.log(Level.INFO, "WS CLIENT BUDY");
+					journal.log(Level.INFO, "WS CLIENT BUSY");
 					try {
 						Thread.sleep(5000);
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
@@ -53,16 +52,47 @@ public class CloudMLAdapter {
 				
 				synchronized (this){
 					  try {
+						  System.out.println("scale out command sent. CloudMLAdapter wait for a response");
 					     this.wait();
 					  } catch (InterruptedException e) {
-					        //when the object is interrupted
-					   }
+					  }
 				}
+				System.out.println("CloudMLAdapter wake up, single scale out action completed");
+				this.getDeploymentModel();
 			}		
 	}
 	
 	public void getDeploymentModel() {
 		wsClient.send("!getSnapshot { path : / }");
+	}
+	
+	public void createImage(String instanceId) {
+		wsClient.send("!extended { name: Image, params: ["+instanceId+"] }");
+		}
+	
+	public void terminate(String instanceId){
+		wsClient.send("!listenToAny");
+		
+			while(wsClient.getWaiting()!=null){
+				journal.log(Level.INFO, "WS CLIENT BUSY");
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		 	wsClient.setWaiting(this);
+			wsClient.send("!extended { name: StopComponent, params: ["+instanceId+"] }");
+			
+			synchronized (this){
+				  try {
+				     this.wait();
+				  } catch (InterruptedException e) {
+				  }
+			}
+			
+			System.out.println("CloudML adapter risvegliato, singola terminazione completata");
+			
 	}
 
 }
