@@ -88,8 +88,7 @@ public class ModelManager {
 				tier.setInitialNumberOfVMs(Integer.parseInt(t.getAttribute("initialNumberOfVMs")));
 				
 				Functionality tempFunc;
-				
-				for(Element f: xmlHelper.getElements(t, "Functionality")){
+				for(Element f: xmlHelper.getElements(t, "functionality")){
 					tempFunc=new Functionality();
 					tempFunc.setId(f.getAttribute("id"));
 					
@@ -149,7 +148,16 @@ public class ModelManager {
 					journal.log(Level.INFO, "running tier instances...");
 					
 					for(String instance: rt.getInstancesStartTimes().keySet()){
-						journal.log(Level.INFO, instance+ "started at "+rt.getInstancesStartTimes().get(instance));
+						if(rt.getInstancesStartTimes().get(instance)!=null){
+							journal.log(Level.INFO, instance+ "started at "+rt.getInstancesStartTimes().get(instance));
+						}else{
+							journal.log(Level.INFO, instance+ "actually stopped");
+						}
+					}
+					journal.log(Level.INFO, "hosted functionalities");
+
+					for(Functionality f: t.functionality){
+						journal.log(Level.INFO, f.getId());
 					}
 				} catch (TierNotFoudException e) {
 					e.printStackTrace();
@@ -173,6 +181,8 @@ public class ModelManager {
 				tempMonitoringData.get(key).addDemandValue(monitoredValue, functionality);	
 			}
 		}
+		
+		ModelManager.checkContainerReadyForOptimization("MIC");
 		
 		
 		
@@ -199,6 +209,8 @@ public class ModelManager {
 			
 		}
 		
+		ModelManager.checkContainerReadyForOptimization("MIC");
+		
 	}
 	
 	public static String getLastInstanceCreated(String tierId) throws TierNotFoudException{
@@ -209,14 +221,16 @@ public class ModelManager {
 		Map<String,Date> instances=tier.getInstancesStartTimes();
 		
 		for(String instance: instances.keySet()){
-			if(maxDate==null){
+			if(maxDate==null && instances.get(instance)!=null){
 				maxDate=instances.get(instance);
 				toReturn=instance;
 			}
 			else{
-				if(instances.get(instance).after(maxDate)){
-					maxDate=instances.get(instance);
-					toReturn=instance;
+				if(instances.get(instance)!=null){
+					if(instances.get(instance).after(maxDate)){
+						maxDate=instances.get(instance);
+						toReturn=instance;
+					}
 				}
 			}
 			
@@ -311,10 +325,7 @@ public class ModelManager {
 					}
 				}
 			}
-		}
-		
-		printModel();
-		
+		}		
 	}
 	
 	public ApplicationTier getTierById(String id){
@@ -352,7 +363,7 @@ public class ModelManager {
 	}
 
 
-	public List<ApplicationTierAtRuntime> getRuntimeEnv() {
+	public static List<ApplicationTierAtRuntime> getRuntimeEnv() {
 		return runtimeEnv;
 	}
 
@@ -388,11 +399,15 @@ public class ModelManager {
 
 				
 				for(String instance: instancesStartTimes.keySet()){		
-					if(instancesStartTimes.get(instance).before(oneHourBack)){
-						System.out.println("expiring instance found within "+lookAhead+" timesteps! id: "+instance+" instanceStartTime: "+instancesStartTimes.get(instance).toString()+""
-								+ " one hour bofere it is: "+oneHourBack.toString()+"actual checking time: "+actual);
-						toReturn.add(instance);
-											}
+					//if the 'instance' is not stopped
+					if(instancesStartTimes.get(instance)!=null){
+						//and if the instance will be automatically recharged within the next 'lookAhead' timesteps
+						if(instancesStartTimes.get(instance).before(oneHourBack)){
+							System.out.println("expiring instance found within "+lookAhead+" timesteps! id: "+instance+" instanceStartTime: "+instancesStartTimes.get(instance).toString()+""
+									+ " one hour bofere it is: "+oneHourBack.toString()+"actual checking time: "+actual);
+							toReturn.add(instance);
+						}
+					}
 				}
 			} catch (TierNotFoudException e) {
 				e.printStackTrace();
@@ -419,11 +434,45 @@ public class ModelManager {
 				Date oneHourBack = cal.getTime();
 
 				
-				for(String instance: instancesStartTimes.keySet()){		
-					if(instancesStartTimes.get(instance).after(oneHourBack)){
-						System.out.println("available instance found within "+lookAhead+" timesteps! id: "+instance+" instanceStartTime: "+instancesStartTimes.get(instance).toString()+""
-								+ " one hour bofere it is: "+oneHourBack.toString()+"actual checking time: "+actual);
-						toReturn.add(instance);
+				for(String instance: instancesStartTimes.keySet()){	
+					//if the 'instance' is not stopped
+					if(instancesStartTimes.get(instance)!=null){
+						//and if the instance doesn't need to be recharged within the next 'lookAhead' timesteps
+						if(instancesStartTimes.get(instance).after(oneHourBack)){
+							System.out.println("available instance found within "+lookAhead+" timesteps! id: "+instance+" instanceStartTime: "+instancesStartTimes.get(instance).toString()+""
+									+ " one hour bofere it is: "+oneHourBack.toString()+"actual checking time: "+actual);
+							toReturn.add(instance);
+						}
+					}
+				}
+			} catch (TierNotFoudException e) {
+				e.printStackTrace();
+			}
+			
+			
+			
+		
+		
+		return toReturn;
+	}
+	
+	public static List<String> getStoppedInstances(ApplicationTier toCheck){
+		List<String> toReturn=new ArrayList<String>();
+		
+		System.out.println("START LOOKING FOR STOPPED INSTANCES");
+
+		
+			ApplicationTierAtRuntime tier;
+			try {
+				tier = getApplicationTierAtRuntime(toCheck.getId());
+				Map<String,Date> instancesStartTimes=tier.getInstancesStartTimes();
+
+				
+				for(String instance: instancesStartTimes.keySet()){	
+					//if the 'instance' is stopped
+					if(instancesStartTimes.get(instance)==null){
+							System.out.println("stopped instance found: "+instance);
+							toReturn.add(instance);
 					}
 				}
 			} catch (TierNotFoudException e) {
@@ -457,7 +506,7 @@ public class ModelManager {
 		return false;
 	}
 	
-	public static void deleteInstance(String instanceId, String tierId) throws TierNotFoudException{
+	public static void stopInstance(String instanceId, String tierId) throws TierNotFoudException{
 			ApplicationTierAtRuntime toUpdate=getApplicationTierAtRuntime(tierId);
 			toUpdate.deleteInstance(instanceId);
 	}
@@ -469,4 +518,18 @@ public class ModelManager {
 		toUpdate.addNewInstance(instanceId);
 	}
 
+	
+	public static String getTierIdByInstanceId(String instanceId){
+		
+		for(ApplicationTierAtRuntime tier:runtimeEnv){
+			for(String instance: tier.getInstancesStartTimes().keySet()){
+				if(instance.equals(instanceId)){
+					return tier.getTierId();
+				}
+			}
+		}
+		
+		return null;
+		
+	}
 }

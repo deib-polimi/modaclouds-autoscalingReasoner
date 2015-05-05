@@ -52,7 +52,7 @@ public class ApplicationTierAtRuntime {
 	
 	public void deleteInstance(String instanceId){
 		if(this.instancesStartTimes.containsKey(instanceId))
-			this.instancesStartTimes.remove(instanceId);
+			this.instancesStartTimes.put(instanceId,null);
 		
 	}
 

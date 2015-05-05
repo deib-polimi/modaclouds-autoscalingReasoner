@@ -348,7 +348,7 @@ public class FakeObserver implements Runnable {
 			
 			
 			ModelManager.updateDemand("MIC", method1Demand.get(cont), "register");
-			ModelManager.updateDemand("MIC", method2Demand.get(cont), "saveAnswers ");
+			ModelManager.updateDemand("MIC", method2Demand.get(cont), "saveAnswers");
 			ModelManager.updateDemand("MIC", method3Demand.get(cont), "answerQuestions");
 			
 			ModelManager.updateWorkloadPrediction("MIC", "1", method1WorkloadForecast.get(1).get(cont), "register");

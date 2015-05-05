@@ -15,6 +15,8 @@ import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.websocket.DeploymentException;
+
 
 public class WSClient extends WebSocketClient {
 	private Boolean connected = false;
@@ -44,10 +46,9 @@ public class WSClient extends WebSocketClient {
 		          waiting.notify();
 				  this.setWaiting(null);
 		    }
-		}else if(s.contains("return of GetSnapshot")){
+		}else if(s.contains("return of GetSnapshot") && !s.contains("status")){
 
 		System.out.println("ricevuto snapshot del deployment model");
-		System.out.println(s);
 		JSONObject jsonObject;
 		try {
 			jsonObject = new JSONObject(s.substring(27));
@@ -60,12 +61,44 @@ public class WSClient extends WebSocketClient {
 		}else if(s.contains("ack") & s.contains("StopComponent")){
 			System.out.println(s);
 
-			synchronized(waiting) {
-				System.out.println("ricevuto ack di stop component completato, notifico a cloudmlAdapter");
-		          waiting.notify();
-				  this.setWaiting(null);
-		    }
-		}		
+		}else if(s.contains("ack") & s.contains("StartComponent")){
+			System.out.println(s);
+
+		}else if (s.contains("return of GetSnapshot") && s.contains("status")){
+			
+			System.out.println("received instance information");
+			String[] lines=s.split("\n");
+			
+			String id=null;
+			String status=null;
+		
+			for(int i=0; i<lines.length; i++){
+				String line=lines[i];
+				if(line.contains("id:")){
+					id=line.split(": ")[1];
+				}else if(line.contains("status:")){
+					status=line.split(": ")[1];
+				}
+			}
+				
+			if(id!=null){
+				if(status.equals("STOPPED")){
+					String tier=ModelManager.getTierIdByInstanceId(id);
+					if(tier!=null){
+					try {
+						ModelManager.stopInstance(id,tier);
+					} catch (TierNotFoudException e) {
+						e.printStackTrace();
+					}
+					}else{
+						System.out.println("Error with the deployment model: received information about an instance not associated with any tie (unknown instance id)");
+					}
+				}
+				
+			}else{
+				System.out.println("Error with the deployment model: received instance information without an associated instance id");
+			}
+		}
 	}
 
 	@Override

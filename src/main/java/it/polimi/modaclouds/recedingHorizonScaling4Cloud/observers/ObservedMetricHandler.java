@@ -3,6 +3,7 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.observers;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,9 +32,19 @@ public class ObservedMetricHandler extends MonitoringDatumHandler {
 			+ monitoringDatum.getTimestamp());
 
         }
-		
+
+	    Random rand = new Random();
+
 		for (MonitoringDatum monitoringDatum : monitoringData) {
-		
+			try {
+
+			    double randomNum = rand.nextDouble();
+
+				Thread.sleep((long)(randomNum*3000));
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
 			if(monitoringDatum.getMetric().equals("EstimatedDemand")){
 				ModelManager.updateDemand(monitoringDatum.getResourceId(),
 						new Float(monitoringDatum.getValue().split(":")[1]),monitoringDatum.getValue().split(":")[0]);

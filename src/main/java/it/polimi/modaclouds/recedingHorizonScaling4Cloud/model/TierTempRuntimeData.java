@@ -66,32 +66,60 @@ public class TierTempRuntimeData {
 	public void addDemandValue(Float value, String functionality){
 
 		this.demands.put(functionality, value);
+		System.out.println("demand updated for functionality "+functionality+" with value "+value);
 		
 		boolean demandReady=true;
 		
 		for(String f:demands.keySet()){
+			System.out.println("checking ready demand condition for functionality: "+f+"; the actual value is: "+demands.get(f));
 			if(demands.get(f)==0){
+				System.out.println("finded a functionality with demand value equal to 0; the demand ready condition for this tier is false");
 				demandReady=false;
 			}
 		}
 		
 		if(demandReady){
+			
+			System.out.println("the demand for all the functionality have been received:");
+			for(String f:demands.keySet()){
+				System.out.println(f+"="+demands.get(f));
+			}
 			boolean workloadReady=true;
 			
 			for(String f: this.functWorkloadForecast.keySet()){
 				Map<Integer, Float> forecasts=functWorkloadForecast.get(f);
 				
 				for(Integer i: forecasts.keySet()){
+					System.out.println("checking ready workload condition for functionality: "+f+""
+							+ " and timestep: "+i.toString()+"; the actual value is: "+forecasts.get(i));
 					if(forecasts.get(i)==0){
+						System.out.println("finded a functionality with workload value equal to 0; the workload ready condition for this tier is false");
 						workloadReady=false;
 					}
 				}
 			}
 			
 			if(workloadReady){
+				System.out.println("also the workload prediction have been received for all the functionalities and for all the timestep:");
+				for(String f: this.functWorkloadForecast.keySet()){
+					Map<Integer, Float> forecasts=functWorkloadForecast.get(f);
+					
+					for(Integer i: forecasts.keySet()){
+						System.out.println(f+",timestep"+i.toString()+"="+forecasts.get(i));
+					}
+				}
+				System.out.println("setting temporary data for this container ready");
 				this.ready=true;
 			}
 			
+		}else{
+			System.out.println("some functionality still lack of a demand estimation");
+			
+			System.out.println("actual demand temporary data");
+			
+			for(String f:this.demands.keySet()){
+				System.out.println(f+":"+this.demands.get(f));
+			}
 		}
 		
 		/*
@@ -111,17 +139,14 @@ public class TierTempRuntimeData {
 		}
 		*/
 		
-		System.out.println("actual demand temporary data");
 		
-		for(String f:this.demands.keySet()){
-			System.out.println(f+":"+this.demands.get(f));
-		}
 	}
 	
 	public void addWorkloadForecastValue(Float value, int timestepPrediction, String functionality){
-
-		this.functWorkloadForecast.get(functionality).put(timestepPrediction, value);
 		
+		this.functWorkloadForecast.get(functionality).put(timestepPrediction, value);
+		System.out.println("workload prediction updated for functionality "+functionality+", timestep"+timestepPrediction+" with value "+value);
+
 		boolean workloadReady=true;
 		
 		for(String f: this.functWorkloadForecast.keySet()){
@@ -135,6 +160,15 @@ public class TierTempRuntimeData {
 		}
 		
 		if(workloadReady){
+			
+			System.out.println("the workload prediction for all the functionalities and for all the timesteps have been received:");
+			for(String f: this.functWorkloadForecast.keySet()){
+				Map<Integer, Float> forecasts=functWorkloadForecast.get(f);
+				
+				for(Integer i: forecasts.keySet()){
+					System.out.println(f+",timestep"+i.toString()+"="+forecasts.get(i));
+				}
+			}
 			boolean demandReady=true;
 
 			
@@ -145,9 +179,25 @@ public class TierTempRuntimeData {
 			}	
 			
 			if(demandReady){
+				System.out.println("also the demand have been received for all the functionalities:");
+				for(String f:demands.keySet()){
+					System.out.println(f+"="+demands.get(f));
+				}
+				System.out.println("setting temporary data for this container ready");
 				this.ready=true;
 			}
-		}		
+		}else{
+			System.out.println("some functionality still lack of a workload predictions for some timsteps");
+			
+			System.out.println("actual workload predition temporary data");
+			
+			for(String f:this.functWorkloadForecast.keySet()){
+				System.out.println("functionality "+f);
+				for(Integer i: this.functWorkloadForecast.get(f).keySet()){
+					System.out.println("timestep "+i+"="+this.functWorkloadForecast.get(f).get(i));
+				}
+			}
+		}	
 		/*
 		this.functWorkloadForecast.get(Integer.valueOf(timestepPrediction)).add(value);
 		
@@ -173,14 +223,7 @@ public class TierTempRuntimeData {
 		}
 		*/
 		
-		System.out.println("actual workload predition temporary data");
-		
-		for(String f:this.functWorkloadForecast.keySet()){
-			System.out.println("functionality "+f);
-			for(Integer i: this.functWorkloadForecast.get(f).keySet()){
-				System.out.println("timestep "+i+"="+this.functWorkloadForecast.get(f).get(i));
-			}
-		}
+
 	}
 
 	public Map<String, Float> getDemands() {

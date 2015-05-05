@@ -1,7 +1,9 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,6 +16,7 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.Configuratio
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.TierNotFoudException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTierAtRuntime;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector.MonitoringConnector;
@@ -35,7 +38,6 @@ public class AdaptationInitializer {
 			try {
 				
 				cm.loadConfiguration();
-
 			} catch (ConfigurationFileException e) {
 				e.printStackTrace();
 			}
@@ -49,17 +51,34 @@ public class AdaptationInitializer {
 			
 			cloudml.getDeploymentModel();
 			
+			try {
+				Thread.sleep(5000);
+			
+			
+			for(ApplicationTierAtRuntime tier: ModelManager.getRuntimeEnv()){
+				Set<String> instances=tier.getInstancesStartTimes().keySet();
+				
+				for(String i: instances){
+					cloudml.getInstanceInfo(i);
+					Thread.sleep(5000);
+				}
+			}
+			
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+			}
+			
 			ModelManager.printModel();
 	
 			try {
 				cm.inizializeFileSystem(ModelManager.getModel());
 			} catch (ProjectFileSystemException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+			
 			MonitoringConnector mp=new MonitoringConnector(ConfigManager.getConfig(ConfigDictionary.MonitoringPlatformIP));				
 			Observer tempObs;
 			Thread thread;
@@ -83,16 +102,21 @@ public class AdaptationInitializer {
 			}
 			
 			//journal.log(Level.INFO, "Monitoring rule for workload forecasts monitoring successfull installed");
+			
 
 			OptimizationInputWriter siw= new OptimizationInputWriter();
 			siw.writeStaticInput(ModelManager.getModel());
-					
+			
+			
 			//using locally a fake observer
-			//FakeObserver fake=new FakeObserver();
-			//fake.model=ModelManager.getModel();
-			//fake.optimizationHorizon=ModelManager.getOptimizationWindow();
-			//Thread toRun=new Thread(fake);
-			//toRun.start();
+			
+			/*
+			FakeObserver fake=new FakeObserver();
+			fake.model=ModelManager.getModel();
+			fake.optimizationHorizon=ModelManager.getOptimizationWindow();
+			Thread toRun=new Thread(fake);
+			toRun.start();
+			*/
 		
 		}
 
