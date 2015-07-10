@@ -77,12 +77,11 @@ public class MonitoringConnector {
 			WebResource webResource = client
 			   .resource("http://"+this.monitoringPlatformIP+":8170/v1/metrics/"+targetMetric+"/observers");
 	 
-			String input = "http://"+observerIP+":"+observerPort+"/v1/results";
-			
-			System.out.println(input);
-			
+			String callbackUrl = "http://"+observerIP+":"+observerPort+"/v1/results";
+			String body = String.format("{ \"callbackUrl\" : \"%s\", \"format\" : \"RDF/JSON\" }", callbackUrl); 
+						
 			ClientResponse response = webResource
-			   .post(ClientResponse.class, input);
+			   .post(ClientResponse.class, body);
 	 
 			if (response.getStatus() != 201) {
 				throw new RuntimeException("Failed : HTTP error code : "
