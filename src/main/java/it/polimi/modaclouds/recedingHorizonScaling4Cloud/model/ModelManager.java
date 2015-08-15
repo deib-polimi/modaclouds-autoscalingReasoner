@@ -1,46 +1,40 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.model;
 
 
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl.AdaptationController;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector.CloudMLAdapter;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.TierNotFoudException;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing.OptimizationInputWriter;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.GenericXMLHelper;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 
-import java.nio.file.Path;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Element;
 
 public class ModelManager {
 	private static final Logger journal = Logger
 			.getLogger(ModelManager.class.getName());
-	
 	private static Containers model;
-	private static List<ApplicationTierAtRuntime> runtimeEnv;
 
-	private static int optimizationWindow;
-	private static int timestepDuration;
-
-	
-	private static Map<String,TierTempRuntimeData> tempMonitoringData;
-
-	public void setOptimizationWindow(int horizon){
-		optimizationWindow=horizon;
-	}
 	
 	public static int getOptimizationWindow(){
-		return optimizationWindow;
+		return model.optimizationWindowsLenght;
 	}
 	
 	public static Containers getModel(){
@@ -51,287 +45,177 @@ public class ModelManager {
 		return null;
 	}
 	
-	public static void loadModel(String pathToSourceModel, String window, String timestep){
+	public static void loadModel(){
 		
-		journal.log(Level.INFO, "loading model");
-		
-		tempMonitoringData=new HashMap<String, TierTempRuntimeData>();
+		try {
+			ConfigManager.loadConfiguration();
+			JAXBContext jc;
 
-		
-		ObjectFactory factory=new ObjectFactory();
-		model=factory.createContainers();
-		GenericXMLHelper xmlHelper= new GenericXMLHelper(pathToSourceModel);	
-		runtimeEnv=new ArrayList<ApplicationTierAtRuntime>();
-
-		optimizationWindow=Integer.parseInt(window);
-		timestepDuration=Integer.parseInt(timestep);
-		
-		for(Element c: xmlHelper.getElements("container")){
-			Container toAdd=factory.createContainer();
-			toAdd.setCapacity(Float.parseFloat(c.getAttribute("capacity")));
-			toAdd.setMaxReserved(Integer.parseInt(c.getAttribute("maxReserved")));
-			toAdd.setOnDemandCost(Float.parseFloat(c.getAttribute("onDemandCost")));
-			toAdd.setReservedCost(Float.parseFloat(c.getAttribute("reservedCost")));
-			toAdd.setId(UUID.randomUUID().toString()+"_capacity="+toAdd.getCapacity());
-						
-			ApplicationTier tier;
-			ApplicationTierAtRuntime runtimeTier;
-			
-			List<Element> tiers=xmlHelper.getElements(c, "applicationTier");
-			int index=1;
-			
-			for(Element t: tiers){
-				runtimeTier=new ApplicationTierAtRuntime();
-				
-				tier= factory.createApplicationTier();
-				tier.setId(t.getAttribute("id"));
-				tier.setInitialNumberOfVMs(Integer.parseInt(t.getAttribute("initialNumberOfVMs")));
-				
-				Functionality tempFunc;
-				for(Element f: xmlHelper.getElements(t, "functionality")){
-					tempFunc=new Functionality();
-					tempFunc.setId(f.getAttribute("id"));
-					
-					tier.getFunctionality().add(tempFunc);
-				}
-				
-				ResponseTimeThreshold tempThreshold;
-				
-				for(Element rtt:xmlHelper.getElements(t, "responseTimeThreshold")){
-					tempThreshold=new ResponseTimeThreshold();
-					
-					tempThreshold.setHour(Integer.parseInt(rtt.getAttribute("hour")));
-					tempThreshold.setValue(Float.parseFloat(rtt.getAttribute("value")));
-					tier.getResponseTimeThreshold().add(tempThreshold);
-				}
-				
-				toAdd.getApplicationTier().add(tier);
-				
-				tempMonitoringData.put(tier.getId(), new TierTempRuntimeData(tier.getFunctionality(), optimizationWindow));
-				
-				runtimeTier.setTierId(tier.getId());
-				runtimeTier.setAlgorithmIndex(index);
-				index++;
-				runtimeEnv.add(runtimeTier);
-			}
-			
-			
-			model.getContainer().add(toAdd);
-			
-
+			jc = JAXBContext.newInstance(Containers.class);
+	        Unmarshaller unmarshaller = jc.createUnmarshaller();
+	        File xml = new File(ConfigManager.PATH_TO_DESIGN_TIME_MODEL);
+	        model = (Containers) unmarshaller.unmarshal(xml);
+		} catch (JAXBException e) {
+			e.printStackTrace();
+		} catch (ConfigurationFileException e1) {
+			e1.printStackTrace();
 		}
 		
-	}
-	
-	public static void flushTemporaryMonitoringData(Container c){
-			for(ApplicationTier t: c.getApplicationTier()){
-				TierTempRuntimeData temp=tempMonitoringData.get(t.getId());
-				temp.refreshBuffers(t.getFunctionality(),optimizationWindow);
-			}
+		CloudMLAdapter cloudml=new CloudMLAdapter();
+		cloudml.getDeploymentModel();
 		
 	}
 	
-	public static void printModel() {
+	public static void printCurrentModel() {
 		
-		journal.log(Level.INFO, "actual model...");
+	}
+		
+	public static void updateServiceDemand(String monitoredResource, Double monitoredValue) {
 		
 		for(Container c: model.getContainer()){
-			journal.log(Level.INFO, "Container:"+c.getId());
 			for(ApplicationTier t: c.getApplicationTier()){
-				ApplicationTierAtRuntime rt;
-				try {
-					rt = getApplicationTierAtRuntime(t.getId());
-					journal.log(Level.INFO, "Tier: "+t.getId());
-					journal.log(Level.INFO, "Actual instance pointed for scale out: "+rt.getInstanceToScale());
-					journal.log(Level.INFO, "Tier index in the optimization problem: "+rt.getAlgorithmIndex());
-					
-					journal.log(Level.INFO, "running tier instances...");
-					
-					for(String instance: rt.getInstancesStartTimes().keySet()){
-						if(rt.getInstancesStartTimes().get(instance)!=null){
-							journal.log(Level.INFO, instance+ "started at "+rt.getInstancesStartTimes().get(instance));
+				for(Functionality f: t.getFunctionality()){
+					if(f.getId().equals(monitoredResource)){
+						f.setDemand(monitoredValue);
+					}
+				}
+			}
+		}
+	}
+	
+	public static void updateServiceWorkloadPrediction(String monitoredResource, String monitoredMetric, Double monitoredValue) {
+		
+		for(Container c: model.getContainer()){
+			for(ApplicationTier t: c.getApplicationTier()){
+				for(Functionality f: t.getFunctionality()){
+					if(f.getId().equals(monitoredResource)){
+						WorkloadForecast toUpdate=null;
+						for(WorkloadForecast wf: f.getWorkloadForecast()){
+							if(wf.getTimeStepAhead()==Integer.parseInt(monitoredMetric.substring(monitoredMetric.length() - 1))){
+								toUpdate=wf;
+							}
+						}
+						if(toUpdate!=null){
+							toUpdate.setValue(monitoredValue);
 						}else{
-							journal.log(Level.INFO, instance+ "actually stopped");
+							toUpdate=new WorkloadForecast();
+							toUpdate.setTimeStepAhead(Integer.parseInt(monitoredMetric.substring(monitoredMetric.length() - 1)));
+							toUpdate.setValue(monitoredValue);
+							f.getWorkloadForecast().add(toUpdate);
 						}
 					}
-					journal.log(Level.INFO, "hosted functionalities");
-
-					for(Functionality f: t.functionality){
-						journal.log(Level.INFO, f.getId());
-					}
-				} catch (TierNotFoudException e) {
-					e.printStackTrace();
-				}
-				
-
-			}
-		}
-	}
-	
-	
-	
-	public static void updateDemand(String monitoredResource, Float monitoredValue, String functionality) {
-		
-		System.out.println("Updating demand for resource "+monitoredResource+" with value: "+monitoredValue
-				+"relative to functionality "+ functionality);
-		
-		for(String key: tempMonitoringData.keySet() ){			
-			if(key.equals(monitoredResource)){
-				System.out.println("updating...");
-				tempMonitoringData.get(key).addDemandValue(monitoredValue, functionality);	
-			}
-		}
-		
-		ModelManager.checkContainerReadyForOptimization("MIC");
-		
-		
-		
-	}
-	
-	public static void updateWorkloadPrediction(String monitoredResource, String monitoredMetric, Float monitoredValue, String functionality) {
-		
-
-		System.out.println("updating workload forecast for resource "+monitoredResource+" and for time step ahead "+monitoredMetric+" with value: "+monitoredValue
-				+"relative to functionality "+ functionality);
-		for(String key: tempMonitoringData.keySet() ){
-			
-
-			if(key.equals(monitoredResource)){
-				
-				for(int i=1; i<=optimizationWindow; i++){
-					if(monitoredMetric.contains(Integer.toString(i))){	
-						System.out.println("updating...");
-						tempMonitoringData.get(key).addWorkloadForecastValue(monitoredValue, i, functionality);	
-					}
-				}
-			}		
-			
-			
-		}
-		
-		ModelManager.checkContainerReadyForOptimization("MIC");
-		
-	}
-	
-	public static String getLastInstanceCreated(String tierId) throws TierNotFoudException{
-		String toReturn=null;
-		Date maxDate=null;
-
-		ApplicationTierAtRuntime tier=getApplicationTierAtRuntime(tierId);
-		Map<String,Date> instances=tier.getInstancesStartTimes();
-		
-		for(String instance: instances.keySet()){
-			if(maxDate==null && instances.get(instance)!=null){
-				maxDate=instances.get(instance);
-				toReturn=instance;
-			}
-			else{
-				if(instances.get(instance)!=null){
-					if(instances.get(instance).after(maxDate)){
-						maxDate=instances.get(instance);
-						toReturn=instance;
-					}
 				}
 			}
-			
 		}
 		
-		return toReturn;
 		
-		
-	
 	}
 	
+	public static String getNewestRunningInstance(String tierId) throws TierNotFoudException{
 
-	
-	public static void checkContainerReadyForOptimization(String lastUpdatedTierId) {
+		List<Date> startTimes= new ArrayList<Date>();
+		Instance toReturn=null;
 		
-		
-		Container toCheck=getContainerByTierId(lastUpdatedTierId);
-		
-		System.out.println("checking container "+toCheck.getId()+" ready for optimization");
-		
-		boolean allReady=true;
-		
-		for(ApplicationTier t: toCheck.getApplicationTier()){
-			if(!tempMonitoringData.get(t.getId()).getReady()){
-				allReady=false;
+		ApplicationTier tier=getTier(tierId);
+
+		for(Instance i: tier.instances){
+			if(i.getStatus().equals("RUNNING")){
+				startTimes.add(i.getStartTime().toGregorianCalendar().getTime());
 			}
 		}
 		
-		if(allReady){
-			
-			System.out.println("container is ready!");
-			int index;
-			for(ApplicationTier t: toCheck.getApplicationTier()){
-				try {
-					index=getApplicationTierAtRuntime(t.getId()).getAlgorithmIndex();
-					t.setDemand(tempMonitoringData.get(t.getId()).getTierCurrentDemand());
-					
-					t.getWorkloadForecast().clear();
-					
-					for(int i=1; i<=optimizationWindow; i++){
-						WorkloadForecast tempForecast= new WorkloadForecast();
-						tempForecast.setTimeStepAhead(i);
-						tempForecast.setValue(tempMonitoringData.get(t.id).getTierCurrentWorkloadPredictions()[i-1]);
-						t.getWorkloadForecast().add(tempForecast);
-					}
-					
-					OptimizationInputWriter.writeFile("mu.dat", toCheck.getId(), "let mu["+index+"]:=\n"+(1/t.getDemand())+"\n;");
-					OptimizationInputWriter.writeFile("Delay.dat", toCheck.getId(), "let D["+index+"]:=\n"+0+"\n;");
-
-					
-					for(WorkloadForecast wf:t.getWorkloadForecast()){
-						OptimizationInputWriter.writeFile("workload_class"+index+".dat", toCheck.getId(), "let Lambda["+index+","+wf.getTimeStepAhead()+"]:=\n"+wf.getValue()+"\n;");
-					}
-					
-
-				} catch (TierNotFoudException e) {
-					e.printStackTrace();
-				}
+		
+		Calendar max= Calendar.getInstance();
+		max.setTime(Collections.max(startTimes));
 				
-				
-				
-				
-
+		Calendar temp=Calendar.getInstance();
+		for(Instance i: tier.instances){
+			temp.setTime(i.getStartTime().toGregorianCalendar().getTime());
+			if(max.equals(temp)){
+				toReturn=i;
 			}
-			flushTemporaryMonitoringData(toCheck);
-			AdaptationController controller=new AdaptationController();
-			controller.setToAdapt(toCheck);
-			Thread toRun=new Thread(controller);
-			toRun.start();
-
-			
-		}else{
-			System.out.println("container not ready");
 		}
+		
+		return toReturn.getId();
+
 	}
 	
-	public static void updateRuntimeEnv(JSONArray instances) throws JSONException, TierNotFoudException{
-		ApplicationTierAtRuntime temp;
-		System.out.println("updating runtime environment");
+	public static String getOldestRunningInstance(String tierId){
+		List<Date> startTimes= new ArrayList<Date>();
+		Instance toReturn=null;
+		
+		ApplicationTier tier=getTier(tierId);
+
+		for(Instance i: tier.instances){
+			if(i.getStatus().equals("RUNNING")){
+				startTimes.add(i.getStartTime().toGregorianCalendar().getTime());
+			}
+		}
+		
+		
+		Calendar min= Calendar.getInstance();
+		min.setTime(Collections.max(startTimes));
+				
+		Calendar temp=Calendar.getInstance();
+		for(Instance i: tier.instances){
+			temp.setTime(i.getStartTime().toGregorianCalendar().getTime());
+			if(min.equals(temp)){
+				toReturn=i;
+			}
+		}
+		
+		return toReturn.getId();
+
+	}
+
+	public static void updateDeploymentInfo(JSONArray instances) throws JSONException, TierNotFoudException{
 
 		for(int i=0; i<instances.length(); i++){
 			JSONObject instance=instances.getJSONObject(i);
-			if(instance.get("id")!=null){
-				System.out.println("checking instance "+instance.get("id")+" on tier "+instance.get("type").toString().substring(4, instance.get("type").toString().length()-1));
-				temp=getApplicationTierAtRuntime(instance.get("type").toString().substring(4, instance.get("type").toString().length()-1));
-				if(!containInstance(temp, instance.get("id").toString())){
-					temp.addNewInstance(instance.get("id").toString());
-					
-					if(temp.getInstanceToScale()==null){
-					//if(instance.getString("id").toString().equals("eu-west-1/i-6c307c8b")){
-						temp.setInstanceToScale(instance.getString("id").toString());
+			String instanceId=instance.get("id").toString();
+			String instanceType=instance.getString("type").toString().substring(4, instance.get("type").toString().length()-1);
+			String tierId=getHostedTier(instanceId).getId();
+			String instanceStatus=instance.get("status").toString();
+			
+			if(instanceId!=null && instanceType != null && instanceStatus !=null){
+				if(tierId!=null){
+					if(instanceType.equals(tierId)){
+						//CHECK IF THE STATUS OF THE INSTANCE AS REPORTED BY CLOUDML CORRESPONDS TO THE INTERNAL STORED STATUS
+						if(!instanceStatus.equals(getInstance(instanceId).getStatus())){
+							//RAISE ERROR SINCE INSTANCE STATUS AS REPORTED BY CLOUDML DOES NOT CORRESPOND TO THE INTERNALLY STORED STATUS
+						}
+					}else{
+						//RAISE ERROR SINCE THE VM INSTANCE TYPE HAS REPORTED FROM CLOUDML IS NOT EQUAL TO 
+						//THE TIER ID TO WHICH THE INSTANCE BELONGS TO WITHIN THE INTERNAL MODEL
 					}
+				}else{
+					//THE INSTANCE IS NOT ASSOCIATED TO ANY MANAGED APPLICATION TIER WITHIN THE INTERNAL MODEL AND NEEDS TO BE ADDED
+					addInstance(instanceId, instanceType, instanceStatus);
 				}
+			}else{
+				//RAISE ERROR SINCE A VM INSTANCE FROM CLOUDML RESPONSE HAS A NULL ID OR A NULL TYPE OR A NULL STATUS
 			}
 		}		
 	}
 	
-	public ApplicationTier getTierById(String id){
+	public static Instance getInstance(String instanceId){
+		for(Container c: model.getContainer()){
+			for(ApplicationTier t:c.getApplicationTier()){
+				for(Instance i: t.getInstances()){
+					if(i.getId().equals(instanceId)){
+						return i;
+					}
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	public static ApplicationTier getTier(String tierId){
 		for(Container c: model.getContainer()){
 			for(ApplicationTier t: c.getApplicationTier()){
-				if(t.getId().equals(id)){
+				if(t.getId().equals(tierId)){
 					return t;
 				}
 			}
@@ -361,143 +245,93 @@ public class ModelManager {
 		
 		return null;
 	}
-
-
-	public static List<ApplicationTierAtRuntime> getRuntimeEnv() {
-		return runtimeEnv;
-	}
-
-	public static void setRuntimeEnv(List<ApplicationTierAtRuntime> runtimeModel) {
-		runtimeEnv = runtimeModel;
-	}
 	
-	public static  ApplicationTierAtRuntime getApplicationTierAtRuntime(String tierId) throws TierNotFoudException{
-		for(ApplicationTierAtRuntime t: runtimeEnv){
-			if(t.getTierId().equals(tierId) |tierId.startsWith(t.getTierId())){
-				return t;
-			}
-		}
-		
-		throw new TierNotFoudException("in the runtime model there is no tier with the specified id");
-	}
-	
-	public static List<String> getExpiringInstances(ApplicationTier toCheck,  int lookAhead) {
+	public static List<String> getExpiringInstances(String tierId,  int lookAhead) {
 		List<String> toReturn=new ArrayList<String>();
 		Calendar cal = Calendar.getInstance();
-		
-		System.out.println("START LOOKING FOR EXPIRING INSTANCES");
-		
-			ApplicationTierAtRuntime tier;
-			try {
-				tier = getApplicationTierAtRuntime(toCheck.getId());
-				Map<String,Date> instancesStartTimes=tier.getInstancesStartTimes();
-				Date actual=cal.getTime();
+			
+				ApplicationTier tier = getTier(tierId);
+				
+				cal.add(Calendar.MINUTE, -(60-model.getTimestepDuration()*lookAhead));
 
 				
-				cal.add(Calendar.MINUTE, -(60-timestepDuration*lookAhead));
-				Date oneHourBack = cal.getTime();
-
-				
-				for(String instance: instancesStartTimes.keySet()){		
+				for(Instance instance: tier.getInstances()){		
 					//if the 'instance' is not stopped
-					if(instancesStartTimes.get(instance)!=null){
+					if(instance.getStatus().equals("RUNNING")){
 						//and if the instance will be automatically recharged within the next 'lookAhead' timesteps
-						if(instancesStartTimes.get(instance).before(oneHourBack)){
-							System.out.println("expiring instance found within "+lookAhead+" timesteps! id: "+instance+" instanceStartTime: "+instancesStartTimes.get(instance).toString()+""
-									+ " one hour bofere it is: "+oneHourBack.toString()+"actual checking time: "+actual);
-							toReturn.add(instance);
+						if(instance.getStartTime().toGregorianCalendar().getTime().before(cal.getTime())){
+							toReturn.add(instance.getId());
 						}
 					}
-				}
-			} catch (TierNotFoudException e) {
-				e.printStackTrace();
-			}
-			
-		
+				}	
 		
 		return toReturn;
 	}
 	
-	public static List<String> getAvailableInstances(ApplicationTier toCheck, int lookAhead) {
+	public static List<String> getAvailableInstances(String tierId, int lookAhead) {
 		List<String> toReturn=new ArrayList<String>();
 		Calendar cal = Calendar.getInstance();
-		
-		System.out.println("START LOOKING FOR AVAILABLE INSTANCES");
-
-		
-			ApplicationTierAtRuntime tier;
-			try {
-				tier = getApplicationTierAtRuntime(toCheck.getId());
-				Map<String,Date> instancesStartTimes=tier.getInstancesStartTimes();
-				Date actual=cal.getTime();
-				cal.add(Calendar.MINUTE, -(60-timestepDuration*lookAhead));
-				Date oneHourBack = cal.getTime();
+			
+				ApplicationTier tier = getTier(tierId);
+				
+				cal.add(Calendar.MINUTE, -(60-model.getTimestepDuration()*lookAhead));
 
 				
-				for(String instance: instancesStartTimes.keySet()){	
+				for(Instance instance: tier.getInstances()){		
 					//if the 'instance' is not stopped
-					if(instancesStartTimes.get(instance)!=null){
-						//and if the instance doesn't need to be recharged within the next 'lookAhead' timesteps
-						if(instancesStartTimes.get(instance).after(oneHourBack)){
-							System.out.println("available instance found within "+lookAhead+" timesteps! id: "+instance+" instanceStartTime: "+instancesStartTimes.get(instance).toString()+""
-									+ " one hour bofere it is: "+oneHourBack.toString()+"actual checking time: "+actual);
-							toReturn.add(instance);
+					if(instance.getStatus().equals("RUNNING")){
+						//and if the instance will be automatically recharged within the next 'lookAhead' timesteps
+						if(instance.getStartTime().toGregorianCalendar().getTime().after(cal.getTime())){
+							toReturn.add(instance.getId());
 						}
 					}
-				}
-			} catch (TierNotFoudException e) {
-				e.printStackTrace();
-			}
-			
-			
-			
-		
+				}	
 		
 		return toReturn;
 	}
 	
-	public static List<String> getStoppedInstances(ApplicationTier toCheck){
+	public static List<String> getRunningInstances(String tierId){
 		List<String> toReturn=new ArrayList<String>();
 		
-		System.out.println("START LOOKING FOR STOPPED INSTANCES");
-
+		ApplicationTier tier = getTier(tierId);
 		
-			ApplicationTierAtRuntime tier;
-			try {
-				tier = getApplicationTierAtRuntime(toCheck.getId());
-				Map<String,Date> instancesStartTimes=tier.getInstancesStartTimes();
-
+		for(Instance instance: tier.getInstances()){		
+			if(instance.getStatus().equals("RUNNING")){
+					toReturn.add(instance.getId());
 				
-				for(String instance: instancesStartTimes.keySet()){	
-					//if the 'instance' is stopped
-					if(instancesStartTimes.get(instance)==null){
-							System.out.println("stopped instance found: "+instance);
-							toReturn.add(instance);
-					}
-				}
-			} catch (TierNotFoudException e) {
-				e.printStackTrace();
 			}
-			
-			
-			
+		}	
 		
+		return toReturn;
+	}
+	
+	public static List<String> getStoppedInstances(String tierId){
+		List<String> toReturn=new ArrayList<String>();
+		
+		ApplicationTier tier = getTier(tierId);
+		
+		for(Instance instance: tier.getInstances()){		
+			if(instance.getStatus().equals("STOPPED")){
+					toReturn.add(instance.getId());
+				
+			}
+		}	
 		
 		return toReturn;
 	}
 	
 	public static int getTimestepDuration() {
-		return timestepDuration;
+		return model.timestepDuration;
 	}
 
-	public static void setTimestepDuration(int timestepDuration) {
-		ModelManager.timestepDuration = timestepDuration;
-	}
 	
-	private static boolean containInstance(ApplicationTierAtRuntime toCheck, String toFind){
+	private static boolean containInstance(String tierId, String instanceId){
 		
-		for(String instance: toCheck.getInstancesStartTimes().keySet()){
-			if(instance.equals(toFind)){
+		
+		ApplicationTier tier = getTier(tierId);
+
+		for(Instance instance: tier.getInstances()){
+			if(instance.getId().equals(instanceId)){
 				return true;
 			}
 		}
@@ -506,30 +340,136 @@ public class ModelManager {
 		return false;
 	}
 	
-	public static void stopInstance(String instanceId, String tierId) throws TierNotFoudException{
-			ApplicationTierAtRuntime toUpdate=getApplicationTierAtRuntime(tierId);
-			toUpdate.deleteInstance(instanceId);
-	}
-	
-	
-	
-	public static void addInstance(String instanceId, String tierId) throws TierNotFoudException{
-		ApplicationTierAtRuntime toUpdate=getApplicationTierAtRuntime(tierId);
-		toUpdate.addNewInstance(instanceId);
-	}
-
-	
-	public static String getTierIdByInstanceId(String instanceId){
+	public static void stopInstance(String instanceId) throws TierNotFoudException{
 		
-		for(ApplicationTierAtRuntime tier:runtimeEnv){
-			for(String instance: tier.getInstancesStartTimes().keySet()){
-				if(instance.equals(instanceId)){
-					return tier.getTierId();
+		
+		CloudMLAdapter cloudml=new CloudMLAdapter();
+		List<String> toStop=new ArrayList<String>();
+		toStop.add(instanceId);
+		cloudml.stopInstance(toStop);
+		Instance stopped=getInstance(instanceId);
+		stopped.setStatus("STOPPED");
+		stopped.setStartTime(null);
+		
+	}
+	
+	public static void startInstance(String instanceId) throws TierNotFoudException{
+		
+		CloudMLAdapter cloudml=new CloudMLAdapter();
+		List<String> toStart=new ArrayList<String>();
+		toStart.add(instanceId);
+		cloudml.startInstance(toStart);
+		Instance started=getInstance(instanceId);
+		started.setStatus("RUNNING");
+		GregorianCalendar c = new GregorianCalendar();
+		c.setTime(new Date());
+		XMLGregorianCalendar date2;
+		try {
+			date2 = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
+			started.setStartTime(date2);
+		} catch (DatatypeConfigurationException e) {
+			e.printStackTrace();
+		}		
+	}
+	
+	public static void addInstance(String instanceId, String tierId, String status) throws TierNotFoudException{
+		Instance toAdd=new Instance();
+		toAdd.setId(instanceId);
+		toAdd.setStatus(status);
+		toAdd.setUsedForScale(false);
+		
+		if(status.equals("RUNNING")){
+			GregorianCalendar c = new GregorianCalendar();
+			c.setTime(new Date());
+			XMLGregorianCalendar date2;
+			try {
+				date2 = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
+				toAdd.setStartTime(date2);
+			} catch (DatatypeConfigurationException e) {
+				e.printStackTrace();
+			}
+		}else{
+			toAdd.setStartTime(null);
+		}
+		
+		
+		getTier(tierId).getInstances().add(toAdd);
+	}
+	
+	public static ApplicationTier getHostedTier(String instanceId){
+		for(Container c: model.getContainer()){
+			for(ApplicationTier t: c.getApplicationTier()){
+				for(Instance i: t.getInstances()){
+					if(i.getId().equals(instanceId)){
+						return t;
+					}
 				}
 			}
 		}
 		
 		return null;
+	}
+	
+	public static ApplicationTier getContainingTier(String functionalityId){	
+		for(Container c: model.getContainer()){
+			for(ApplicationTier t: c.getApplicationTier()){
+				for(Functionality f: t.getFunctionality()){
+					if(f.getId().equals(functionalityId)){
+						return t;
+					}
+				}
+			}
+		}
 		
+		return null;
+	}
+	
+	public static List<String> getExposedFunctionalities(String tierId){	
+		List<String> toReturn = new ArrayList<String>();
+		
+		for(Functionality f: getTier(tierId).getFunctionality()){
+			toReturn.add(f.getId());
+		}
+		
+		return toReturn;
+	}
+	
+	public static List<String> getHostingInstances(String tierId){	
+		
+		List<String> toReturn = new ArrayList<String>();
+		
+		for(Instance i: getTier(tierId).getInstances()){
+			toReturn.add(i.getId());
+		}
+		
+		return toReturn;	
+	}
+	
+	public static int getClassIndex(String tierId){
+		return getTier(tierId).getClassIndex();
+	}
+	
+	public static double getDemand(String tierId){
+		return 0;
+	}
+	
+	public static double getWorkloadPrediction(String tierId, int lookAhead){
+		return 0;
+	}
+	
+	public static String getInstanceToScale(String tierId){
+		
+		
+		for(Instance i: getTier(tierId).getInstances()){
+			if(i.isUsedForScale()){
+				return i.getId();
+			}
+		}
+		
+		return null;
+	}
+	
+	public static void setInstanceToScale(String instanceId){
+		getInstance(instanceId).setUsedForScale(true);
 	}
 }

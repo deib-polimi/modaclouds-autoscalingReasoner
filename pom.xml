@@ -25,7 +25,20 @@
 		</repository>
 	</repositories>
 
-	<dependencies>	
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.glassfish.jersey</groupId>
+				<artifactId>jersey-bom</artifactId>
+				<version>2.17</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<dependencies>
+        
 		<dependency>
 			<groupId>org.eclipse.jetty.websocket</groupId>
 			<artifactId>websocket-client</artifactId>
@@ -42,9 +55,9 @@
 			<version>2.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-    		<groupId>org.apache.jclouds.provider</groupId>
-    		<artifactId>aws-ec2</artifactId>
-    		<version>1.7.2</version>
+			<groupId>org.apache.jclouds.provider</groupId>
+			<artifactId>aws-ec2</artifactId>
+			<version>1.7.2</version>
 		</dependency>
 
 		<dependency>
@@ -58,11 +71,18 @@
 			<artifactId>jaxb2-basics-runtime</artifactId>
 			<version>0.6.5</version>
 		</dependency>
+
+
 		<dependency>
-			<groupId>it.polimi.modaclouds.qos-models</groupId>
-			<artifactId>qos-models</artifactId>
-			<version>2.2.1</version>
+			<groupId>org.glassfish.jersey.containers</groupId>
+			<artifactId>jersey-container-grizzly2-http</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-json</artifactId>
+			<version>1.9</version>
+		</dependency>
+
 		<dependency>
 			<groupId>it.polimi.modaclouds</groupId>
 			<artifactId>resourcemodel</artifactId>
@@ -80,35 +100,29 @@
 			<artifactId>mysql-connector-java</artifactId>
 			<version>5.1.6</version>
 		</dependency>
-
-		<dependency>
-			<groupId>it.polimi.modaclouds.space4cloud</groupId>
-			<artifactId>milp</artifactId>
-			<version>0.0.18</version>
-		</dependency>
-
-		<dependency>
-			<groupId>it.polimi.modaclouds.monitoring</groupId>
-			<artifactId>metrics-observer</artifactId>
-			<version>3.0</version>
-		</dependency>
-
+		
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-client</artifactId>
 			<version>1.18.1</version>
 		</dependency>
+		
+		<dependency>
+            <groupId>it.polimi.tower4clouds</groupId>
+            <artifactId>manager-api</artifactId>
+            <version>0.2.3</version>
+        </dependency>
 
 	</dependencies>
 
 	<build>
-	    
-	    <resources>
-	        <resource>
-	            <directory>META-INF</directory>
-	        </resource>
-    	</resources>
-	    
+
+		<resources>
+			<resource>
+				<directory>META-INF</directory>
+			</resource>
+		</resources>
+
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -119,42 +133,42 @@
 					<target>1.7</target>
 				</configuration>
 			</plugin>
-			 
+
 			<plugin>
-   		      <groupId>org.apache.maven.plugins</groupId>
-		      <artifactId>maven-jar-plugin</artifactId>
-		      <version>2.4</version>
-		      <configuration>
-		        <archive>
-		          <manifest>
-		          	<addClasspath>true</addClasspath>
-                	<classpathPrefix>lib/</classpathPrefix>
-		            <mainClass>it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl.Main</mainClass>
-		          </manifest>
-		        </archive>
-		      </configuration>
-		    </plugin>
-		     
-		    
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>lib/</classpathPrefix>
+							<mainClass>it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl.Main</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+
+
 			<plugin>
-			    <groupId>org.apache.maven.plugins</groupId>
-			    <artifactId>maven-dependency-plugin</artifactId>
-			    <executions>
-			        <execution>
-			            <id>copy</id>
-			            <phase>package</phase>
-			            <goals>
-			                <goal>copy-dependencies</goal>
-			            </goals>
-			            <configuration>
-			                <outputDirectory>
-			                    ${project.build.directory}/lib
-			                </outputDirectory>
-			            </configuration>
-			        </execution>
-			    </executions>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>
+								${project.build.directory}/lib
+							</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
-	
+
 </project>

@@ -17,13 +17,8 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.sshConnector;
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigDictionary;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
-
 import java.io.File;
-import java.util.List;
 
 //this class is used to create connection to AMPL server (wrapper)
 public class SshAdapter {
@@ -48,7 +43,7 @@ public class SshAdapter {
 					
 					if(!child.getAbsolutePath().contains("output")){
 						System.out.println("sending file: "+child.toString());
-						newScpTo.sendfile(child.getAbsolutePath(), ConfigManager.getConfig(ConfigDictionary.OPTIMIZATION_INPUT_FOLDER));
+						newScpTo.sendfile(child.getAbsolutePath(), ConfigManager.OPTIMIZATION_INPUT_FOLDER);
 						
 						try {
 						    Thread.sleep(10000);                 //1000 milliseconds is one second.
@@ -70,7 +65,7 @@ public class SshAdapter {
 			ScpFrom newScpFrom = new ScpFrom();
 			
 			newScpFrom.receivefile("executions/execution_"+c.getId()+"/IaaS_1/output.out",
-					ConfigManager.getConfig(ConfigDictionary.OPTIMIZATION_OUTPUT_FILE));			
+					ConfigManager.OPTIMIZATION_OUTPUT_FILE);			
 	
 
 			

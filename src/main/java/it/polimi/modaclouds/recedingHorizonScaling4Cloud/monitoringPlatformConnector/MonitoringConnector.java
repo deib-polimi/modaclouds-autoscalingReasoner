@@ -1,103 +1,39 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector;
 
 
-import java.io.StringWriter;
+import java.io.IOException;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
-
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-
-import it.polimi.modaclouds.qos_models.schema.Action;
-import it.polimi.modaclouds.qos_models.schema.CollectedMetric;
-import it.polimi.modaclouds.qos_models.schema.MonitoredTarget;
-import it.polimi.modaclouds.qos_models.schema.MonitoringRule;
-import it.polimi.modaclouds.qos_models.schema.MonitoringRules;
-import it.polimi.modaclouds.qos_models.schema.ObjectFactory;
-import it.polimi.modaclouds.qos_models.schema.Parameter;
+import it.polimi.tower4clouds.rules.Action;
+import it.polimi.tower4clouds.rules.CollectedMetric;
+import it.polimi.tower4clouds.rules.MonitoredTarget;
+import it.polimi.tower4clouds.rules.MonitoringRule;
+import it.polimi.tower4clouds.rules.MonitoringRules;
+import it.polimi.tower4clouds.rules.ObjectFactory;
+import it.polimi.tower4clouds.rules.Parameter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
+import it.polimi.tower4clouds.manager.api.ManagerAPI;
+import it.polimi.tower4clouds.manager.api.NotFoundException;
+
 
 public class MonitoringConnector {
 	
-	
-	private String monitoringPlatformIP;
+	private ManagerAPI monitoring;
 	private ObjectFactory factory=new ObjectFactory();
 	
-	public MonitoringConnector(String monitoringPlatformIP){
-		this.monitoringPlatformIP=monitoringPlatformIP;
+	public MonitoringConnector(){
+	  monitoring=new ManagerAPI(ConfigManager.MONITORING_PLATFORM_IP, Integer.parseInt(ConfigManager.MONITORING_PLATFORM_PORT));
+	
 	}
 	
-	public void installRules(MonitoringRules toInstall){
-		
-		try {
-			 
-			
-			JAXBContext context = JAXBContext.newInstance("it.polimi.modaclouds.qos_models.schema");
-			Marshaller marshaller = context.createMarshaller();
-			marshaller.setProperty("jaxb.formatted.output",Boolean.TRUE);
-			StringWriter sw = new StringWriter();
-			
-			marshaller.marshal(toInstall,sw);
-						
-			Client client = Client.create();
-	 
-			WebResource webResource = client
-			   .resource("http://"+this.monitoringPlatformIP+":8170/v1/monitoring-rules");
-	 
-	 
-			ClientResponse response = webResource.type("application/json")
-			   .post(ClientResponse.class, sw.toString());
-	 
-			if (response.getStatus() != 204) {
-				throw new RuntimeException("Failed : HTTP error code : "
-				     + response.getStatus());
-			}
-	 
-			/*
-			System.out.println("Output from Server .... \n");
-			String output = response.getEntity(String.class);
-			System.out.println(output);
-			 */
-		  } catch (Exception e) {
-	 
-			e.printStackTrace();
-	 
-		  }
+	public void installRules(MonitoringRules toInstall) throws IOException{		 
+			monitoring.installRules(toInstall);
 	}
 	
-	public void attachObserver(String targetMetric, String observerIP, String observerPort){
-		try {
-			 
-			Client client = Client.create();
-	 
-			WebResource webResource = client
-			   .resource("http://"+this.monitoringPlatformIP+":8170/v1/metrics/"+targetMetric+"/observers");
-	 
-			String callbackUrl = "http://"+observerIP+":"+observerPort+"/v1/results";
-			String body = String.format("{ \"callbackUrl\" : \"%s\", \"format\" : \"RDF/JSON\" }", callbackUrl); 
-						
-			ClientResponse response = webResource
-			   .post(ClientResponse.class, body);
-	 
-			if (response.getStatus() != 201) {
-				throw new RuntimeException("Failed : HTTP error code : "
-				     + response.getStatus());
-			}
-	 
-			
-			System.out.println("Output from Server .... \n");
-			String output = response.getEntity(String.class);
-			System.out.println(output);
-	 		
-		  } catch (Exception e) {
-	 
-			e.printStackTrace();
-	 
-		  }
+	public void attachObserver(String targetMetric, String observerIP, String observerPort) throws NotFoundException, IOException{
+		monitoring.registerHttpObserver(targetMetric, "http://"+observerIP+":"+observerPort+"/v1/results", "RDF/JSON");
 	}
 	
 	public  MonitoringRules buildDemandRule(Containers containers){

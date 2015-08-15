@@ -1,50 +1,35 @@
-/**
- * Copyright ${year} deib-polimi
- * Contact: deib-polimi <giovannipaolo.gibilisco@polimi.it>
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.sshConnector;
 
-import com.jcraft.jsch.*;
 
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigDictionary;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import javax.swing.JOptionPane;
+
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelExec;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
+
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
-import it.polimi.modaclouds.space4cloud.milp.ssh.ScpTo.MyUserInfo;
 
-import javax.swing.*;
 
-import java.io.*;
 
-//this class is used to download files from AMPL server
 public class ScpFrom {
 
-	// login to AMPL server
 	public String ScpUserName;
-	// AMPL server's address
 	public String ScpHost;
-	// password for account on AMPL server
 	public String ScpPasswd;
 
-	// constructor
 	public ScpFrom() {
-		ScpUserName = ConfigManager.getConfig(ConfigDictionary.SSH_USER_NAME);
-		ScpHost = ConfigManager.getConfig(ConfigDictionary.SSH_HOST);
-		ScpPasswd = ConfigManager.getConfig(ConfigDictionary.SSH_PASSWORD);
+		ScpUserName = ConfigManager.SSH_USER_NAME;
+		ScpHost = ConfigManager.SSH_HOST;
+		ScpPasswd = ConfigManager.SSH_PASSWORD;
 	}
 
-	// main execution function
-	// coping RFile on AMPL server in LFile on local machine
 	public void receivefile(String LFile, String RFile) {
 		FileOutputStream fos = null;
 		try {
@@ -52,45 +37,22 @@ public class ScpFrom {
 			String lfile = LFile;
 			String rfile = RFile;
 
-			// creating session with username, server's address and port (22 by
-			// default)
 			JSch jsch = new JSch();
 			Session session = jsch.getSession(this.ScpUserName, this.ScpHost, 22);
 
-			// receiving user password if it was not collected before
 			if (this.ScpPasswd == "")
 				this.ScpPasswd = JOptionPane.showInputDialog("Enter password");
 			session.setPassword(this.ScpPasswd);
 
-			// this class sets visual forms for interactions with users
-			// required by implementation
-			UserInfo ui = new MyUserInfo() {
-				public void showMessage(String message) {
-					JOptionPane.showMessageDialog(null, message);
-				}
-
-				public boolean promptYesNo(String message) {
-					Object[] options = { "yes", "no" };
-					int foo = JOptionPane.showOptionDialog(null, message,
-							"Warning", JOptionPane.DEFAULT_OPTION,
-							JOptionPane.WARNING_MESSAGE, null, options,
-							options[0]);
-					return foo == 0;
-				}
-			};
 			String prefix = null;
 			if (new File(lfile).isDirectory()) {
 				prefix = lfile + File.separator;
 			}
-			session.setUserInfo(ui);
-			// disabling of certificate checks
 			session.setConfig("StrictHostKeyChecking", "no");
 			session.connect();
-			// exec 'scp -f rfile' remotely
 			String command = "scp -f " + rfile;
 			Channel channel = session.openChannel("exec");
 			((ChannelExec) channel).setCommand(command);
-			// get I/O streams for remote scp
 			OutputStream out = channel.getOutputStream();
 			InputStream in = channel.getInputStream();
 
@@ -101,7 +63,6 @@ public class ScpFrom {
 			buf[0] = 0;
 			out.write(buf, 0, 1);
 			out.flush();
-			// reading channel
 			while (true) {
 				int c = checkAck(in);
 				if (c != 'C') {

@@ -18,7 +18,6 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.sshConnector;
 
 import com.jcraft.jsch.*;
 
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigDictionary;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 
 import javax.swing.*;
@@ -37,9 +36,9 @@ public class ScpTo {
 
 	// constructor
 	public ScpTo() {
-		ScpUserName = ConfigManager.getConfig(ConfigDictionary.SSH_USER_NAME);
-		ScpHost = ConfigManager.getConfig(ConfigDictionary.SSH_HOST);
-		ScpPasswd = ConfigManager.getConfig(ConfigDictionary.SSH_PASSWORD);
+		ScpUserName = ConfigManager.SSH_USER_NAME;
+		ScpHost = ConfigManager.SSH_HOST;
+		ScpPasswd = ConfigManager.SSH_PASSWORD;
 	}
 
 	// main execution function

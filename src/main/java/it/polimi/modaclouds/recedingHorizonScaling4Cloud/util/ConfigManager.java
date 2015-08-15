@@ -4,6 +4,7 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.Configuratio
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -27,16 +28,26 @@ import org.xml.sax.SAXException;
 
 public class ConfigManager {
 
-	private static HashMap<String, String> configs = new HashMap<String, String>();
-
+	public static String OWN_IP;
+	public static String PATH_TO_DESIGN_TIME_MODEL;
+	public static String SSH_USER_NAME;
+	public static String SSH_HOST;
+	public static String SSH_PASSWORD;
+	public static String OPTIMIZATION_LAUNCHER;
+	public static String OPTIMIZATION_INPUT_FOLDER;
+	public static String OPTIMIZATION_OUTPUT_FILE;
+	public static String CLOUDML_WEBSOCKET_IP;
+	public static String CLOUDML_WEBSOCKET_PORT;
+	public static String MONITORING_PLATFORM_IP;
+	public static String MONITORING_PLATFORM_PORT;
 
 	
-	public void inizializeFileSystem(Containers containers) throws ProjectFileSystemException{
+	public static void inizializeFileSystem(Containers containers) throws ProjectFileSystemException{
 
 		File file = null;
 		
 		
-		this.clearFileSystem();
+		clearFileSystem();
 		
 		for(Container c: containers.getContainer()){
 			file = new File("executions/execution_"+c.getId()+"/IaaS_1");
@@ -51,20 +62,19 @@ public class ConfigManager {
 		
 	}
 	
-	private void clearFileSystem(){
+	private static void clearFileSystem(){
 		File file = new File("executions/");
 		
 		if(file.exists() & file.isDirectory()){
 			try {
 				FileUtils.deleteDirectory(file);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 	}
 	
-	public void loadConfiguration() throws ConfigurationFileException {
+	public static void loadConfiguration() throws ConfigurationFileException {
 		DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
 		DocumentBuilder b;
 		Document d;
@@ -107,16 +117,14 @@ public class ConfigManager {
 								
 								String key=map.getNamedItem("name").getNodeValue();
 								String value=map.getNamedItem("value").getNodeValue();
-								
-								configs.put(key,value);
+								setProperty(key, value);
 							}		
 		}
 		
-		this.printConfig();
 	}
 
 	
-	private InputStream findConfigFile() {
+	private static InputStream findConfigFile() {
 		ClassLoader loader = Thread.currentThread().getContextClassLoader();
 		InputStream toReturn=loader.getResourceAsStream("config.xml");
 		
@@ -127,18 +135,55 @@ public class ConfigManager {
 		return toReturn;
 	}
 	
-	private void printConfig(){
-		
-		for(String key: configs.keySet()){
-			System.out.println(key+"="+configs.get(key));
+	private static void setProperty(String key, String value){
+		switch (key) {
+		case "OWN_IP":
+			OWN_IP=value;
+			break;
+			
+		case "PATH_TO_DESIGN_TIME_MODEL":
+			PATH_TO_DESIGN_TIME_MODEL=value;
+			break;
+
+		case "SSH_USER_NAME":
+			SSH_USER_NAME=value;
+			break;
+
+		case "SSH_HOST":
+			SSH_HOST=value;
+			break;
+
+		case "SSH_PASSWORD":
+			SSH_PASSWORD=value;
+			break;
+
+		case "OPTIMIZATION_LAUNCHER":
+			OPTIMIZATION_LAUNCHER=value;
+			break;
+
+		case "OPTIMIZATION_INPUT_FOLDER":
+			OPTIMIZATION_INPUT_FOLDER=value;
+			break;
+
+		case "CLOUDML_WEBSOCKET_IP":
+			CLOUDML_WEBSOCKET_IP=value;
+			break;
+
+		case "CLOUDML_WEBSOCKET_PORT":
+			CLOUDML_WEBSOCKET_PORT=value;
+			break;
+
+		case "MONITORING_PLATFORM_IP":
+			MONITORING_PLATFORM_IP=value;
+			break;
+
+		case "MONITORING_PLATFORM_PORT":
+			MONITORING_PLATFORM_PORT=value;
+			break;
+
+		default:
+			break;
 		}
 	}
 	
-	public static String getConfig(String name){
-		return configs.get(name);
-	}
-	
-	public static HashMap<String, String> getConfigs(){
-		return configs;
-	}
 }
