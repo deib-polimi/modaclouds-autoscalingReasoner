@@ -1,5 +1,15 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Paths;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+
 import org.cloudml.facade.CloudML;
 import org.cloudml.facade.Factory;
 import org.cloudml.facade.commands.CloudMlCommand;
@@ -7,24 +17,50 @@ import org.cloudml.facade.commands.CommandFactory;
 import org.cloudml.facade.commands.ScaleOut;
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector.CloudMLAdapter;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.TierNotFoudException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector.MonitoringConnector;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 
 public class Main {
 
 	public static void main(String[] args) {
 
-		
-		/*
-		AdaptationInitializer controller=new AdaptationInitializer();
-		controller.initialize();
-		*/
+
+		try {
+			ConfigManager.loadConfiguration();
+		} catch (ConfigurationFileException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		ModelManager.loadModel();
 		
-		//CloudMLAdapter cloudml=new CloudMLAdapter("ws://127.0.0.1:9000");
-		//ScaleOut command=new ScaleOut("eu-west-1/i-152841f2");
-		//cloudml.scaleOut(command, 1);
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+		}
+		
+		ModelManager.initializeUsedForScale();
+		ModelManager.printCurrentModel();
+		
+		MonitoringConnector monitor=new MonitoringConnector();
+		JAXBContext context;
+		try {
+			context = JAXBContext.newInstance("it.polimi.tower4clouds.rules");
+			Marshaller marshaller = context.createMarshaller();
+			marshaller.setProperty("jaxb.formatted.output",Boolean.TRUE);
+			File rules = Paths.get("sarBuildingRulesTest.xml").toFile();
+			OutputStream out = new FileOutputStream(rules);
+			marshaller.marshal(monitor.buildRequiredRules(),out);
+			System.out.println("Rules file "+ rules.toString()+" created!");
+
+			
+		} catch (JAXBException | IOException e) {
+			e.printStackTrace();
+		}
 		
 	}
 

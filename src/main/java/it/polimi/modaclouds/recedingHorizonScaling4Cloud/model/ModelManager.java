@@ -35,10 +35,6 @@ public class ModelManager {
 			.getLogger(ModelManager.class.getName());
 	private static Containers model;
 
-	public static void main(String[] args) {
-
-		
-	}
 	
 	public static int getOptimizationWindow(){
 		return model.optimizationWindowsLenght;
@@ -55,7 +51,6 @@ public class ModelManager {
 	public static void loadModel(){
 		
 		try {
-			ConfigManager.loadConfiguration();
 			JAXBContext jc;
 
 			jc = JAXBContext.newInstance(Containers.class);
@@ -64,8 +59,6 @@ public class ModelManager {
 	        model = (Containers) unmarshaller.unmarshal(xml);
 		} catch (JAXBException e) {
 			e.printStackTrace();
-		} catch (ConfigurationFileException e1) {
-			e1.printStackTrace();
 		}
 		
 		CloudMLAdapter cloudml=new CloudMLAdapter();
