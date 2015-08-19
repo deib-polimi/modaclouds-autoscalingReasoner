@@ -27,28 +27,15 @@ public class AdaptationInitializer {
 			}
 						
 			ModelManager.loadModel();
-			
-			CloudMLAdapter cloudml=new CloudMLAdapter();
-			
-			cloudml.getDeploymentModel();
+
 			
 			try {
 				Thread.sleep(5000);
-			
-			/*
-			for(ApplicationTierAtRuntime tier: ModelManager.getRuntimeEnv()){
-				Set<String> instances=tier.getInstancesStartTimes().keySet();
-				
-				for(String i: instances){
-					cloudml.getInstanceInfo(i);
-					Thread.sleep(5000);
-				}
-			}
-			*/
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
 			}
 			
+			ModelManager.initializeUsedForScale();
 			ModelManager.printCurrentModel();
 	
 			try {

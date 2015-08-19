@@ -6,8 +6,11 @@ import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.CloudMLReturnedModelException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.TierNotFoudException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
+
 import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,7 +45,7 @@ public class WSClient extends WebSocketClient {
 			jsonObject = new JSONObject(s.substring(27));
 			JSONArray instances=jsonObject.getJSONArray("vmInstances");
 			ModelManager.updateDeploymentInfo(instances);
-		} catch (JSONException | TierNotFoudException e) {
+		} catch (JSONException | TierNotFoudException | CloudMLReturnedModelException e) {
 			e.printStackTrace();
 		}
 		}

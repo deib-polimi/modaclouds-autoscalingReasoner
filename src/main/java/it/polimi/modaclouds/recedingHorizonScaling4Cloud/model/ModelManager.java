@@ -2,6 +2,7 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.model;
 
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector.CloudMLAdapter;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.CloudMLReturnedModelException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.TierNotFoudException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
@@ -27,11 +28,17 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.sun.research.ws.wadl.Application;
+
 public class ModelManager {
 	private static final Logger journal = Logger
 			.getLogger(ModelManager.class.getName());
 	private static Containers model;
 
+	public static void main(String[] args) {
+
+		
+	}
 	
 	public static int getOptimizationWindow(){
 		return model.optimizationWindowsLenght;
@@ -111,7 +118,7 @@ public class ModelManager {
 		
 	}
 	
-	public static String getNewestRunningInstance(String tierId) throws TierNotFoudException{
+	public static String getNewestRunningInstance(String tierId){
 
 		List<Date> startTimes= new ArrayList<Date>();
 		Instance toReturn=null;
@@ -168,7 +175,7 @@ public class ModelManager {
 
 	}
 
-	public static void updateDeploymentInfo(JSONArray instances) throws JSONException, TierNotFoudException{
+	public static void updateDeploymentInfo(JSONArray instances) throws JSONException, TierNotFoudException, CloudMLReturnedModelException{
 
 		for(int i=0; i<instances.length(); i++){
 			JSONObject instance=instances.getJSONObject(i);
@@ -182,11 +189,16 @@ public class ModelManager {
 					if(instanceType.equals(tierId)){
 						//CHECK IF THE STATUS OF THE INSTANCE AS REPORTED BY CLOUDML CORRESPONDS TO THE INTERNAL STORED STATUS
 						if(!instanceStatus.equals(getInstance(instanceId).getStatus())){
-							//RAISE ERROR SINCE INSTANCE STATUS AS REPORTED BY CLOUDML DOES NOT CORRESPOND TO THE INTERNALLY STORED STATUS
+							//RAISE ERROR SINCE INSTANCE STATUS AS REPORTED BY CLOUDML
+							//DOES NOT CORRESPOND TO THE INTERNALLY STORED STATUS
+							throw new CloudMLReturnedModelException("CloudML reported status does not correspond "
+									+ "to the internally stored status for instance: "+instanceId);
 						}
 					}else{
 						//RAISE ERROR SINCE THE VM INSTANCE TYPE HAS REPORTED FROM CLOUDML IS NOT EQUAL TO 
 						//THE TIER ID TO WHICH THE INSTANCE BELONGS TO WITHIN THE INTERNAL MODEL
+						throw new CloudMLReturnedModelException("CloudML reported instance type does not correspond "
+								+ "to the internally stored instance type for instance: "+instanceId);
 					}
 				}else{
 					//THE INSTANCE IS NOT ASSOCIATED TO ANY MANAGED APPLICATION TIER WITHIN THE INTERNAL MODEL AND NEEDS TO BE ADDED
@@ -194,6 +206,7 @@ public class ModelManager {
 				}
 			}else{
 				//RAISE ERROR SINCE A VM INSTANCE FROM CLOUDML RESPONSE HAS A NULL ID OR A NULL TYPE OR A NULL STATUS
+				throw new CloudMLReturnedModelException("CloudML reported instance with a null type or status or Id for instance: "+instanceId);
 			}
 		}		
 	}
@@ -471,5 +484,21 @@ public class ModelManager {
 	
 	public static void setInstanceToScale(String instanceId){
 		getInstance(instanceId).setUsedForScale(true);
+	}
+	
+	public static void initializeUsedForScale(){
+
+		for(Container c: model.getContainer()){
+			for(ApplicationTier t: c.getApplicationTier()){
+				String toSet=getNewestRunningInstance(t.getId());
+				for(Instance i: t.getInstances()){
+					if(i.getId().equals(toSet)){
+						i.setUsedForScale(true);
+					}else{
+						i.setUsedForScale(false);
+					}
+				}
+			}
+		}
 	}
 }

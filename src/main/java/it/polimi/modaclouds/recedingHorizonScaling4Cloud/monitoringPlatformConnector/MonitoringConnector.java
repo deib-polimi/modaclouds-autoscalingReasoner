@@ -231,7 +231,4 @@ public class MonitoringConnector {
 		return toReturn;
 	}
 	
-	public void getMonitoringRules(){
-		
-	}
 }
