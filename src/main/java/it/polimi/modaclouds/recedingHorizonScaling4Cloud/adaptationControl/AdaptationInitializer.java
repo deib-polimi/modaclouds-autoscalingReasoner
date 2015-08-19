@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import it.polimi.tower4clouds.manager.api.NotFoundException;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector.CloudMLAdapter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
@@ -89,10 +88,4 @@ public class AdaptationInitializer {
 			*/
 		
 		}
-
-		
-		public static void printObserved(String s){
-			System.out.println(s);
-		}
-	
 }

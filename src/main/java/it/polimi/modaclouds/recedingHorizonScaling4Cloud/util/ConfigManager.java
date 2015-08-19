@@ -41,7 +41,7 @@ public class ConfigManager {
 	public static String MONITORING_PLATFORM_IP;
 	public static String MONITORING_PLATFORM_PORT;
 
-	
+	//to extend in order to generate also the static files
 	public static void inizializeFileSystem(Containers containers) throws ProjectFileSystemException{
 
 		File file = null;

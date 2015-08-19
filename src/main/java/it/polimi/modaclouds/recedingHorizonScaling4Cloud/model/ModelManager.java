@@ -463,11 +463,45 @@ public class ModelManager {
 	}
 	
 	public static double getDemand(String tierId){
-		return 0;
+
+		ApplicationTier tier=getTier(tierId);
+		double toReturn=0;
+		for(Functionality f:tier.getFunctionality()){
+			if(f.getDemand()!= null){
+				toReturn=toReturn+f.getDemand();
+			}
+		}
+		tier.setDemand(toReturn);
+		return toReturn;
 	}
 	
 	public static double getWorkloadPrediction(String tierId, int lookAhead){
-		return 0;
+		ApplicationTier tier=getTier(tierId);
+		double toReturn=0;
+		for(Functionality f:tier.getFunctionality()){
+			for(WorkloadForecast wf: f.getWorkloadForecast()){
+				if(wf.getTimeStepAhead()==lookAhead){
+					toReturn=toReturn+wf.getValue();
+				}
+			}
+		}
+		
+		WorkloadForecast toUpdate=null;
+		for(WorkloadForecast wf: tier.getWorkloadForecast()){
+			if(wf.getTimeStepAhead()==lookAhead){
+				toUpdate=wf;
+			}
+		}
+		if(toUpdate!=null){
+			toUpdate.setValue(toReturn);
+		}else{
+			toUpdate=new WorkloadForecast();
+			toUpdate.setTimeStepAhead(lookAhead);
+			toUpdate.setValue(toReturn);
+			tier.getWorkloadForecast().add(toUpdate);
+		}
+		
+		return toReturn;
 	}
 	
 	public static String getInstanceToScale(String tierId){
