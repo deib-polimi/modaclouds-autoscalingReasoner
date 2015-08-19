@@ -277,7 +277,7 @@ public class MonitoringConnector {
 				window.setName("window");
 				window.setValue("60");
 				nCPU.setName("nCPU");
-				nCPU.setValue("4");
+				nCPU.setValue(Integer.toString(c.getNCore()));
 				CPUUtilTarget.setName("CPUUtilTarget");
 				CPUUtilTarget.setValue(t.getId());
 				CPUUtilMetric.setName("CPUUtilMetric");
