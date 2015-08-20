@@ -61,8 +61,18 @@ public class ModelManager {
 			e.printStackTrace();
 		}
 		
-		//CloudMLAdapter cloudml=new CloudMLAdapter();
-		//cloudml.getDeploymentModel();
+		//setting the class idexes
+		
+		for(Container c: model.getContainer()){
+			int index=1;
+			for(ApplicationTier t: c.getApplicationTier()){
+				t.setClassIndex(index);
+				index++;
+			}
+		}
+		
+		CloudMLAdapter cloudml=new CloudMLAdapter();
+		cloudml.getDeploymentModel();
 		
 	}
 	

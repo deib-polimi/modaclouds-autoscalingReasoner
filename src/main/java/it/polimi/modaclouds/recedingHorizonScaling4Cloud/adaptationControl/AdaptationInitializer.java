@@ -42,13 +42,12 @@ public class AdaptationInitializer {
 			e1.printStackTrace();
 		}
 		
-		//ModelManager.initializeUsedForScale();
+		ModelManager.initializeUsedForScale();
 		ModelManager.printCurrentModel();
 		
 		try {
 			ConfigManager.inizializeFileSystem();
 		} catch (ProjectFileSystemException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
