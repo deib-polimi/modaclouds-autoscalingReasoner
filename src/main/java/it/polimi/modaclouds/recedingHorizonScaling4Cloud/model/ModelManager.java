@@ -356,36 +356,80 @@ public class ModelManager {
 		return false;
 	}
 	
-	public static void stopInstance(String instanceId) throws TierNotFoudException{
+	public static void stopInstances(List<String> instances) throws TierNotFoudException{
 		
 		
 		CloudMLAdapter cloudml=new CloudMLAdapter();
-		List<String> toStop=new ArrayList<String>();
-		toStop.add(instanceId);
-		cloudml.stopInstance(toStop);
-		Instance stopped=getInstance(instanceId);
-		stopped.setStatus("STOPPED");
-		stopped.setStartTime(null);
+	 	String toSend="";
+
+		for(String instanceId: instances){
+			
+	 		if(toSend.equals("")){
+	 			toSend+=instanceId;
+	 		}else{
+	 			toSend+=","+instanceId;
+	 		}
+		}
 		
+		cloudml.stopInstances(toSend);
+		for(String instanceId: instances){
+
+			Instance stopped=getInstance(instanceId);
+			stopped.setStatus("STOPPED");
+			stopped.setStartTime(null);
+			
+			System.out.println("Instance "+instanceId+" successfully stopped");
+
+		}
 	}
 	
-	public static void startInstance(String instanceId) throws TierNotFoudException{
+	public static void startInstance(List<String> instances) throws TierNotFoudException{
 		
 		CloudMLAdapter cloudml=new CloudMLAdapter();
-		List<String> toStart=new ArrayList<String>();
-		toStart.add(instanceId);
-		cloudml.startInstance(toStart);
-		Instance started=getInstance(instanceId);
-		started.setStatus("RUNNING");
+	 	String toSend="";
+
+		for(String instanceId: instances){
+			
+	 		if(toSend.equals("")){
+	 			toSend+=instanceId;
+	 		}else{
+	 			toSend+=","+instanceId;
+	 		}
+		}
+		
+		cloudml.startInstances(toSend);
+		
+		for(String instanceId: instances){
+
+			Instance started=getInstance(instanceId);
+			started.setStatus("RUNNING");
+			GregorianCalendar c = new GregorianCalendar();
+			c.setTime(new Date());
+			XMLGregorianCalendar date2;
+			try {
+				date2 = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
+				started.setStartTime(date2);
+			} catch (DatatypeConfigurationException e) {
+				e.printStackTrace();
+			}		
+			System.out.println("Instance "+instanceId+" successfully restarted");
+		}
+		
+
+	}
+	
+	public static void renewRunningInstance(String toRenew){
+		Instance instance=getInstance(toRenew);
 		GregorianCalendar c = new GregorianCalendar();
 		c.setTime(new Date());
 		XMLGregorianCalendar date2;
 		try {
 			date2 = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
-			started.setStartTime(date2);
+			instance.setStartTime(date2);
 		} catch (DatatypeConfigurationException e) {
 			e.printStackTrace();
 		}		
+		System.out.println("Instance "+toRenew+" successfully restarted");
 	}
 	
 	public static void addInstance(String instanceId, String tierId, String status) throws TierNotFoudException{
@@ -461,10 +505,6 @@ public class ModelManager {
 		return toReturn;	
 	}
 	
-	public static int getClassIndex(String tierId){
-		return getTier(tierId).getClassIndex();
-	}
-	
 	public static double getDemand(String tierId){
 
 		ApplicationTier tier=getTier(tierId);
@@ -537,5 +577,19 @@ public class ModelManager {
 				}
 			}
 		}
+	}
+	
+	public static void initializeUsedForScale(String tierId){
+
+		ApplicationTier t=getTier(tierId);
+		String toSet=getNewestRunningInstance(t.getId());
+		for(Instance i: t.getInstances()){
+			if(i.getId().equals(toSet)){
+				i.setUsedForScale(true);
+			}else{
+				i.setUsedForScale(false);
+			}
+		}
+		
 	}
 }

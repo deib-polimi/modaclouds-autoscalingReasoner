@@ -40,7 +40,7 @@ public class OptimizationInputWriter {
 
 			int index;
 			for(ApplicationTier t: c.getApplicationTier()){
-					index=ModelManager.getClassIndex(t.getId());
+					index=t.getClassIndex();
 					writeFile("Rcross.dat", c.getId(), "let Rcross["+index+"]:=\n"+Double.toString(t.getResponseTimeThreshold().get(0).getValue())+"\n;");
 
 			}

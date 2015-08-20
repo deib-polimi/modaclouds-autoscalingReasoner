@@ -36,187 +36,139 @@ public class AdaptationController extends TimerTask {
         System.out.format("Time's up!%n");
         System.out.println("Here a runnable controller run the adaptation step");
         System.out.println("container to adapt: "+toAdapt.getId());
-		/*
-		CloudMLAdapter cloudml;
+		
+		CloudMLAdapter cloudml=new CloudMLAdapter();
+		
+		System.out.println("starting adaptation step for container: "+toAdapt.getId());
+		
+		for(ApplicationTier t:toAdapt.getApplicationTier()){
+			int index=t.getClassIndex();
+			for(int j=1; j<=ModelManager.getOptimizationWindow();j++)
+				OptimizationInputWriter.writeFile("initialVM.dat", toAdapt.getId(), "let Nond["+index+","+(1+j)+"]:=\n"+ModelManager.getAvailableInstances(t.getId(), j).size()+"\n;");
+		}	
+		
+		SshAdapter.executeOptimization(toAdapt);
+		
+		OptimizationOutputParser outputParser= new OptimizationOutputParser();
+		int[] algorithmResult=outputParser.parseExecutionOutput("executions/execution_"+toAdapt.getId()+"/IaaS_1/output.out", toAdapt.getApplicationTier().size());
+		
+		//store the current dynamic input file and the output file at the end of the iteration
+		List<String> toStore=new ArrayList<String>();
+		toStore.add("initialVM.dat");
+		toStore.add("mu.dat");
+		toStore.add("output.out");
+		for(ApplicationTier t: toAdapt.getApplicationTier()){
+			toStore.add("workload_class"+t.getClassIndex()+".dat");
+		}
+		try {
+			OptimizationInputWriter.storeFile(toStore, toAdapt.getId());
+		} catch (ProjectFileSystemException e) {
+			e.printStackTrace();
+		}
 		
 		try {
-			
-			System.out.println("starting adaptation step for container: "+toAdapt.getId());
-			
-			for(ApplicationTier t:toAdapt.getApplicationTier()){
-				int index=ModelManager.getClassIndex(t.getId());
-				for(int j=1; j<=ModelManager.getOptimizationWindow();j++)
-					OptimizationInputWriter.writeFile("initialVM.dat", toAdapt.getId(), "let Nond["+index+","+(1+j)+"]:=\n"+ModelManager.getAvailableInstances(t.getId(), j).size()+"\n;");
-			}
-			
-			
-			
-			
-			
-			SshAdapter.executeOptimization(toAdapt);
-			
-			OptimizationOutputParser outputParser= new OptimizationOutputParser();
-			int[] algorithmResult=outputParser.parseExecutionOutput("executions/execution_"+toAdapt.getId()+"/IaaS_1/output.out", toAdapt.getApplicationTier().size());
-			
-			//store the current dynamic input file and the output file at the end of the iteration
-			List<String> toStore=new ArrayList<String>();
-			toStore.add("initialVM.dat");
-			toStore.add("mu.dat");
-			toStore.add("output.out");
-			for(ApplicationTier t: toAdapt.getApplicationTier()){
-				toStore.add("workload_class"+ModelManager.getClassIndex(t.getId())+".dat");
-			}
-			try {
-				OptimizationInputWriter.storeFile(toStore, toAdapt.getId());
-			} catch (ProjectFileSystemException e) {
-				e.printStackTrace();
-			}
-			
-			
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-			
-			cloudml=new CloudMLAdapter();
-			
+					
 			for(ApplicationTier tier: toAdapt.getApplicationTier()){
-				int tierResult=algorithmResult[ModelManager.getClassIndex(tier.getId())-1];
+				
+				int tierResult=algorithmResult[tier.getClassIndex()-1];
 				List<String> expiring=ModelManager.getExpiringInstances(tier.getId(), 1);
-				int instanceToScale=tierResult-expiring.size();
-
+				int numOfInstancesToAdd=tierResult-expiring.size();
 				
-				System.out.println("number of new instance to start reported by the algorithm: "+tierResult);
-				System.out.println("number of expiring instance for the current tier: "+expiring.size());
-				System.out.println("number of new instance to start for the tier "+tier.getId()+" = "+instanceToScale);
-				
-				
-				if(instanceToScale>0){
+				if(numOfInstancesToAdd>0){
+					
+					//SUMMARY
+					//all the expiring instances need to be renewed (left running and restart the internal time)
+					//and a number of instances equal to numOfInstancesToAdd need to be added to the deployment.
+					//Among these, as far as there are stopped instances available, the controller restart the stopped instance.
+					//When no stopped instances are available anymore, but there are still some instances to add to the deployment
+					//(instance to scale is still numOfInstancesToAdd than 0), these last will be added scaling out.
+					
+					//renewing the expiring instances
+					
+					for(String toRenew: expiring){
+						ModelManager.renewRunningInstance(toRenew);
+					}
+					
+					//determine the number of stopped instances to restart 
+					//and the number of instances to be added scaling out
 					List<String> stoppedInstances=ModelManager.getStoppedInstances(tier.getId());
-					System.out.println("number of stopped instances for the tier "+tier.getId()+" = "+stoppedInstances.size());
-					int toRestart;
+
+					int numOfInstancesToRestart;
+					int numOfInstancesToScaleOut;
 					
-					if(instanceToScale>=stoppedInstances.size()){
-						System.out.println("Number of new running instances needed is greater or equal than the number of stopped instance;"
-								+ " all the stopped instances will be restarted and the remaining will be scaled out");
-						toRestart=stoppedInstances.size();
+					
+					if(numOfInstancesToAdd>=stoppedInstances.size()){
+						numOfInstancesToRestart=stoppedInstances.size();
+						numOfInstancesToScaleOut=numOfInstancesToAdd-numOfInstancesToRestart;
 					}else{
-						System.out.println("Number of new running instance is less than the stopped instances; "
-								+ "restarting some stopping instances is enough to get the required capacity");
-						toRestart=instanceToScale;
+						numOfInstancesToRestart=numOfInstancesToAdd;
+						numOfInstancesToScaleOut=0;
 					}
 					
-					System.out.println("In particular "+toRestart+" instances will be restarted");
-					
-					for(int i=1; i<=toRestart; i++){
-						cloudml.startInstance(stoppedInstances.get(i-1));
-						ModelManager.addInstance(stoppedInstances.get(i-1), tier.getId());
-						System.out.println("Instance "+stoppedInstances.get(i-1)+" successfully restarted");
+					//restarting the stopped necessary instances (if any)
+					//NOTE: numOfInstancesToRestart is assured to be less then stoppedInstences.size() from the calculus above
+					if(numOfInstancesToRestart>0){
+						List<String> instanceToRestart=new ArrayList<String>();
+						for(int i=0; i<numOfInstancesToRestart;i++){
+							instanceToRestart.add(stoppedInstances.get(i));
+						}
+						
+						ModelManager.startInstance(instanceToRestart);
 					}
+					
+					//scaling the remaining instances to add (if any)	
 
-					List<String> toSend=new ArrayList<String>();
-					for(int i=1; i<=toRestart; i++){
-						toSend.add(stoppedInstances.get(i-1));
-					}
-					cloudml.startInstance(toSend);
-					
-					for(String toAdd: toSend){
-						ModelManager.addInstance(toAdd, tier.getId(), "RUNNING");
-					}
-					
-					for(String toAdd: toSend){
-						System.out.println("Instance "+toAdd+" successfully restarted");
-
-					}
-					
-					
-					int toScaleOut=instanceToScale-toRestart;
-					
-					System.out.println("After instances restarting there are still "+toScaleOut+" in order to meet the required computing capacity");
-					System.out.println("Scaling out "+toScaleOut+" new instances");
-					if(toScaleOut>0){
+					if(numOfInstancesToScaleOut>0){
 						ScaleOut command=new ScaleOut(ModelManager.getInstanceToScale(tier.getId()));
-						cloudml.scaleOut(command, toScaleOut);
-						
-						System.out.println("Scaling actions successfully completed");
+						cloudml.scaleOut(command, numOfInstancesToScaleOut);
 					}
 					
-				}else if (instanceToScale<0){
-					int instanceToStop=-instanceToScale;
+				}
+				else if (numOfInstancesToAdd<0){
 					
-					System.out.println("numer of instance to start is less than zero; stopping "+instanceToStop+" instances");
+					//SUMMARY
+					// a number of instances equal to numOfInstancesToAdd among those expiring have to be renewed.
+					// the remaining expiring instances have to be stopped. If among these there is the currently used to scale
+					// after it is stopped the instance used to scale need to be initialized.
+					int numOfInstancesToRenew=tierResult;
+					
+					//creating a list of instacesToRenew and a list of instancesToStop
+					List<String> instancesToRenew=new ArrayList<String>();
+					List<String> instancesToStop=new ArrayList<String>();
+					
 					Iterator<String> iter=expiring.iterator();
 					
-					while(instanceToStop>0 & iter.hasNext()){
-						String toStop=iter.next();
-						if(!toStop.equals(ModelManager.getApplicationTierAtRuntime(tier.getId()).getInstanceToScale())){
-							System.out.println("stopping instance: "+toStop);
-							cloudml.stopInstance(toStop);
-							ModelManager.stopInstance(toStop, tier.getId());
-							iter.remove();
-							instanceToStop--;
-							System.out.println("number of instances still to stop: "+instanceToStop);
-							System.out.println("number of expiring instances still available to be stopped: "+expiring.size());
-						}else{
-							System.out.println("the pointed instace to scale is expiring. Right now we avoid to stop it until strictly necessary");
-							iter.remove();
-							System.out.println("number of instances still to stop: "+instanceToStop);
-							System.out.println("number of remaning expiring instance: "+expiring.size());
-						}
-					}
-					
-					List<String> toSend=new ArrayList<String>();
-					while(instanceToStop>0 & iter.hasNext()){
-						String toStop=iter.next();
-						if(!toStop.equals(ModelManager.getInstanceToScale(tier.getId()))){
-							System.out.println("stopping instance: "+toStop);
-							//
-							toSend.add(toStop);
-							iter.remove();
-							instanceToStop--;
-							System.out.println("number of instances still to stop: "+instanceToStop);
-							System.out.println("number of expiring instances still available to be stopped: "+expiring.size());
-						}else{
-							System.out.println("the pointed instace to scale is expiring. Right now we avoid to stop it until strictly necessary");
-							iter.remove();
-							System.out.println("number of instances still to stop: "+instanceToStop);
-							System.out.println("number of remaning expiring instance: "+expiring.size());
-						}
-					}
-					
-					cloudml.stopInstance(toSend);
-					
-					for(String toStop: toSend){
-						ModelManager.stopInstance(toStop);
-
-					}
-
-					
-					if(instanceToStop>0){
-						System.out.println("the instance pointed for the scale was expiring and the number of expiring instances was equal "
-								+ "to the instances to stop. Autoscaling Reasoner need to stop also the pointed instance to scale and to select a new one.");
-						String pointedInstanceToScale=ModelManager.getInstanceToScale(tier.getId());
-						List<String> stopCmd=new ArrayList<String>();
-						stopCmd.add(pointedInstanceToScale);
-						cloudml.stopInstance(stopCmd);
-						ModelManager.stopInstance(pointedInstanceToScale);				
-						String lastInstanceCreated=ModelManager.getNewestRunningInstance(tier.getId());
-						ModelManager.setInstanceToScale(lastInstanceCreated);
-						cloudml.createImage(lastInstanceCreated);
-
-					}
-					
-					for(int i=1; i<=expiring.size(); i++){
-						System.out.println("restarting timers of the reamining expiring instances: "+expiring.size());
-						ModelManager.addInstance(expiring.get(i), tier.getId(), "RUNNING");
-						
-					}
-				} else{
-					System.out.println("all the expiring instance timers have to be restarted");
-					System.out.println("number of expiring instance to restart:"+expiring.size());
-					Iterator<String> iter=expiring.iterator();
-					
+					//leveraging the fact that numOfInstancesToRenew+numOfInstanceToStop=expiring.size()
 					while(iter.hasNext()){
-						String toRestart=iter.next();
-						ModelManager.addInstance(toRestart, tier.getId(), "RUNNING");
+						if(numOfInstancesToRenew>0){
+							instancesToRenew.add(iter.next());
+							iter.remove();
+						}else{
+							instancesToStop.add(iter.next());
+							iter.remove();
+						}
+					}
+					
+					//renewing
+					for(String instance: instancesToRenew){
+						ModelManager.renewRunningInstance(instance);
+					}
+					
+					//stopping
+					ModelManager.stopInstances(instancesToStop);
+					
+					//taking care of the instance used to scale
+					for(String instance: instancesToStop){
+						if(instance.equals(ModelManager.getInstanceToScale(tier.getId()))){
+							ModelManager.initializeUsedForScale(tier.getId());
+						}
+					}
+				} 
+				else{
+					//simply renewing all the expiring instances
+					
+					for(String toRenew: expiring){
+						ModelManager.renewRunningInstance(toRenew);
 					}
 				}
 				
@@ -227,15 +179,8 @@ public class AdaptationController extends TimerTask {
 		} catch (TierNotFoudException e) {
 			e.printStackTrace();
 		}
-		*/
+		
 	}
 
 
-	public Container getToAdapt() {
-		return toAdapt;
-	}
-
-	public void setToAdapt(Container toAdapt) {
-		this.toAdapt = toAdapt;
-	}
 }

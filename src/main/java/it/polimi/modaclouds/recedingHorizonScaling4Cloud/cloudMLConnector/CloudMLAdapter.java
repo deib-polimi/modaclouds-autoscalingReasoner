@@ -56,34 +56,15 @@ public class CloudMLAdapter {
 		wsClient.send("!extended { name: Image, params: ["+instanceId+"] }");
 	}
 	
-	public void stopInstance(List<String> instances){
+	public void stopInstances(String instances){
 		wsClient.send("!listenToAny");
-		
-	 	String toSend="";
-	 	for(String instance: instances ){
-	 		if(toSend.equals("")){
-	 			toSend+=instance;
-	 		}else{
-	 			toSend+=","+instance;
-	 		}
-	 	}
-	 	
-		wsClient.send("!extended { name: StopComponent, params: ["+toSend+"] }");
+		wsClient.send("!extended { name: StopComponent, params: ["+instances+"] }");
 			
 	}
 	
-	public void startInstance(List<String> instances){
+	public void startInstances(String instances){
 		wsClient.send("!listenToAny");
-		
-	 	String toSend="";
-	 	for(String instance: instances ){
-	 		if(toSend.equals("")){
-	 			toSend+=instance;
-	 		}else{
-	 			toSend+=","+instance;
-	 		}
-	 	}
-		wsClient.send("!extended { name: StartComponent, params: ["+toSend+"] }");
+		wsClient.send("!extended { name: StartComponent, params: ["+instances+"] }");
 	}
 	
 	public void getInstanceInfo(String id){
