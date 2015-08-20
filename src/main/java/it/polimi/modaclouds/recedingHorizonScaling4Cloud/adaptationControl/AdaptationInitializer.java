@@ -13,6 +13,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
 import it.polimi.tower4clouds.manager.api.NotFoundException;
+import it.polimi.tower4clouds.rules.MonitoringRules;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
@@ -52,6 +53,7 @@ public class AdaptationInitializer {
 		}
 		
 		MonitoringConnector monitor=new MonitoringConnector();
+		MonitoringRules toInstall=monitor.buildRequiredRules();
 		JAXBContext context;
 		try {
 			context = JAXBContext.newInstance("it.polimi.tower4clouds.rules");
@@ -66,37 +68,31 @@ public class AdaptationInitializer {
 		} catch (JAXBException | IOException e) {
 			e.printStackTrace();
 		}
+				
+		try {
+			monitor.installRules(toInstall);
+			monitor.attachObserver("EstimatedDemand", ConfigManager.OWN_IP, "8179");
+
+			
+			for(int i=1; i<=ModelManager.getOptimizationWindow();i++){
+				monitor.attachObserver("ForecastedWorkload"+i, ConfigManager.OWN_IP, "8179");
+			}
+			
+			MainObserver.startServer("8179");
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (NotFoundException e) {
+			e.printStackTrace();
+		}
 		
-		//to install created rules
 		
-		//to attach required observers
 		
 		OptimizationInputWriter siw= new OptimizationInputWriter();
 		siw.writeStaticInput(ModelManager.getModel());
 		
 		Clock clock=new Clock(ModelManager.getTimestepDuration());
 		
-		/*
-					
-			try {
-				mp.attachObserver("EstimatedDemand", ConfigManager.OWN_IP, "8179");
-				MainObserver.startServer("8179");
-
-				
-				for(int i=1; i<=ModelManager.getOptimizationWindow();i++){
-					//MonitoringRules workloadRules=mp.buildWorkloadForecastRule(ModelManager.getModel(), i);
-					//mp.installRules(workloadRules);
-					mp.attachObserver("ForecastedWorkload"+i, ConfigManager.OWN_IP, Integer.toString(8180+i-1));
-					MainObserver.startServer(Integer.toString(8180+i-1));
-
-				}
-			} catch (NotFoundException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-			
-		*/
 		
 		}
 }
