@@ -30,6 +30,7 @@ import org.xml.sax.SAXException;
 public class ConfigManager {
 
 	public static String OWN_IP;
+	public static String LISTENING_PORT;
 	public static String PATH_TO_DESIGN_TIME_MODEL;
 	public static String SSH_USER_NAME;
 	public static String SSH_HOST;
@@ -139,6 +140,10 @@ public class ConfigManager {
 		switch (key) {
 		case "OWN_IP":
 			OWN_IP=value;
+			break;
+			
+		case "LISTENING_PORT":
+			LISTENING_PORT=value;
 			break;
 			
 		case "PATH_TO_DESIGN_TIME_MODEL":

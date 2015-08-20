@@ -31,7 +31,6 @@ public class AdaptationInitializer {
 		try {
 			ConfigManager.loadConfiguration();
 		} catch (ConfigurationFileException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -62,8 +61,6 @@ public class AdaptationInitializer {
 			File rules = Paths.get("sarBuildingRulesTest.xml").toFile();
 			OutputStream out = new FileOutputStream(rules);
 			marshaller.marshal(monitor.buildRequiredRules(),out);
-			System.out.println("Rules file "+ rules.toString()+" created!");
-
 			
 		} catch (JAXBException | IOException e) {
 			e.printStackTrace();
@@ -71,14 +68,14 @@ public class AdaptationInitializer {
 				
 		try {
 			monitor.installRules(toInstall);
-			monitor.attachObserver("EstimatedDemand", ConfigManager.OWN_IP, "8179");
+			monitor.attachObserver("EstimatedDemand", ConfigManager.OWN_IP, ConfigManager.LISTENING_PORT);
 
 			
 			for(int i=1; i<=ModelManager.getOptimizationWindow();i++){
-				monitor.attachObserver("ForecastedWorkload"+i, ConfigManager.OWN_IP, "8179");
+				monitor.attachObserver("ForecastedWorkload"+i, ConfigManager.OWN_IP, ConfigManager.LISTENING_PORT);
 			}
 			
-			MainObserver.startServer("8179");
+			MainObserver.startServer(ConfigManager.LISTENING_PORT);
 
 		} catch (IOException e) {
 			e.printStackTrace();
