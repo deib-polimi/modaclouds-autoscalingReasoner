@@ -61,8 +61,8 @@ public class ModelManager {
 			e.printStackTrace();
 		}
 		
-		CloudMLAdapter cloudml=new CloudMLAdapter();
-		cloudml.getDeploymentModel();
+		//CloudMLAdapter cloudml=new CloudMLAdapter();
+		//cloudml.getDeploymentModel();
 		
 	}
 	

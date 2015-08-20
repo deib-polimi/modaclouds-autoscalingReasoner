@@ -29,15 +29,8 @@ public class MonitoringConnector {
 	private ManagerAPI monitoring;
 	private ObjectFactory factory;
 	
-	
-	public static void main(String[] args) {
-		
-		
-		
-	}
-	
 	public MonitoringConnector(){
-	  monitoring=new ManagerAPI(ConfigManager.MONITORING_PLATFORM_IP, Integer.parseInt(ConfigManager.MONITORING_PLATFORM_PORT));
+	  //monitoring=new ManagerAPI(ConfigManager.MONITORING_PLATFORM_IP, Integer.parseInt(ConfigManager.MONITORING_PLATFORM_PORT));
 	  factory=new ObjectFactory();
 	
 	}

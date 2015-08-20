@@ -10,22 +10,33 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing.OptimizationInputWriter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing.OptimizationOutputParser;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.sshConnector.SshAdapter;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TimerTask;
 
 import org.cloudml.facade.commands.ScaleOut;
 
-public class AdaptationController implements Runnable {
+public class AdaptationController extends TimerTask {
 	private static final Logger journal = Logger
 			.getLogger(WSClient.class.getName());
 	
 	private Container toAdapt;
 	
+	
+	public AdaptationController(Container toSet){
+		toAdapt=toSet;
+	}
+	
 	public void run(){
 		
+        System.out.format("Time's up!%n");
+        System.out.println("Here a runnable controller run the adaptation step");
+        System.out.println("container to adapt: "+toAdapt.getId());
+		/*
 		CloudMLAdapter cloudml;
 		
 		try {
@@ -94,13 +105,13 @@ public class AdaptationController implements Runnable {
 					}
 					
 					System.out.println("In particular "+toRestart+" instances will be restarted");
-					/*
+					
 					for(int i=1; i<=toRestart; i++){
 						cloudml.startInstance(stoppedInstances.get(i-1));
 						ModelManager.addInstance(stoppedInstances.get(i-1), tier.getId());
 						System.out.println("Instance "+stoppedInstances.get(i-1)+" successfully restarted");
 					}
-					*/
+
 					List<String> toSend=new ArrayList<String>();
 					for(int i=1; i<=toRestart; i++){
 						toSend.add(stoppedInstances.get(i-1));
@@ -133,7 +144,7 @@ public class AdaptationController implements Runnable {
 					
 					System.out.println("numer of instance to start is less than zero; stopping "+instanceToStop+" instances");
 					Iterator<String> iter=expiring.iterator();
-					/*
+					
 					while(instanceToStop>0 & iter.hasNext()){
 						String toStop=iter.next();
 						if(!toStop.equals(ModelManager.getApplicationTierAtRuntime(tier.getId()).getInstanceToScale())){
@@ -151,7 +162,7 @@ public class AdaptationController implements Runnable {
 							System.out.println("number of remaning expiring instance: "+expiring.size());
 						}
 					}
-					*/
+					
 					List<String> toSend=new ArrayList<String>();
 					while(instanceToStop>0 & iter.hasNext()){
 						String toStop=iter.next();
@@ -216,7 +227,7 @@ public class AdaptationController implements Runnable {
 		} catch (TierNotFoudException e) {
 			e.printStackTrace();
 		}
-	
+		*/
 	}
 
 

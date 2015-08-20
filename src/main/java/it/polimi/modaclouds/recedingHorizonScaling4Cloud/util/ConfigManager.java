@@ -4,6 +4,7 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.Configuratio
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -41,15 +42,14 @@ public class ConfigManager {
 	public static String MONITORING_PLATFORM_IP;
 	public static String MONITORING_PLATFORM_PORT;
 
-	//to extend in order to generate also the static files
-	public static void inizializeFileSystem(Containers containers) throws ProjectFileSystemException{
+	public static void inizializeFileSystem() throws ProjectFileSystemException{
 
 		File file = null;
 		
 		
 		clearFileSystem();
 		
-		for(Container c: containers.getContainer()){
+		for(Container c: ModelManager.getModel().getContainer()){
 			file = new File("executions/execution_"+c.getId()+"/IaaS_1");
 			boolean success=file.mkdirs();
 			

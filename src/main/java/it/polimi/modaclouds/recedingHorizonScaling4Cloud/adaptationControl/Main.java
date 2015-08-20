@@ -28,39 +28,8 @@ public class Main {
 	public static void main(String[] args) {
 
 
-		try {
-			ConfigManager.loadConfiguration();
-		} catch (ConfigurationFileException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		ModelManager.loadModel();
-		
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e1) {
-			e1.printStackTrace();
-		}
-		
-		ModelManager.initializeUsedForScale();
-		ModelManager.printCurrentModel();
-		
-		MonitoringConnector monitor=new MonitoringConnector();
-		JAXBContext context;
-		try {
-			context = JAXBContext.newInstance("it.polimi.tower4clouds.rules");
-			Marshaller marshaller = context.createMarshaller();
-			marshaller.setProperty("jaxb.formatted.output",Boolean.TRUE);
-			File rules = Paths.get("sarBuildingRulesTest.xml").toFile();
-			OutputStream out = new FileOutputStream(rules);
-			marshaller.marshal(monitor.buildRequiredRules(),out);
-			System.out.println("Rules file "+ rules.toString()+" created!");
-
-			
-		} catch (JAXBException | IOException e) {
-			e.printStackTrace();
-		}
+		AdaptationInitializer initializer=new AdaptationInitializer();
+		initializer.initialize();
 		
 	}
 
