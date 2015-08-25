@@ -3,6 +3,9 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConn
 
 
 import java.io.IOException;
+
+import com.hp.hpl.jena.rdf.model.Model;
+
 import it.polimi.tower4clouds.rules.Action;
 import it.polimi.tower4clouds.rules.Actions;
 import it.polimi.tower4clouds.rules.CollectedMetric;
@@ -35,8 +38,12 @@ public class MonitoringConnector {
 	
 	}
 	
-	public void installRules(MonitoringRules toInstall) throws IOException{		 
-			monitoring.installRules(toInstall);
+	public void installRules(MonitoringRules toInstall) {		 
+			try {
+				monitoring.installRules(toInstall);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 	}
 	
 	public void attachObserver(String targetMetric, String observerIP, String observerPort) throws NotFoundException, IOException{
@@ -46,13 +53,37 @@ public class MonitoringConnector {
 	public  MonitoringRules buildRequiredRules(){
 		MonitoringRules toReturn=factory.createMonitoringRules();
 		
-		toReturn.getMonitoringRules().addAll(this.buildCpuRules().getMonitoringRules());
-		toReturn.getMonitoringRules().addAll(this.buildDemandRules().getMonitoringRules());
-		toReturn.getMonitoringRules().addAll(this.buildRespondeTimeRules().getMonitoringRules());
+		//building all required rules for demand monitoring if default demand values are not used
+		if(ModelManager.getDefaultDemand()==0){
+			toReturn.getMonitoringRules().addAll(this.buildCpuRules().getMonitoringRules());
+			toReturn.getMonitoringRules().addAll(this.buildDemandRules().getMonitoringRules());
+			toReturn.getMonitoringRules().addAll(this.buildRespondeTimeRules().getMonitoringRules());
+		}
+		
+		//building all required rules for workload prediction monitoring
 		toReturn.getMonitoringRules().addAll(this.buildWorkloadRules().getMonitoringRules());
 		toReturn.getMonitoringRules().addAll(this.buildWorkloadForecastRules().getMonitoringRules());
 
 		return toReturn;
+	}
+	
+	public void attachRequiredObservers(){
+		try {
+			//attaching demand observer is default demand values are not used
+			if(ModelManager.getDefaultDemand()==0){
+				this.attachObserver("EstimatedDemand", ConfigManager.OWN_IP, ConfigManager.LISTENING_PORT);
+			}
+			
+			//attaching workload forecasts observers
+			for(int i=1; i<=ModelManager.getOptimizationWindow();i++){
+				this.attachObserver("ForecastedWorkload"+i, ConfigManager.OWN_IP, ConfigManager.LISTENING_PORT);
+			}
+		} catch (NotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 	}
 	
 	

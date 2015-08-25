@@ -42,6 +42,9 @@ public class ConfigManager {
 	public static String CLOUDML_WEBSOCKET_PORT;
 	public static String MONITORING_PLATFORM_IP;
 	public static String MONITORING_PLATFORM_PORT;
+	public static String DEFAULT_DEMAND;
+
+	
 
 	public static void inizializeFileSystem() throws ProjectFileSystemException{
 
@@ -184,6 +187,10 @@ public class ConfigManager {
 
 		case "MONITORING_PLATFORM_PORT":
 			MONITORING_PLATFORM_PORT=value;
+			break;
+
+		case "DEFAULT_DEMAND":
+			DEFAULT_DEMAND=value;
 			break;
 
 		default:

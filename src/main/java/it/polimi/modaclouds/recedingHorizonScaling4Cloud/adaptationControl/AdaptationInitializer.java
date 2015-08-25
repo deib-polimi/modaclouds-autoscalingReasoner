@@ -1,6 +1,7 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -52,9 +53,14 @@ public class AdaptationInitializer {
 		}
 		
 		MonitoringConnector monitor=new MonitoringConnector();
-		MonitoringRules toInstall=monitor.buildRequiredRules();
 		JAXBContext context;
+
+				
 		try {
+			//getting required monitoring rules
+			MonitoringRules toInstall=monitor.buildRequiredRules();
+
+			//serializing built rules
 			context = JAXBContext.newInstance("it.polimi.tower4clouds.rules");
 			Marshaller marshaller = context.createMarshaller();
 			marshaller.setProperty("jaxb.formatted.output",Boolean.TRUE);
@@ -62,28 +68,21 @@ public class AdaptationInitializer {
 			OutputStream out = new FileOutputStream(rules);
 			marshaller.marshal(monitor.buildRequiredRules(),out);
 			
-		} catch (JAXBException | IOException e) {
-			e.printStackTrace();
-		}
-				
-		try {
+			
+			//installing required rules
 			monitor.installRules(toInstall);
-			monitor.attachObserver("EstimatedDemand", ConfigManager.OWN_IP, ConfigManager.LISTENING_PORT);
+			
+			//attaching required observers
+			monitor.attachRequiredObservers();
 
-			
-			for(int i=1; i<=ModelManager.getOptimizationWindow();i++){
-				monitor.attachObserver("ForecastedWorkload"+i, ConfigManager.OWN_IP, ConfigManager.LISTENING_PORT);
-			}
-			
+			//starting observer
 			MainObserver.startServer(ConfigManager.LISTENING_PORT);
 
-		} catch (IOException e) {
+		} catch (JAXBException e) {
 			e.printStackTrace();
-		} catch (NotFoundException e) {
+		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-		}
-		
-		
+		} 
 		
 		OptimizationInputWriter siw= new OptimizationInputWriter();
 		siw.writeStaticInput(ModelManager.getModel());

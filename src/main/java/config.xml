@@ -13,4 +13,5 @@
 	<property name="CLOUDML_WEBSOCKET_PORT" value="9000" />
 	<property name="MONITORING_PLATFORM_IP" value="52.17.136.92" />
 	<property name="MONITORING_PLATFORM_PORT" value="8170" />
+	<property name="DEFAULT_DEMAND" value="5" />
 </properties>

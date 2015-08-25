@@ -62,7 +62,7 @@ public class MainObserver {
         return Response.status(204).build();
     }
 
-    public static void startServer(String port) throws IOException {
+    public static void startServer(String port) {
 
         final ResourceConfig rc = new ResourceConfig().packages(MainObserver.class.getPackage().getName());
         HttpServer httpServer = GrizzlyHttpServerFactory.createHttpServer(URI.create("http://0.0.0.0:"+port), rc, false);
@@ -70,7 +70,12 @@ public class MainObserver {
         ThreadPoolConfig thx=listener.getTransport().getWorkerThreadPoolConfig(); 
         thx.setQueueLimit(500);
         thx.setMaxPoolSize(500);
-		httpServer.start();
+        
+		try {
+			httpServer.start();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
     }
 
     public static void main(String[] args) throws IOException {

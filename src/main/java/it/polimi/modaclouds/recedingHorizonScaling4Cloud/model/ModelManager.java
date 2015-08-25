@@ -34,7 +34,8 @@ public class ModelManager {
 	private static final Logger journal = Logger
 			.getLogger(ModelManager.class.getName());
 	private static Containers model;
-
+	
+	private static double defaultDemand;
 	
 	public static int getOptimizationWindow(){
 		return model.optimizationWindowsLenght;
@@ -70,6 +71,12 @@ public class ModelManager {
 				index++;
 			}
 		}
+		
+		//check if default demands value have to be used
+		
+		defaultDemand=Double.parseDouble(ConfigManager.DEFAULT_DEMAND);
+		
+		//add runtime deployment model information
 		
 		CloudMLAdapter cloudml=new CloudMLAdapter();
 		cloudml.getDeploymentModel();
@@ -506,16 +513,21 @@ public class ModelManager {
 	}
 	
 	public static double getDemand(String tierId){
-
 		ApplicationTier tier=getTier(tierId);
-		double toReturn=0;
-		for(Functionality f:tier.getFunctionality()){
-			if(f.getDemand()!= null){
-				toReturn=toReturn+f.getDemand();
+
+		if(defaultDemand==0){
+			double toReturn=0;
+			for(Functionality f:tier.getFunctionality()){
+				if(f.getDemand()!= null){
+					toReturn=toReturn+f.getDemand();
+				}
 			}
+			tier.setDemand(toReturn);
+			return toReturn;
+		}else{
+			return defaultDemand;
 		}
-		tier.setDemand(toReturn);
-		return toReturn;
+
 	}
 	
 	public static double getWorkloadPrediction(String tierId, int lookAhead){
@@ -591,5 +603,13 @@ public class ModelManager {
 			}
 		}
 		
+	}
+
+	public static double getDefaultDemand() {
+		return defaultDemand;
+	}
+
+	public static void setDefaultDemand(double defaultDemand) {
+		ModelManager.defaultDemand = defaultDemand;
 	}
 }
