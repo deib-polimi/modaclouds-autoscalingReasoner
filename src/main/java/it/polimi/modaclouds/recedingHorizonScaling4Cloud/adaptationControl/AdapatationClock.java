@@ -6,13 +6,12 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class Clock {
+public class AdapatationClock {
 	Timer timer;
 
-    public Clock(int timeStepDurationInMinutes) {
+    public AdapatationClock(int timeStepDurationInMinutes) {
         timer = new Timer();
-        //timer.scheduleAtFixedRate(new ControllerLauncher(), 1000, timeStepDurationInMinutes*60*1000);
-        timer.scheduleAtFixedRate(new ControllerLauncher(), 1000, 5*1000);
+        timer.scheduleAtFixedRate(new ControllerLauncher(), timeStepDurationInMinutes*60*1000, timeStepDurationInMinutes*60*1000);
 
     }
 
@@ -28,7 +27,7 @@ public class Clock {
 
 
     public static void main(String args[]) {
-        new Clock(5);
+        new AdapatationClock(5);
         System.out.format("Task scheduled.%n");
     }
 }

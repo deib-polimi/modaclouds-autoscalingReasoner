@@ -18,8 +18,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TimerTask;
 
-import org.cloudml.facade.commands.ScaleOut;
-
 public class AdaptationController extends TimerTask {
 	private static final Logger journal = Logger
 			.getLogger(WSClient.class.getName());
@@ -119,8 +117,7 @@ public class AdaptationController extends TimerTask {
 					//scaling the remaining instances to add (if any)	
 
 					if(numOfInstancesToScaleOut>0){
-						ScaleOut command=new ScaleOut(ModelManager.getInstanceToScale(tier.getId()));
-						cloudml.scaleOut(command, numOfInstancesToScaleOut);
+						cloudml.scaleOut(ModelManager.getInstanceToScale(tier.getId()), numOfInstancesToScaleOut);
 					}
 					
 				}

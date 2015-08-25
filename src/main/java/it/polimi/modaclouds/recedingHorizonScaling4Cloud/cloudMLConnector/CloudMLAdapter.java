@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.cloudml.facade.commands.ScaleOut;
-
 
 public class CloudMLAdapter {
 	private static final Logger journal = Logger
@@ -40,11 +38,11 @@ public class CloudMLAdapter {
 	
 	
 	
-	public void scaleOut(ScaleOut command, int times) {			
+	public void scaleOut(String vmId, int times) {			
 		
 			wsClient.send("!listenToAny");
 
-		 	wsClient.send("!extended { name: ScaleOut, params: ["+command.getVmId()+","+times+"] }");
+		 	wsClient.send("!extended { name: ScaleOut, params: ["+vmId+","+times+"] }");
 			
 	}
 	

@@ -87,8 +87,8 @@ public class AdaptationInitializer {
 		OptimizationInputWriter siw= new OptimizationInputWriter();
 		siw.writeStaticInput(ModelManager.getModel());
 		
-		Clock clock=new Clock(ModelManager.getTimestepDuration());
-		
+		AdapatationClock clock=new AdapatationClock(ModelManager.getTimestepDuration());
+		HourClock hourClock=new HourClock();
 		
 		}
 }

@@ -34,8 +34,8 @@ public class ModelManager {
 	private static final Logger journal = Logger
 			.getLogger(ModelManager.class.getName());
 	private static Containers model;
-	
 	private static double defaultDemand;
+	private static int currentHour=0;
 	
 	public static int getOptimizationWindow(){
 		return model.optimizationWindowsLenght;
@@ -611,5 +611,13 @@ public class ModelManager {
 
 	public static void setDefaultDemand(double defaultDemand) {
 		ModelManager.defaultDemand = defaultDemand;
+	}
+
+	public static int getCurrentHour() {
+		return currentHour;
+	}
+
+	public static void setCurrentHour(int currentHour) {
+		ModelManager.currentHour = currentHour;
 	}
 }
