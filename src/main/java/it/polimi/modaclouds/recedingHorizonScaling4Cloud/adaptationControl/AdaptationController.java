@@ -7,6 +7,7 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.TierNotFoudE
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.WorkloadForecast;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing.OptimizationInputWriter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing.OptimizationOutputParser;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.sshConnector.SshAdapter;
@@ -23,7 +24,7 @@ public class AdaptationController extends TimerTask {
 			.getLogger(WSClient.class.getName());
 	
 	private Container toAdapt;
-	
+
 	
 	public AdaptationController(Container toSet){
 		toAdapt=toSet;
@@ -31,22 +32,14 @@ public class AdaptationController extends TimerTask {
 	
 	public void run(){
 		
-        System.out.format("Time's up!%n");
-        System.out.println("Here a runnable controller run the adaptation step");
-        System.out.println("container to adapt: "+toAdapt.getId());
+		//writing dynamic input files for the current timestep and container
+		OptimizationInputWriter siw= new OptimizationInputWriter();
+		siw.writeDynamicInput(toAdapt);
 		
-		CloudMLAdapter cloudml=new CloudMLAdapter();
-		
-		System.out.println("starting adaptation step for container: "+toAdapt.getId());
-		
-		for(ApplicationTier t:toAdapt.getApplicationTier()){
-			int index=t.getClassIndex();
-			for(int j=1; j<=ModelManager.getOptimizationWindow();j++)
-				OptimizationInputWriter.writeFile("initialVM.dat", toAdapt.getId(), "let Nond["+index+","+(1+j)+"]:=\n"+ModelManager.getAvailableInstances(t.getId(), j).size()+"\n;");
-		}	
-		
+		//launching optimization
 		SshAdapter.executeOptimization(toAdapt);
 		
+		//parsing the output file
 		OptimizationOutputParser outputParser= new OptimizationOutputParser();
 		int[] algorithmResult=outputParser.parseExecutionOutput("executions/execution_"+toAdapt.getId()+"/IaaS_1/output.out", toAdapt.getApplicationTier().size());
 		
@@ -64,6 +57,7 @@ public class AdaptationController extends TimerTask {
 			e.printStackTrace();
 		}
 		
+		//analyse the optimization output and enact adaptation actions
 		try {
 					
 			for(ApplicationTier tier: toAdapt.getApplicationTier()){
@@ -117,6 +111,7 @@ public class AdaptationController extends TimerTask {
 					//scaling the remaining instances to add (if any)	
 
 					if(numOfInstancesToScaleOut>0){
+						CloudMLAdapter cloudml=new CloudMLAdapter();
 						cloudml.scaleOut(ModelManager.getInstanceToScale(tier.getId()), numOfInstancesToScaleOut);
 					}
 					

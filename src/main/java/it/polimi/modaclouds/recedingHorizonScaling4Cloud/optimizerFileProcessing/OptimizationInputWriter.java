@@ -6,6 +6,7 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.WorkloadForecast;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 import java.io.BufferedWriter;
@@ -21,6 +22,38 @@ public class OptimizationInputWriter {
 
 
 	public OptimizationInputWriter() {	
+	}
+	
+	public void writeDynamicInput(Container toAdapt){
+		
+		for(ApplicationTier t:toAdapt.getApplicationTier()){
+			int index=t.getClassIndex();
+			
+			//write service rate file
+			if(t.getDemand()!=0){
+				writeFile("mu.dat", toAdapt.getId(), "let mu["+index+"]:=\n"+(1/t.getDemand())+"\n;");
+			}else{
+				writeFile("mu.dat", toAdapt.getId(), "let mu["+index+"]:=\n"+0+"\n;");
+			}
+			
+			//write delay file
+			writeFile("Delay.dat", toAdapt.getId(), "let D["+index+"]:=\n"+0+"\n;");
+
+			//write workload predictions file
+			for(WorkloadForecast wf:t.getWorkloadForecast()){
+				writeFile("workload_class"+index+".dat", toAdapt.getId(), "let Lambda["+index+","+wf.getTimeStepAhead()+"]:=\n"+wf.getValue()+"\n;");
+			}
+			
+			//write response time threshold file
+
+			writeFile("Rcross.dat", toAdapt.getId(), "let Rcross["+index+"]:=\n"+Double.toString(t.getResponseTimeThreshold().get(ModelManager.getCurrentHour()-1).getValue())+"\n;");
+
+			
+			//write file with number of intial VM
+			for(int j=1; j<=ModelManager.getOptimizationWindow();j++)
+				writeFile("initialVM.dat", toAdapt.getId(), "let Nond["+index+","+(1+j)+"]:=\n"+ModelManager.getAvailableInstances(t.getId(), j).size()+"\n;");
+		}	
+		
 	}
 
 	public void writeStaticInput(Containers containers){
@@ -38,17 +71,11 @@ public class OptimizationInputWriter {
 			writeFile("rho.dat", c.getId(), "let rho:=\n"
 					+ c.getReservedCost() + "\n;");
 
-			int index;
-			for(ApplicationTier t: c.getApplicationTier()){
-					index=t.getClassIndex();
-					writeFile("Rcross.dat", c.getId(), "let Rcross["+index+"]:=\n"+Double.toString(t.getResponseTimeThreshold().get(0).getValue())+"\n;");
-
-			}
 					
 		}
 	}
 
-	public static void writeFile(String fileName, String execution,
+	private void writeFile(String fileName, String execution,
 			String fileContent) {
 		File file = null;
 		
