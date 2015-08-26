@@ -9,9 +9,9 @@
 	<property name="OPTIMIZATION_INPUT_FOLDER" value="/home/guerriero/molinari/k10/second/data/IaaS_1" />
 	<property name="OPTIMIZATION_OUTPUT_FILE" value="/home/guerriero/molinari/k10/second/data/IaaS_1/rawGlobal/dati.txt" />
 	<property name="OPTIMIZATION_LAUNCHER" value="/home/guerriero/molinari/k10/run_Short.sh 1" />
-	<property name="CLOUDML_WEBSOCKET_IP" value="127.0.0.1" />
+	<property name="CLOUDML_WEBSOCKET_IP" value="52.19.46.198" />
 	<property name="CLOUDML_WEBSOCKET_PORT" value="9000" />
-	<property name="MONITORING_PLATFORM_IP" value="52.17.136.92" />
+	<property name="MONITORING_PLATFORM_IP" value="52.19.46.198" />
 	<property name="MONITORING_PLATFORM_PORT" value="8170" />
 	<property name="DEFAULT_DEMAND" value="5" />
 </properties>

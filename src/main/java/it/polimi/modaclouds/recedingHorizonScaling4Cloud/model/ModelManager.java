@@ -5,9 +5,15 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector.CloudM
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.CloudMLReturnedModelException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.TierNotFoudException;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector.MainObserver;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
+import it.polimi.tower4clouds.rules.MonitoringRules;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -19,6 +25,7 @@ import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -36,6 +43,7 @@ public class ModelManager {
 	private static Containers model;
 	private static double defaultDemand;
 	private static int currentHour=0;
+	private static int currentTimeStep=0;
 	
 	public static int getOptimizationWindow(){
 		return model.optimizationWindowsLenght;
@@ -84,7 +92,21 @@ public class ModelManager {
 	}
 	
 	public static void printCurrentModel() {
+		JAXBContext context;
 		
+		try {
+
+			context = JAXBContext.newInstance("it.polimi.modaclouds.recedingHorizonScaling4Cloud.model");
+			Marshaller marshaller = context.createMarshaller();
+			marshaller.setProperty("jaxb.formatted.output",Boolean.TRUE);
+			File currentModel = Paths.get("model"+currentTimeStep+".xml").toFile();
+			OutputStream out = new FileOutputStream(currentModel);
+			marshaller.marshal(model,out);
+		} catch (JAXBException e) {
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} 
 	}
 		
 	public static void updateServiceDemand(String monitoredResource, Double monitoredValue) {
@@ -635,5 +657,17 @@ public class ModelManager {
 
 	public static void setCurrentHour(int currentHour) {
 		ModelManager.currentHour = currentHour;
+	}
+
+	public static int getCurrentTimeStep() {
+		return currentTimeStep;
+	}
+
+	public static void setCurrentTimeStep(int currentTimeStep) {
+		ModelManager.currentTimeStep = currentTimeStep;
+	}
+	
+	public static void increaseCurrentTimeStep(){
+		currentTimeStep++;
 	}
 }
