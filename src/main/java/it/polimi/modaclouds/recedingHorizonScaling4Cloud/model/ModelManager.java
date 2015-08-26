@@ -12,7 +12,10 @@ import it.polimi.tower4clouds.rules.MonitoringRules;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -169,9 +172,11 @@ public class ModelManager {
 				
 		Calendar temp=Calendar.getInstance();
 		for(Instance i: tier.instances){
-			temp.setTime(i.getStartTime().toGregorianCalendar().getTime());
-			if(max.equals(temp)){
-				toReturn=i;
+			if(i.getStatus().equals("RUNNING")){
+				temp.setTime(i.getStartTime().toGregorianCalendar().getTime());
+				if(max.equals(temp)){
+					toReturn=i;
+				}
 			}
 		}
 		
@@ -219,9 +224,10 @@ public class ModelManager {
 			if(!instanceId.equals("null") && !instanceType.equals("null") && !instanceStatus.equals("null")){
 				
 				instanceType=getTierIdFromInstanceType(instanceType);
-				String tierId=getHostedTier(instanceId).getId();
 				
-				if(tierId!=null){
+				if(getInstance(instanceId)!=null){
+					String tierId=getHostedTier(instanceId).getId();
+
 					if(instanceType.equals(tierId)){
 						//CHECK IF THE STATUS OF THE INSTANCE AS REPORTED BY CLOUDML CORRESPONDS TO THE INTERNAL STORED STATUS
 						if(!instanceStatus.equals(getInstance(instanceId).getStatus())){

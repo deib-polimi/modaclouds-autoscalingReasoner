@@ -29,12 +29,15 @@ public class AdaptationInitializer {
 	
 	public void initialize() {
 						
+		//loading the config.xml file
 		try {
 			ConfigManager.loadConfiguration();
 		} catch (ConfigurationFileException e) {
 			e.printStackTrace();
 		}
 
+		
+		//loading the internal model
 		ModelManager.loadModel();
 		
 		try {
@@ -43,15 +46,20 @@ public class AdaptationInitializer {
 			e1.printStackTrace();
 		}
 		
+		
+		//initializing the instances used for scale for each application tier
 		ModelManager.initializeUsedForScale();
 		ModelManager.printCurrentModel();
 		
+		
+		//initialize the local file system
 		try {
 			ConfigManager.inizializeFileSystem();
 		} catch (ProjectFileSystemException e1) {
 			e1.printStackTrace();
 		}
 		
+
 		MonitoringConnector monitor=new MonitoringConnector();
 		JAXBContext context;
 
@@ -84,10 +92,15 @@ public class AdaptationInitializer {
 			e.printStackTrace();
 		} 
 		
+		
+		//writing the static input files for each container
 		OptimizationInputWriter siw= new OptimizationInputWriter();
 		siw.writeStaticInput(ModelManager.getModel());
 		
+		//starting the adaptation clock running the adaptation every timestepDuration minutes
 		AdapatationClock clock=new AdapatationClock(ModelManager.getTimestepDuration());
+		
+		//starting a clock changing the response time thresholds for each application tier every hour
 		HourClock hourClock=new HourClock();
 		
 		}
