@@ -135,9 +135,30 @@ public class AdaptationController extends TimerTask {
 						if(numOfInstancesToRenew>0){
 							instancesToRenew.add(iter.next());
 							iter.remove();
+							numOfInstancesToRenew--;
 						}else{
 							instancesToStop.add(iter.next());
 							iter.remove();
+						}
+					}
+				
+					//performing the following control to avoid to stop all the running instance if for example there is no workload:
+					//if there are not instances to renew (or all the expiring instances have to be stopped)
+					// and
+					//the number of running instances is equal to the number of expiring instances (all the running instances are going to be stopped)
+					//leave the newest running instance running
+					if(instancesToRenew.size()==0 & 
+							ModelManager.getRunningInstances(tier.getId()).size()==expiring.size()){
+						String instanceToLeave=ModelManager.getNewestRunningInstance(tier.getId());
+						
+						iter=instancesToStop.iterator();
+						
+						while(iter.hasNext()){
+							String toStop=iter.next();
+							if(toStop.equals(instanceToLeave)){
+								iter.remove();
+							}
+							
 						}
 					}
 					
