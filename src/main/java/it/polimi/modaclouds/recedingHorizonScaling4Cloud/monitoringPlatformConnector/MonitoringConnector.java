@@ -151,6 +151,9 @@ public class MonitoringConnector {
 						value.setValue("METRIC");
 						resourceId.setName("resourceId");
 						resourceId.setValue("ID");
+						action.getParameters().add(metric);
+						action.getParameters().add(value);
+						action.getParameters().add(resourceId);
 						actions.getActions().add(action);
 						
 						//setting rule field and adding the created rule to the returned list
@@ -230,6 +233,9 @@ public class MonitoringConnector {
 		value.setValue("METRIC");
 		resourceId.setName("resourceId");
 		resourceId.setValue("ID");
+		action.getParameters().add(metric);
+		action.getParameters().add(value);
+		action.getParameters().add(resourceId);
 		actions.getActions().add(action);
 		
 		//setting rule field and adding the created rule to the returned list
@@ -325,6 +331,9 @@ public class MonitoringConnector {
 				value.setValue("METRIC");
 				resourceId.setName("resourceId");
 				resourceId.setValue("ID");
+				action.getParameters().add(metric);
+				action.getParameters().add(value);
+				action.getParameters().add(resourceId);
 				actions.getActions().add(action);
 				
 
@@ -394,6 +403,9 @@ public class MonitoringConnector {
 		value.setValue("METRIC");
 		resourceId.setName("resourceId");
 		resourceId.setValue("ID");
+		action.getParameters().add(metric);
+		action.getParameters().add(value);
+		action.getParameters().add(resourceId);
 		actions.getActions().add(action);
 		
 
@@ -505,6 +517,9 @@ public class MonitoringConnector {
 			value.setValue("METRIC");
 			resourceId.setName("resourceId");
 			resourceId.setValue("ID");
+			action.getParameters().add(metric);
+			action.getParameters().add(value);
+			action.getParameters().add(resourceId);
 			actions.getActions().add(action);
 					
 			//setting rule field and adding the created rule to the returned list
