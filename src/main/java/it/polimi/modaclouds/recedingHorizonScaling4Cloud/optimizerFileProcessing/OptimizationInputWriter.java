@@ -36,8 +36,8 @@ public class OptimizationInputWriter {
 				writeFile("mu.dat", toAdapt.getId(), "let mu["+index+"]:=\n"+0+"\n;");
 			}
 			
-			//write delay file
-			writeFile("Delay.dat", toAdapt.getId(), "let D["+index+"]:=\n"+0+"\n;");
+			//write delay file 
+			writeFile("Delay.dat", toAdapt.getId(), "let D["+index+"]:=\n"+t.getDelay()+"\n;");
 
 			//write workload predictions file
 			for(WorkloadForecast wf:t.getWorkloadForecast()){
