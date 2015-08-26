@@ -190,11 +190,15 @@ public class ModelManager {
 		for(int i=0; i<instances.length(); i++){
 			JSONObject instance=instances.getJSONObject(i);
 			String instanceId=instance.get("id").toString();
-			String instanceType=instance.getString("type").toString().substring(4, instance.get("type").toString().length()-1);
-			String tierId=getHostedTier(instanceId).getId();
+			String instanceType=instance.get("type").toString();
 			String instanceStatus=instance.get("status").toString();
 			
-			if(instanceId!=null && instanceType != null && instanceStatus !=null){
+			//if cloudml returns valid information (no field can be null)
+			if(!instanceId.equals("null") && !instanceType.equals("null") && !instanceStatus.equals("null")){
+				
+				instanceType=getTierIdFromInstanceType(instanceType);
+				String tierId=getHostedTier(instanceId).getId();
+				
 				if(tierId!=null){
 					if(instanceType.equals(tierId)){
 						//CHECK IF THE STATUS OF THE INSTANCE AS REPORTED BY CLOUDML CORRESPONDS TO THE INTERNAL STORED STATUS
@@ -216,9 +220,21 @@ public class ModelManager {
 				}
 			}else{
 				//RAISE ERROR SINCE A VM INSTANCE FROM CLOUDML RESPONSE HAS A NULL ID OR A NULL TYPE OR A NULL STATUS
-				throw new CloudMLReturnedModelException("CloudML reported instance with a null type or status or Id for instance: "+instanceId);
+				throw new CloudMLReturnedModelException("CloudML reported instance with null type or status or Id for instance: "+instanceId);
 			}
 		}		
+	}
+	
+	private static String getTierIdFromInstanceType(String instanceType) throws CloudMLReturnedModelException{
+		for(Container c: model.getContainer()){
+			for(ApplicationTier t: c.getApplicationTier()){
+				if(instanceType.contains(t.getId())){
+					return t.getId();
+				}
+			}
+		}
+		
+		throw new CloudMLReturnedModelException("CloudML returned an instance type which not correspond to any internally managed application tier id");
 	}
 	
 	public static Instance getInstance(String instanceId){
