@@ -1,8 +1,7 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.sshConnector;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+
 
 import javax.swing.JOptionPane;
 
@@ -33,8 +32,7 @@ public class ExecSSH {
 	
 	}
 
-	public List<String> mainExec() {
-		List<String> res = new ArrayList<String>();
+	public void mainExec() {
 		try {
 
 			JSch jsch = new JSch();
@@ -53,7 +51,9 @@ public class ExecSSH {
 			((ChannelExec) channel).setCommand("bash " 
 					+ this.optLauncher);
 			channel.setInputStream(null);
-			((ChannelExec) channel).setErrStream(System.err);
+			//((ChannelExec) channel).setErrStream(System.err);
+
+			
 			InputStream in = channel.getInputStream();
 			channel.connect();
 			byte[] tmp = new byte[1024];
@@ -63,10 +63,8 @@ public class ExecSSH {
 					int i = in.read(tmp, 0, 1024);
 					if (i < 0)
 						break;
-					res.add(new String(tmp, 0, i));
 				}
 				if (channel.isClosed()) {
-					res.add("exit-status: " + channel.getExitStatus());
 					break;
 				}
 				try {
@@ -74,12 +72,12 @@ public class ExecSSH {
 				} catch (Exception ee) {
 				}
 			}
+			
 			channel.disconnect();
 			session.disconnect();
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return res;
 	}
 }

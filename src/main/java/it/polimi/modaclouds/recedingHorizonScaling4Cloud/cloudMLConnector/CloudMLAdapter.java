@@ -5,7 +5,6 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

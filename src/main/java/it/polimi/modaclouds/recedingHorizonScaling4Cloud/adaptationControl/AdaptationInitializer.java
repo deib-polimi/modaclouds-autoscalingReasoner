@@ -3,7 +3,6 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Paths;
 import java.util.logging.Level;
@@ -13,7 +12,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
-import it.polimi.tower4clouds.manager.api.NotFoundException;
 import it.polimi.tower4clouds.rules.MonitoringRules;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
@@ -52,9 +50,11 @@ public class AdaptationInitializer {
 		
 		
 		//initializing the instances used for scale for each application tier
+		journal.log(Level.INFO, "Initializing the instances used for scale (the newest one) for each application tier");
 		ModelManager.initializeUsedForScale();
 		journal.log(Level.INFO, "Printing the initial model");
-		ModelManager.printCurrentModel();
+		journal.log(Level.INFO, ModelManager.printCurrentModel());
+
 		
 		//initialize the local file system
 		journal.log(Level.INFO, "Initializing the internal file system");
@@ -110,10 +110,12 @@ public class AdaptationInitializer {
 		
 		//starting the adaptation clock running the adaptation every timestepDuration minutes
 		journal.log(Level.INFO, "Starting the adaptation clock to run an adaptation step every "+ModelManager.getTimestepDuration()+" minutes");
+		@SuppressWarnings("unused")
 		AdapatationClock clock=new AdapatationClock(ModelManager.getTimestepDuration());
 		
 		//starting a clock changing the response time thresholds for each application tier every hour
 		journal.log(Level.INFO, "Starting a clock changing the threshold in the model every hour for each managed application tier");
+		@SuppressWarnings("unused")
 		HourClock hourClock=new HourClock();
 		
 		}

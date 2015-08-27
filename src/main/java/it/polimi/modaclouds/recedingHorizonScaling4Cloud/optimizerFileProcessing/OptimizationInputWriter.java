@@ -30,8 +30,10 @@ public class OptimizationInputWriter {
 			int index=t.getClassIndex();
 			
 			//write service rate file
-			if(t.getDemand()!=0){
-				writeFile("mu.dat", toAdapt.getId(), "let mu["+index+"]:=\n"+(1/t.getDemand())+"\n;");
+			double tierDemand=ModelManager.getDemand(t.getId());
+			
+			if(tierDemand!=0){
+				writeFile("mu.dat", toAdapt.getId(), "let mu["+index+"]:=\n"+(1/tierDemand)+"\n;");
 			}else{
 				writeFile("mu.dat", toAdapt.getId(), "let mu["+index+"]:=\n"+0+"\n;");
 			}
@@ -40,12 +42,11 @@ public class OptimizationInputWriter {
 			writeFile("Delay.dat", toAdapt.getId(), "let D["+index+"]:=\n"+t.getDelay()+"\n;");
 
 			//write workload predictions file
-			for(WorkloadForecast wf:t.getWorkloadForecast()){
-				writeFile("workload_class"+index+".dat", toAdapt.getId(), "let Lambda["+index+","+wf.getTimeStepAhead()+"]:=\n"+wf.getValue()+"\n;");
+			for(int i=1; i<=ModelManager.getOptimizationWindow(); i++){
+				writeFile("workload_class"+index+".dat", toAdapt.getId(), "let Lambda["+index+","+i+"]:=\n"+ModelManager.getWorkloadPrediction(t.getId(), i)+"\n;");
 			}
 			
 			//write response time threshold file
-
 			writeFile("Rcross.dat", toAdapt.getId(), "let Rcross["+index+"]:=\n"+Double.toString(t.getResponseTimeThreshold().get(ModelManager.getCurrentHour()-1).getValue())+"\n;");
 
 			

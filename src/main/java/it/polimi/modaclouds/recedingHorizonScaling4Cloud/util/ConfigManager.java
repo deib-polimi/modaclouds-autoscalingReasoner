@@ -2,24 +2,17 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.util;
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.util.HashMap;
-import java.util.List;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.io.FileUtils;
-import org.eclipse.core.runtime.Path;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -173,6 +166,10 @@ public class ConfigManager {
 			OPTIMIZATION_INPUT_FOLDER=value;
 			break;
 
+		case "OPTIMIZATION_OUTPUT_FILE":
+			OPTIMIZATION_OUTPUT_FILE=value;
+			break;
+			
 		case "CLOUDML_WEBSOCKET_IP":
 			CLOUDML_WEBSOCKET_IP=value;
 			break;

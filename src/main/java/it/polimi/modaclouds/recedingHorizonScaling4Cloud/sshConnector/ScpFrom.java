@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.JOptionPane;
 
@@ -13,7 +15,6 @@ import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
-
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 
 
@@ -23,7 +24,9 @@ public class ScpFrom {
 	public String ScpUserName;
 	public String ScpHost;
 	public String ScpPasswd;
-
+	private static final Logger journal = Logger
+			.getLogger(ScpFrom.class.getName());	
+	
 	public ScpFrom() {
 		ScpUserName = ConfigManager.SSH_USER_NAME;
 		ScpHost = ConfigManager.SSH_HOST;
@@ -32,6 +35,7 @@ public class ScpFrom {
 
 	public void receivefile(String LFile, String RFile) {
 		FileOutputStream fos = null;
+				
 		try {
 
 			String lfile = LFile;
@@ -63,6 +67,7 @@ public class ScpFrom {
 			buf[0] = 0;
 			out.write(buf, 0, 1);
 			out.flush();
+			// reading channel
 			while (true) {
 				int c = checkAck(in);
 				if (c != 'C') {
@@ -124,7 +129,7 @@ public class ScpFrom {
 
 			session.disconnect();
 		} catch (Exception e) {
-			e.printStackTrace();
+			journal.log(Level.INFO, "Error while getting a file.", e);
 			try {
 				if (fos != null)
 					fos.close();

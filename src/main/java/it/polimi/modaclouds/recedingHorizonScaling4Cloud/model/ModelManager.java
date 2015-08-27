@@ -3,20 +3,14 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.model;
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector.CloudMLAdapter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.CloudMLReturnedModelException;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.TierNotFoudException;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector.MainObserver;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
-import it.polimi.tower4clouds.rules.MonitoringRules;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -38,8 +32,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import com.sun.research.ws.wadl.Application;
 
 public class ModelManager {
 	private static final Logger journal = Logger
@@ -93,7 +85,7 @@ public class ModelManager {
 		journal.log(Level.INFO, "Initializing cloudml connection"+ConfigManager.LISTENING_PORT);
 		CloudMLAdapter cloudml=new CloudMLAdapter();
 		
-		journal.log(Level.INFO, "Asking CloudML for the current deployment model"+ConfigManager.LISTENING_PORT);
+		journal.log(Level.INFO, "Asking CloudML for the current deployment model");
 		cloudml.getDeploymentModel();
 		
 	}
@@ -112,7 +104,7 @@ public class ModelManager {
 			
 			marshaller.marshal(model,out);
 			marshaller.marshal(model,sw);
-			
+			journal.log(Level.INFO,sw.toString());
 		    return sw.toString();
 		} catch (JAXBException e) {
 			e.printStackTrace();
@@ -402,22 +394,6 @@ public class ModelManager {
 		return model.timestepDuration;
 	}
 
-	
-	private static boolean containInstance(String tierId, String instanceId){
-		
-		
-		ApplicationTier tier = getTier(tierId);
-
-		for(Instance instance: tier.getInstances()){
-			if(instance.getId().equals(instanceId)){
-				return true;
-			}
-		}
-		
-		
-		return false;
-	}
-	
 	public static void stopInstances(List<String> instances) throws TierNotFoudException{
 		
 		
@@ -587,7 +563,7 @@ public class ModelManager {
 	
 	public static double getWorkloadPrediction(String tierId, int lookAhead){
 		ApplicationTier tier=getTier(tierId);
-		double toReturn=0;
+		double toReturn=100;
 		for(Functionality f:tier.getFunctionality()){
 			for(WorkloadForecast wf: f.getWorkloadForecast()){
 				if(wf.getTimeStepAhead()==lookAhead){

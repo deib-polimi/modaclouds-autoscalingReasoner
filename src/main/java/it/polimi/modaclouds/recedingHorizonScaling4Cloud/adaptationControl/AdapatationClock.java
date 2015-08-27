@@ -16,10 +16,10 @@ public class AdapatationClock {
 	
     public AdapatationClock(int timeStepDurationInMinutes) {
         timer = new Timer();
-		journal.log(Level.INFO, "here is the adaptation clock!");
+		journal.log(Level.INFO, "Here is the adaptation clock!");
 		
 
-        timer.scheduleAtFixedRate(new ControllerLauncher(), timeStepDurationInMinutes*60*1000, timeStepDurationInMinutes*60*1000);
+        timer.scheduleAtFixedRate(new ControllerLauncher(), 5000, timeStepDurationInMinutes*60*1000);
 
     }
 
@@ -27,7 +27,7 @@ public class AdapatationClock {
     	
         public void run() {
         	
-    		journal.log(Level.INFO, "launching the adaptation step at the end of timestep "+ModelManager.getCurrentTimeStep());
+    		journal.log(Level.INFO, "Launching the adaptation step at the end of timestep "+ModelManager.getCurrentTimeStep());
         	
         	List<Container> toLaunch=ModelManager.getModel().getContainer();
         	Thread[] toWait=new Thread[toLaunch.size()];
@@ -38,12 +38,12 @@ public class AdapatationClock {
         		toWait[i]=t;
         		i++;
         		
-        		journal.log(Level.INFO, "starting a controller for container "+c.getId());
+        		journal.log(Level.INFO, "Starting a controller for container "+c.getId());
         		t.start();
         	}
 
         	
-    		journal.log(Level.INFO, "waiting for all the controller to end");
+    		journal.log(Level.INFO, "Waiting for all the controller to end");
 
         	for(i = 0; i < toWait.length; i++){
 				try {
@@ -53,7 +53,7 @@ public class AdapatationClock {
 				}
         	}
         	
-    		journal.log(Level.INFO, "printing the current model");
+    		journal.log(Level.INFO, "Printing the current model");
         	ModelManager.increaseCurrentTimeStep();
     		ModelManager.printCurrentModel();
         }

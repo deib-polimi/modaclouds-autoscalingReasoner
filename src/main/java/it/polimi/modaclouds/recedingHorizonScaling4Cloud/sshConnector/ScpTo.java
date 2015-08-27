@@ -59,24 +59,6 @@ public class ScpTo {
 				this.ScpPasswd = JOptionPane.showInputDialog("Enter password");
 			session.setPassword(this.ScpPasswd);
 
-			// this class sets visual forms for interactions with users
-			// required by implementation
-			UserInfo ui = new MyUserInfo() {
-				public void showMessage(String message) {
-					JOptionPane.showMessageDialog(null, message);
-				}
-
-				public boolean promptYesNo(String message) {
-					Object[] options = { "yes", "no" };
-					int foo = JOptionPane.showOptionDialog(null, message,
-							"Warning", JOptionPane.DEFAULT_OPTION,
-							JOptionPane.WARNING_MESSAGE, null, options,
-							options[0]);
-					return foo == 0;
-				}
-			};
-			session.setUserInfo(ui);
-
 			// disabling of certificate checks
 			session.setConfig("StrictHostKeyChecking", "no");
 			// creating connection

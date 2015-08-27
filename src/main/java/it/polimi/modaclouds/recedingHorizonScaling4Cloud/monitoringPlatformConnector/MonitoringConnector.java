@@ -4,7 +4,6 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConn
 
 import java.io.IOException;
 
-import com.hp.hpl.jena.rdf.model.Model;
 
 import it.polimi.tower4clouds.rules.Action;
 import it.polimi.tower4clouds.rules.Actions;

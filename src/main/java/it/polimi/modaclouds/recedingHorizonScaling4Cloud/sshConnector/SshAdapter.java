@@ -18,11 +18,17 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.sshConnector;
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
+
 import java.io.File;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 //this class is used to create connection to AMPL server (wrapper)
 public class SshAdapter {
 
+	private static final Logger journal = Logger
+			.getLogger(SshAdapter.class.getName());	
+	
 	// main execution function
 	public static void executeOptimization(Container c) {
 		
@@ -37,12 +43,13 @@ public class SshAdapter {
 			File dir = new File("executions/execution_"+c.getId()+"/IaaS_1");
 			File[] directoryListing = dir.listFiles();
 				
-				
+			journal.log(Level.INFO,"Start sending all the optimization input files");
+
 			if (directoryListing != null) {
 				for (File child : directoryListing) {
 					
 					if(!child.getAbsolutePath().contains("output")){
-						System.out.println("sending file: "+child.toString());
+						journal.log(Level.INFO,"Sending file: "+child.toString());
 						newScpTo.sendfile(child.getAbsolutePath(), ConfigManager.OPTIMIZATION_INPUT_FOLDER);
 						
 						try {
@@ -53,17 +60,19 @@ public class SshAdapter {
 					}
 				}
 			} else {
-				System.out.println("Some error occurred: no files finded in the INPUT directory of the project file system");
+				journal.log(Level.INFO,"Some error occurred: no files finded in the INPUT directory of the project file system");
 			}
 			
 			// this block runs bash-script on AMPL server
+			journal.log(Level.INFO,"Solving the optimization problem");
 			ExecSSH newExecSSH = new ExecSSH();
 			newExecSSH.mainExec();
 	
+			
 			// this block downloads logs and results of AMPL
-			
 			ScpFrom newScpFrom = new ScpFrom();
-			
+			journal.log(Level.INFO,"Retrieving the optimization output file");
+			journal.log(Level.INFO,ConfigManager.OPTIMIZATION_OUTPUT_FILE);
 			newScpFrom.receivefile("executions/execution_"+c.getId()+"/IaaS_1/output.out",
 					ConfigManager.OPTIMIZATION_OUTPUT_FILE);			
 	
