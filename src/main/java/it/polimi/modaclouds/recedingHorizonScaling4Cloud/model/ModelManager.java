@@ -14,6 +14,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -94,7 +95,7 @@ public class ModelManager {
 		
 	}
 	
-	public static void printCurrentModel() {
+	public static String printCurrentModel() {
 		JAXBContext context;
 		
 		try {
@@ -102,14 +103,21 @@ public class ModelManager {
 			context = JAXBContext.newInstance("it.polimi.modaclouds.recedingHorizonScaling4Cloud.model");
 			Marshaller marshaller = context.createMarshaller();
 			marshaller.setProperty("jaxb.formatted.output",Boolean.TRUE);
-			File currentModel = Paths.get("model"+currentTimeStep+".xml").toFile();
+			File currentModel = Paths.get("model_"+currentTimeStep+".xml").toFile();
 			OutputStream out = new FileOutputStream(currentModel);
+			StringWriter sw = new StringWriter();
+			
 			marshaller.marshal(model,out);
+			marshaller.marshal(model,sw);
+			
+		    return sw.toString();
 		} catch (JAXBException e) {
 			e.printStackTrace();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} 
+		
+		return null;
 	}
 		
 	public static void updateServiceDemand(String monitoredResource, Double monitoredValue) {
