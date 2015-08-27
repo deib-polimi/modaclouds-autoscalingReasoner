@@ -63,6 +63,7 @@ public class ModelManager {
 	
 	public static void loadModel(){
 		
+		journal.log(Level.INFO, "Getting the design time model "+ConfigManager.LISTENING_PORT);
 		try {
 			JAXBContext jc;
 
@@ -75,7 +76,8 @@ public class ModelManager {
 		}
 		
 		//setting the class idexes
-		
+		journal.log(Level.INFO, "Setting the class indexes for applucation tiers "+ConfigManager.LISTENING_PORT);
+
 		for(Container c: model.getContainer()){
 			int index=1;
 			for(ApplicationTier t: c.getApplicationTier()){
@@ -85,12 +87,13 @@ public class ModelManager {
 		}
 		
 		//check if default demands value have to be used
-		
 		defaultDemand=Double.parseDouble(ConfigManager.DEFAULT_DEMAND);
 		
 		//add runtime deployment model information
-		
+		journal.log(Level.INFO, "Initializing cloudml connection"+ConfigManager.LISTENING_PORT);
 		CloudMLAdapter cloudml=new CloudMLAdapter();
+		
+		journal.log(Level.INFO, "Asking CloudML for the current deployment model"+ConfigManager.LISTENING_PORT);
 		cloudml.getDeploymentModel();
 		
 	}

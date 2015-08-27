@@ -21,6 +21,7 @@ public class CloudMLAdapter {
 		String serverURI="ws://"+ConfigManager.CLOUDML_WEBSOCKET_IP+":"+
 				ConfigManager.CLOUDML_WEBSOCKET_PORT;
 		try {
+		journal.log(Level.INFO, "Connecting to CloudML Web Socket server");
 		wsClient=new WSClient(new URI(serverURI));
 		t =new Thread(wsClient);
 		t.start();

@@ -21,7 +21,7 @@ import java.util.TimerTask;
 
 public class AdaptationController extends TimerTask {
 	private static final Logger journal = Logger
-			.getLogger(WSClient.class.getName());
+			.getLogger(AdaptationController.class.getName());
 	
 	private Container toAdapt;
 

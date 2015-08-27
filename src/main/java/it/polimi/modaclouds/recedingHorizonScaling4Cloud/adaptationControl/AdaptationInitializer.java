@@ -30,7 +30,7 @@ public class AdaptationInitializer {
 	public void initialize() {
 						
 		//loading the config.xml file
-		journal.log(Level.INFO, "loading the configuration");
+		journal.log(Level.INFO, "Loading the configuration");
 
 		try {
 			ConfigManager.loadConfiguration();
@@ -40,9 +40,10 @@ public class AdaptationInitializer {
 
 		
 		//loading the internal model
-		journal.log(Level.INFO, "loading the model");
+		journal.log(Level.INFO, "Loading the model");
 		ModelManager.loadModel();
 		
+		journal.log(Level.INFO, "Waiting for model initialization to end");
 		try {
 			Thread.sleep(5000);
 		} catch (InterruptedException e1) {
@@ -52,11 +53,11 @@ public class AdaptationInitializer {
 		
 		//initializing the instances used for scale for each application tier
 		ModelManager.initializeUsedForScale();
-		journal.log(Level.INFO, "printing the initial model");
+		journal.log(Level.INFO, "Printing the initial model");
 		ModelManager.printCurrentModel();
 		
 		//initialize the local file system
-		journal.log(Level.INFO, "initializing the internal file system");
+		journal.log(Level.INFO, "Initializing the internal file system");
 		try {
 			ConfigManager.inizializeFileSystem();
 		} catch (ProjectFileSystemException e1) {
@@ -70,7 +71,7 @@ public class AdaptationInitializer {
 				
 		try {
 			//getting required monitoring rules
-			journal.log(Level.INFO, "building the required monitoring rules");
+			journal.log(Level.INFO, "Building the required monitoring rules");
 			MonitoringRules toInstall=monitor.buildRequiredRules();
 
 			//serializing built rules
@@ -83,15 +84,15 @@ public class AdaptationInitializer {
 			
 			
 			//installing required rules
-			journal.log(Level.INFO, "installing monitoring rules");
+			journal.log(Level.INFO, "Installing monitoring rules");
 			monitor.installRules(toInstall);
 			
 			//attaching required observers
-			journal.log(Level.INFO, "attaching required observers on port "+ConfigManager.LISTENING_PORT);
+			journal.log(Level.INFO, "Attaching required observers on port "+ConfigManager.LISTENING_PORT);
 			monitor.attachRequiredObservers();
 
 			//starting observer
-			journal.log(Level.INFO, "starting the observer");
+			journal.log(Level.INFO, "Starting the observer");
 			MainObserver.startServer(ConfigManager.LISTENING_PORT);
 
 		} catch (JAXBException e) {
@@ -112,7 +113,7 @@ public class AdaptationInitializer {
 		AdapatationClock clock=new AdapatationClock(ModelManager.getTimestepDuration());
 		
 		//starting a clock changing the response time thresholds for each application tier every hour
-		journal.log(Level.INFO, "starting a clock changing the threshold in the model every hour for each managed application tier");
+		journal.log(Level.INFO, "Starting a clock changing the threshold in the model every hour for each managed application tier");
 		HourClock hourClock=new HourClock();
 		
 		}
