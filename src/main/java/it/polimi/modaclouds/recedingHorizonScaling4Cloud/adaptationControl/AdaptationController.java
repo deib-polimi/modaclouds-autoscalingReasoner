@@ -193,9 +193,6 @@ public class AdaptationController extends TimerTask {
 			e.printStackTrace();
 		}
 		
-		ModelManager.increaseCurrentTimeStep();
-		ModelManager.printCurrentModel();
-		
 	}
 
 

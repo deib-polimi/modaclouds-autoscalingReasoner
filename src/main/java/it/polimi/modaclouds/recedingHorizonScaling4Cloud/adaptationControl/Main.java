@@ -5,6 +5,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Paths;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -19,9 +21,12 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 
 public class Main {
 
+	private static final Logger journal = Logger
+			.getLogger(Main.class.getName());
 	public static void main(String[] args) {
 
-
+		journal.log(Level.INFO, "Autoscaling Reasoner started");
+		journal.log(Level.INFO, "Starting the initialization phase");
 		AdaptationInitializer initializer=new AdaptationInitializer();
 		initializer.initialize();
 		

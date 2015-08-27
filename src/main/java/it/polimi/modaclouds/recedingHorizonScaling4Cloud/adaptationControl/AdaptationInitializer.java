@@ -30,6 +30,8 @@ public class AdaptationInitializer {
 	public void initialize() {
 						
 		//loading the config.xml file
+		journal.log(Level.INFO, "loading the configuration");
+
 		try {
 			ConfigManager.loadConfiguration();
 		} catch (ConfigurationFileException e) {
@@ -38,6 +40,7 @@ public class AdaptationInitializer {
 
 		
 		//loading the internal model
+		journal.log(Level.INFO, "loading the model");
 		ModelManager.loadModel();
 		
 		try {
@@ -49,10 +52,11 @@ public class AdaptationInitializer {
 		
 		//initializing the instances used for scale for each application tier
 		ModelManager.initializeUsedForScale();
+		journal.log(Level.INFO, "printing the initial model");
 		ModelManager.printCurrentModel();
 		
-		
 		//initialize the local file system
+		journal.log(Level.INFO, "initializing the internal file system");
 		try {
 			ConfigManager.inizializeFileSystem();
 		} catch (ProjectFileSystemException e1) {
@@ -66,6 +70,7 @@ public class AdaptationInitializer {
 				
 		try {
 			//getting required monitoring rules
+			journal.log(Level.INFO, "building the required monitoring rules");
 			MonitoringRules toInstall=monitor.buildRequiredRules();
 
 			//serializing built rules
@@ -78,12 +83,15 @@ public class AdaptationInitializer {
 			
 			
 			//installing required rules
+			journal.log(Level.INFO, "installing monitoring rules");
 			monitor.installRules(toInstall);
 			
 			//attaching required observers
+			journal.log(Level.INFO, "attaching required observers on port "+ConfigManager.LISTENING_PORT);
 			monitor.attachRequiredObservers();
 
 			//starting observer
+			journal.log(Level.INFO, "starting the observer");
 			MainObserver.startServer(ConfigManager.LISTENING_PORT);
 
 		} catch (JAXBException e) {
@@ -94,13 +102,17 @@ public class AdaptationInitializer {
 		
 		
 		//writing the static input files for each container
+		journal.log(Level.INFO, "Writing the static input files");
 		OptimizationInputWriter siw= new OptimizationInputWriter();
 		siw.writeStaticInput(ModelManager.getModel());
+		journal.log(Level.INFO, "Static input files wrote");
 		
 		//starting the adaptation clock running the adaptation every timestepDuration minutes
+		journal.log(Level.INFO, "Starting the adaptation clock to run an adaptation step every "+ModelManager.getTimestepDuration()+" minutes");
 		AdapatationClock clock=new AdapatationClock(ModelManager.getTimestepDuration());
 		
 		//starting a clock changing the response time thresholds for each application tier every hour
+		journal.log(Level.INFO, "starting a clock changing the threshold in the model every hour for each managed application tier");
 		HourClock hourClock=new HourClock();
 		
 		}
