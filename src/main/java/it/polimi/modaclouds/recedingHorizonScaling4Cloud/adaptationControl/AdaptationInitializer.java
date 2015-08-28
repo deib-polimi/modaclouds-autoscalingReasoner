@@ -1,9 +1,12 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -64,7 +67,7 @@ public class AdaptationInitializer {
 			e1.printStackTrace();
 		}
 		
-
+		
 		MonitoringConnector monitor=new MonitoringConnector();
 		JAXBContext context;
 
@@ -92,8 +95,8 @@ public class AdaptationInitializer {
 			monitor.attachRequiredObservers();
 
 			//starting observer
-			journal.log(Level.INFO, "Starting the observer");
-			MainObserver.startServer(ConfigManager.LISTENING_PORT);
+			//journal.log(Level.INFO, "Starting the observer");
+			//MainObserver.startServer(ConfigManager.LISTENING_PORT);
 
 		} catch (JAXBException e) {
 			e.printStackTrace();
@@ -118,5 +121,6 @@ public class AdaptationInitializer {
 		@SuppressWarnings("unused")
 		HourClock hourClock=new HourClock();
 		
+
 		}
 }

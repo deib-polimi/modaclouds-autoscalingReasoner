@@ -1,12 +1,19 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector;
 
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl.AdaptationInitializer;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -23,10 +30,14 @@ import org.json.JSONObject;
 
 @Path("/")
 public class MainObserver {
-	
+	private static final Logger journal = Logger
+			.getLogger(MainObserver.class.getName());
 	@POST
     @Path("/v1/results")
     public Response receiveData(InputStream incomingData) {
+		
+		journal.log(Level.INFO,"New monitoring data received");
+
         StringBuilder dataBuilder = new StringBuilder();
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(incomingData));
@@ -40,6 +51,9 @@ public class MainObserver {
         
 
 		try {
+			
+			journal.log(Level.INFO,"Reading the received data");
+
 			JSONArray data=new JSONArray(dataBuilder.toString());
 			
 			for (int i=0; i<data.length(); i++) {
@@ -47,6 +61,7 @@ public class MainObserver {
 				JSONObject datum=data.getJSONObject(i);
 				
 				if(datum.get("metric").equals("EstimatedDemand")){
+					journal.log(Level.INFO,"Received a datum for metric:"+datum.get("metric"));
 					ModelManager.updateServiceDemand(datum.getString("resourceId"),
 							datum.getDouble("value"));
 				}else if(datum.get("metric").toString().contains("ForecastedWorkload")){
@@ -79,7 +94,18 @@ public class MainObserver {
     }
 
     public static void main(String[] args) throws IOException {
-    	String port = (args.length > 0) ? args[0] : "8001";
-        startServer(port);
+    	//(String port = (args.length > 0) ? args[0] : "8001";
+        //startServer(port);
+    	String test="["+
+					    "{"+
+					        "\"metric\": \"ForecastedWorkload2\","+
+					        "\"resourceId\": \"saveAnswers_-571442537\","+
+					        "\"timestamp\": 1440757854169,"+
+					        "\"value\": 62.737677450401058"+
+					    "}"+
+					"]";
+    	InputStream stream = new ByteArrayInputStream(test.getBytes(StandardCharsets.UTF_8));
+    	MainObserver obs=new MainObserver();
+    	obs.receiveData(stream);
     }
 }

@@ -37,7 +37,7 @@ public class WSClient extends WebSocketClient {
 		journal.log(Level.INFO, "Received message from CloudML server");
 
 		if(s.contains("ack") & s.contains("ScaleOut")){
-			journal.log(Level.INFO, "Scale out completed! Sking CloudML for the deployment model");
+			journal.log(Level.INFO, "Scale out completed! Asking CloudML for the deployment model");
 			this.send("!getSnapshot { path : / }");
 
 		}else if(s.contains("return of GetSnapshot")){

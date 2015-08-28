@@ -46,7 +46,7 @@ public class MonitoringConnector {
 	}
 	
 	public void attachObserver(String targetMetric, String observerIP, String observerPort) throws NotFoundException, IOException{
-		monitoring.registerHttpObserver(targetMetric, "http://"+observerIP+":"+observerPort+"/v1/results", "RDF/JSON");
+		monitoring.registerHttpObserver(targetMetric, "http://"+observerIP+":"+observerPort+"/v1/results", "TOWER/JSON");
 	}
 	
 	public  MonitoringRules buildRequiredRules(){
