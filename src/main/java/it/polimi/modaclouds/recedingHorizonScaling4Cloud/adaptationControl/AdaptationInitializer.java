@@ -36,6 +36,7 @@ public class AdaptationInitializer {
 
 		try {
 			ConfigManager.loadConfiguration();
+			ConfigManager.printConfig();
 		} catch (ConfigurationFileException e) {
 			e.printStackTrace();
 		}
