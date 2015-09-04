@@ -40,7 +40,7 @@ public class ModelManager {
 	private static double defaultDemand;
 	private static int currentHour=0;
 	private static int currentTimeStep=0;
-	
+		
 	public static int getOptimizationWindow(){
 		return model.optimizationWindowsLenght;
 	}
@@ -116,16 +116,11 @@ public class ModelManager {
 	}
 		
 	public static void updateServiceDemand(String monitoredResource, Double monitoredValue) {
-		journal.log(Level.INFO,"Updating the model with the last observed datum for metric=demand"+
-				", resource="+monitoredResource+
-				" and value="+monitoredValue);
+
 		for(Container c: model.getContainer()){
 			for(ApplicationTier t: c.getApplicationTier()){
 				for(Functionality f: t.getFunctionality()){
 					if(monitoredResource.contains(f.getId())){
-						journal.log(Level.INFO,"Resource found in the internal model belonging to container="+c.getId()+
-								" and tier="+t.getId());
-						journal.log(Level.INFO,"Updating resource demand");
 						f.setDemand(monitoredValue);
 					}
 				}
@@ -135,15 +130,11 @@ public class ModelManager {
 	
 	public static void updateServiceWorkloadPrediction(String monitoredResource, String monitoredMetric, Double monitoredValue) {
 		
-		journal.log(Level.INFO,"Updating the model with the last observed datum for metric="+monitoredMetric+
-				", resource="+monitoredResource+
-				" and value="+monitoredValue);
 		for(Container c: model.getContainer()){
 			for(ApplicationTier t: c.getApplicationTier()){
 				for(Functionality f: t.getFunctionality()){
 					if(monitoredResource.contains(f.getId())){
-						journal.log(Level.INFO,"Resource found in the internal model belonging to container="+c.getId()+
-								" and tier="+t.getId());
+
 						WorkloadForecast toUpdate=null;
 						for(WorkloadForecast wf: f.getWorkloadForecast()){
 							if(wf.getTimeStepAhead()==Integer.parseInt(monitoredMetric.substring(monitoredMetric.length() - 1))){
@@ -151,10 +142,8 @@ public class ModelManager {
 							}
 						}
 						if(toUpdate!=null){
-							journal.log(Level.INFO,"The resource already has a previous value for the monitored metric; updating the value");
 							toUpdate.setValue(monitoredValue);
 						}else{
-							journal.log(Level.INFO,"The resource has no previous value for the monitored metric; initializing the value ");
 							toUpdate=new WorkloadForecast();
 							toUpdate.setTimeStepAhead(Integer.parseInt(monitoredMetric.substring(monitoredMetric.length() - 1)));
 							toUpdate.setValue(monitoredValue);
@@ -576,8 +565,12 @@ public class ModelManager {
 	}
 	
 	public static double getWorkloadPrediction(String tierId, int lookAhead){
+		
+		
 		ApplicationTier tier=getTier(tierId);
-		double toReturn=10;
+		double toReturn=0;
+	
+
 		for(Functionality f:tier.getFunctionality()){
 			for(WorkloadForecast wf: f.getWorkloadForecast()){
 				if(wf.getTimeStepAhead()==lookAhead){
@@ -676,5 +669,9 @@ public class ModelManager {
 	
 	public static void increaseCurrentTimeStep(){
 		currentTimeStep++;
+	}
+	
+	public static void increaseCurrentHour(){
+		currentHour++;
 	}
 }

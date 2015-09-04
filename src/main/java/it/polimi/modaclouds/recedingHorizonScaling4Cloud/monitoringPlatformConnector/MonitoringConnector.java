@@ -4,7 +4,6 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConn
 
 import java.io.IOException;
 
-
 import it.polimi.tower4clouds.rules.Action;
 import it.polimi.tower4clouds.rules.Actions;
 import it.polimi.tower4clouds.rules.CollectedMetric;
@@ -20,6 +19,7 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Functionality;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
+import it.polimi.tower4clouds.common.net.UnexpectedAnswerFromServerException;
 import it.polimi.tower4clouds.manager.api.ManagerAPI;
 import it.polimi.tower4clouds.manager.api.NotFoundException;
 
@@ -381,11 +381,11 @@ public class MonitoringConnector {
 		
 		//setting rule attribute
 		rule.setId("workloadRule");
-		rule.setTimeStep("2");
-		rule.setTimeWindow("2");
+		rule.setTimeStep("10");
+		rule.setTimeWindow("10");
 				
 		//setting the collected metric
-		collectedMetric.setMetricName("EffectiveResponseTime");
+		collectedMetric.setMetricName("ResponseTime");
 		samplingPorbability.setName("samplingPorbability");
 		samplingPorbability.setValue("1");;
 		collectedMetric.getParameters().add(samplingPorbability);
@@ -472,8 +472,8 @@ public class MonitoringConnector {
 			
 			//setting rule attribute
 			rule.setId("sdaForecast"+timestep);
-			rule.setTimeStep("2");
-			rule.setTimeWindow("2");
+			rule.setTimeStep("60");
+			rule.setTimeWindow("60");
 			
 			//setting the monitored target
 			for(Container c: ModelManager.getModel().getContainer()){
@@ -492,7 +492,7 @@ public class MonitoringConnector {
 			order.setName("order");
 			order.setValue("1");
 			forecastPeriod.setName("forecastPeriod");
-			forecastPeriod.setValue(Integer.toString(timestep*ModelManager.getTimestepDuration()));
+			forecastPeriod.setValue(Integer.toString(6*timestep*ModelManager.getTimestepDuration()));
 			autoregressive.setName("autoregressive");
 			autoregressive.setValue("1");
 			movingAverage.setName("movingAverage");
@@ -531,6 +531,32 @@ public class MonitoringConnector {
 
 
 		return toReturn;
+	}
+	
+	
+	public void changeRuleThreshold(String ruleId, Double threshold){
+		MonitoringRules installedRules;
+			try {
+				installedRules = monitoring.getRules();
+				
+				for(MonitoringRule rule: installedRules.getMonitoringRules()){
+					if(rule.getId().equals(ruleId)){
+						rule.getCondition().setValue(threshold.toString());
+						monitoring.disableRule(ruleId);
+						MonitoringRules toInstall=factory.createMonitoringRules();
+						toInstall.getMonitoringRules().add(rule);
+						monitoring.installRules(toInstall);
+						break;
+					}
+				}
+			} catch (UnexpectedAnswerFromServerException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (NotFoundException e) {
+				e.printStackTrace();
+			}			
+		
 	}
 	
 }

@@ -136,8 +136,8 @@ public class AdaptationController extends TimerTask {
 					journal.log(Level.INFO,"Scaling out instanes");
 					if(numOfInstancesToScaleOut>0){
 						CloudMLAdapter cloudml=new CloudMLAdapter();
-						//cloudml.scaleOut(ModelManager.getInstanceToScale(tier.getId()), numOfInstancesToScaleOut);
-						cloudml.scaleOut(ModelManager.getInstanceToScale(tier.getId()), 1);
+						cloudml.scaleOut(ModelManager.getInstanceToScale(tier.getId()), numOfInstancesToScaleOut);
+						//cloudml.scaleOut(ModelManager.getInstanceToScale(tier.getId()), 1);
 					}
 					
 				}

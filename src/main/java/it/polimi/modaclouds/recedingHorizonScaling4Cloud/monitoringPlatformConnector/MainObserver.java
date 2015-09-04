@@ -61,7 +61,7 @@ public class MainObserver {
 				JSONObject datum=data.getJSONObject(i);
 				
 				if(datum.get("metric").equals("EstimatedDemand")){
-					journal.log(Level.INFO,"Received a datum for metric:"+datum.get("metric"));
+					journal.log(Level.INFO,"Received a datum for metric:"+datum.getString("metric")+" and resource:"+datum.getString("resourceId"));
 					ModelManager.updateServiceDemand(datum.getString("resourceId"),
 							datum.getDouble("value"));
 				}else if(datum.get("metric").toString().contains("ForecastedWorkload")){

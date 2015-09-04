@@ -19,6 +19,7 @@ import it.polimi.tower4clouds.rules.MonitoringRules;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector.FakeObserver;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector.MainObserver;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector.MonitoringConnector;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing.OptimizationInputWriter;
@@ -91,12 +92,12 @@ public class AdaptationInitializer {
 			monitor.installRules(toInstall);
 			
 			//attaching required observers
-			journal.log(Level.INFO, "Attaching required observers on port "+ConfigManager.LISTENING_PORT);
-			monitor.attachRequiredObservers();
+			//journal.log(Level.INFO, "Attaching required observers on port "+ConfigManager.LISTENING_PORT);
+			//monitor.attachRequiredObservers();
 
 			//starting observer
-			//journal.log(Level.INFO, "Starting the observer");
-			//MainObserver.startServer(ConfigManager.LISTENING_PORT);
+			journal.log(Level.INFO, "Starting the observer");
+			MainObserver.startServer(ConfigManager.LISTENING_PORT);
 
 		} catch (JAXBException e) {
 			e.printStackTrace();
@@ -111,15 +112,21 @@ public class AdaptationInitializer {
 		siw.writeStaticInput(ModelManager.getModel());
 		journal.log(Level.INFO, "Static input files wrote");
 		
+		//starting a clock changing the response time thresholds for each application tier every hour
+		journal.log(Level.INFO, "Starting a clock changing the threshold in the model every hour for each managed application tier");
+		@SuppressWarnings("unused")
+		HourClock hourClock=new HourClock();
+		
+		//starting a fake workload observer
+		//@SuppressWarnings("unused")
+		//FakeObserver obs=new FakeObserver(ModelManager.getTimestepDuration());
+		
 		//starting the adaptation clock running the adaptation every timestepDuration minutes
 		journal.log(Level.INFO, "Starting the adaptation clock to run an adaptation step every "+ModelManager.getTimestepDuration()+" minutes");
 		@SuppressWarnings("unused")
 		AdapatationClock clock=new AdapatationClock(ModelManager.getTimestepDuration());
 		
-		//starting a clock changing the response time thresholds for each application tier every hour
-		journal.log(Level.INFO, "Starting a clock changing the threshold in the model every hour for each managed application tier");
-		@SuppressWarnings("unused")
-		HourClock hourClock=new HourClock();
+
 		
 
 		}
