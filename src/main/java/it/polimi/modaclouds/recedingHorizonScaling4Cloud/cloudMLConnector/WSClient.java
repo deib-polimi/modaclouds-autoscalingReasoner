@@ -36,11 +36,12 @@ public class WSClient extends WebSocketClient {
 		
 		journal.log(Level.INFO, "Received message from CloudML server");
 
-		if(s.contains("ack") & s.contains("ScaleOut")){
+		if(s.equals("!ack {fromPeer: org.cloudml.facade.commands.ScaleOut, status: completed}")){
 			journal.log(Level.INFO, "Scale out completed! Asking CloudML for the deployment model");
 			this.send("!getSnapshot { path : / }");
 
 		}else if(s.contains("return of GetSnapshot")){
+			journal.log(Level.INFO, "Received deployment model from CloudML");
 			JSONObject jsonObject;
 			try {
 				jsonObject = new JSONObject(s.substring(27));
@@ -49,6 +50,18 @@ public class WSClient extends WebSocketClient {
 			} catch (JSONException | TierNotFoudException | CloudMLReturnedModelException e) {
 				e.printStackTrace();
 			}
+		}else if(s.equals("!ack {fromPeer: org.cloudml.facade.commands.Deploy, status: completed}")){
+			journal.log(Level.INFO, "Received message of completed deployment");
+			JSONObject jsonObject;
+			try {
+				jsonObject = new JSONObject(s.substring(27));
+				JSONArray instances=jsonObject.getJSONArray("vmInstances");
+				ModelManager.updateDeploymentInfo(instances);
+				ModelManager.initializeUsedForScale();
+			} catch (JSONException | TierNotFoudException | CloudMLReturnedModelException e) {
+				e.printStackTrace();
+			}
+
 		}
 	}
 

@@ -41,16 +41,17 @@ public class CloudMLAdapter {
 	public void scaleOut(String vmId, int times) {			
 		
 			wsClient.send("!listenToAny");
-
 		 	wsClient.send("!extended { name: ScaleOut, params: ["+vmId+","+times+"] }");
 			
 	}
 	
 	public void getDeploymentModel() {
+		wsClient.send("!listenToAny");
 		wsClient.send("!getSnapshot { path : / }");
 	}
 	
 	public void createImage(String instanceId) {
+		wsClient.send("!listenToAny");
 		wsClient.send("!extended { name: Image, params: ["+instanceId+"] }");
 	}
 	
@@ -66,6 +67,7 @@ public class CloudMLAdapter {
 	}
 	
 	public void getInstanceInfo(String id){
+		wsClient.send("!listenToAny");
 		wsClient.send("!getSnapshot\n"+
 						"path : /componentInstances[id='"+id+"']");
 	}
