@@ -50,18 +50,6 @@ public class WSClient extends WebSocketClient {
 			} catch (JSONException | TierNotFoudException | CloudMLReturnedModelException e) {
 				e.printStackTrace();
 			}
-		}else if(s.equals("!ack {fromPeer: org.cloudml.facade.commands.Deploy, status: completed}")){
-			journal.log(Level.INFO, "Received message of completed deployment");
-			JSONObject jsonObject;
-			try {
-				jsonObject = new JSONObject(s.substring(27));
-				JSONArray instances=jsonObject.getJSONArray("vmInstances");
-				ModelManager.updateDeploymentInfo(instances);
-				ModelManager.initializeUsedForScale();
-			} catch (JSONException | TierNotFoudException | CloudMLReturnedModelException e) {
-				e.printStackTrace();
-			}
-
 		}
 	}
 

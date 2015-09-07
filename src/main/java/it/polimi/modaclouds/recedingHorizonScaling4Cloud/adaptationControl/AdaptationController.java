@@ -29,8 +29,20 @@ public class AdaptationController extends TimerTask {
 	}
 	
 	public void run(){
+		CloudMLAdapter cloudml=new CloudMLAdapter();
 		
 		journal.log(Level.INFO,"Here is a controller starting an adaptation step for container: "+toAdapt.getId());
+		
+		//asking cloudml for the current deployment model; it will be checked that the internal info are compliant with	
+		//those returned by cloudml (like the status of each VM)
+		cloudml.getDeploymentModel();
+		
+		//waiting for the deployment model to be received and processed
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+		}
 		
 		
 		//writing dynamic input files for the current timestep and container
@@ -70,8 +82,18 @@ public class AdaptationController extends TimerTask {
 					
 			for(ApplicationTier tier: toAdapt.getApplicationTier()){
 				
+
+				
 				journal.log(Level.INFO,"Checking the optimization result for application tier: "+tier.getId());
 
+				
+				//if this is the first step for the application tier being deployed it will be found with running instance
+				//but with no instance used for scale associated becuase the running instances have be found by the getDeployment
+				//call at the beginning of this threas. The controller initializes the tier instance used for scale.
+				if(ModelManager.getInstanceToScale(tier.getId())==null & tier.getInstances().size()>0){
+					journal.log(Level.INFO, "First time for the tier being deployed; initializing the instance used for scale");
+					ModelManager.initializeUsedForScale(tier.getId());
+				}
 				
 				int tierResult=algorithmResult[tier.getClassIndex()-1];
 				List<String> expiring=ModelManager.getExpiringInstances(tier.getId(), 1);
@@ -135,7 +157,6 @@ public class AdaptationController extends TimerTask {
 					//scaling the remaining instances to add (if any)	
 					journal.log(Level.INFO,"Scaling out instanes");
 					if(numOfInstancesToScaleOut>0){
-						CloudMLAdapter cloudml=new CloudMLAdapter();
 						cloudml.scaleOut(ModelManager.getInstanceToScale(tier.getId()), numOfInstancesToScaleOut);
 						//cloudml.scaleOut(ModelManager.getInstanceToScale(tier.getId()), 1);
 					}
