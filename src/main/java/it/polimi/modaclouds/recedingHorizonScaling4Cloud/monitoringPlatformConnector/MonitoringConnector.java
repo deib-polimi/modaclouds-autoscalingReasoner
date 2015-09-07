@@ -121,8 +121,8 @@ public class MonitoringConnector {
 						
 						//setting rule attribute
 						rule.setId("cpuRule");
-						rule.setTimeStep("2");
-						rule.setTimeWindow("2");
+						rule.setTimeStep("10");
+						rule.setTimeWindow("10");
 								
 						//setting the monitored target
 						monitoredTarget.setClazz("VM");
@@ -198,8 +198,8 @@ public class MonitoringConnector {
 		
 		//setting rule attribute
 		rule.setId("respTimeRule");
-		rule.setTimeStep("2");
-		rule.setTimeWindow("2");
+		rule.setTimeStep("10");
+		rule.setTimeWindow("10");
 		
 		
 		//setting the monitored target
@@ -260,7 +260,6 @@ public class MonitoringConnector {
 		Parameter CPUUtilMetric;
 		Parameter samplingTime;
 		Parameter filePath;
-		MonitoringMetricAggregation metricAggregation;
 		Actions actions;
 		Action action;
 		Parameter metric;
@@ -281,7 +280,6 @@ public class MonitoringConnector {
 				CPUUtilMetric=factory.createParameter();
 				samplingTime=factory.createParameter();
 				filePath=factory.createParameter();
-				metricAggregation=factory.createMonitoringMetricAggregation();
 				actions=factory.createActions();
 				action=factory.createAction();
 				metric=factory.createParameter();
@@ -290,8 +288,8 @@ public class MonitoringConnector {
 				
 				//setting rule attribute
 				rule.setId("sdaHaproxy");
-				rule.setTimeStep("2");
-				rule.setTimeWindow("2");	
+				rule.setTimeStep("10");
+				rule.setTimeWindow("10");	
 
 				//setting the monitored target
 				for(Functionality f: t.getFunctionality()){
@@ -340,7 +338,6 @@ public class MonitoringConnector {
 				//setting rule field and adding the created rule to the returned list
 				rule.setMonitoredTargets(monitoredTargets);
 				rule.setCollectedMetric(collectedMetric);
-				rule.setMetricAggregation(metricAggregation);
 				rule.setActions(actions);
 				toReturn.getMonitoringRules().add(rule);
 			}
@@ -472,8 +469,8 @@ public class MonitoringConnector {
 			
 			//setting rule attribute
 			rule.setId("sdaForecast"+timestep);
-			rule.setTimeStep("60");
-			rule.setTimeWindow("60");
+			rule.setTimeStep("300");
+			rule.setTimeWindow("300");
 			
 			//setting the monitored target
 			for(Container c: ModelManager.getModel().getContainer()){
