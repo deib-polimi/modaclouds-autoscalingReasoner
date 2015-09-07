@@ -41,14 +41,14 @@ public class WSClient extends WebSocketClient {
 			this.send("!getSnapshot { path : / }");
 
 		}else if(s.contains("return of GetSnapshot")){
-		JSONObject jsonObject;
-		try {
-			jsonObject = new JSONObject(s.substring(27));
-			JSONArray instances=jsonObject.getJSONArray("vmInstances");
-			ModelManager.updateDeploymentInfo(instances);
-		} catch (JSONException | TierNotFoudException | CloudMLReturnedModelException e) {
-			e.printStackTrace();
-		}
+			JSONObject jsonObject;
+			try {
+				jsonObject = new JSONObject(s.substring(27));
+				JSONArray instances=jsonObject.getJSONArray("vmInstances");
+				ModelManager.updateDeploymentInfo(instances);
+			} catch (JSONException | TierNotFoudException | CloudMLReturnedModelException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

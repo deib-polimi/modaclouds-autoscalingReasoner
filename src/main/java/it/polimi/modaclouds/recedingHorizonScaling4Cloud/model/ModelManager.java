@@ -164,7 +164,7 @@ public class ModelManager {
 		
 		ApplicationTier tier=getTier(tierId);
 
-		for(Instance i: tier.instances){
+		for(Instance i: tier.getInstances()){
 			if(i.getStatus().equals("RUNNING")){
 				startTimes.add(i.getStartTime().toGregorianCalendar().getTime());
 			}
