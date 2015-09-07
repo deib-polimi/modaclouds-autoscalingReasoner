@@ -44,6 +44,18 @@ public class AdaptationController extends TimerTask {
 			e1.printStackTrace();
 		}
 		
+		//checking if a new tier has been deployed during the last timestep and need to have the instanceToScale set;
+		//if this is the first step for the application tier being deployed it will be found with running instance
+		//but with no instance used for scale associated becuase the running instances have be found by the getDeployment
+		//call at the beginning of this threas. The controller initializes the tier instance used for scale.
+		
+		for(ApplicationTier tier: toAdapt.getApplicationTier()){
+			if(ModelManager.getInstanceToScale(tier.getId())==null & tier.getInstances().size()>0){
+				journal.log(Level.INFO, "First time for the tier being deployed; initializing the instance used for scale");
+				ModelManager.initializeUsedForScale(tier.getId());
+			}
+		}
+
 		
 		//writing dynamic input files for the current timestep and container
 		journal.log(Level.INFO,"Writing the dynamic input files for the current timestep");
@@ -81,19 +93,9 @@ public class AdaptationController extends TimerTask {
 		try {
 					
 			for(ApplicationTier tier: toAdapt.getApplicationTier()){
-				
-
-				
+					
 				journal.log(Level.INFO,"Checking the optimization result for application tier: "+tier.getId());
 
-				
-				//if this is the first step for the application tier being deployed it will be found with running instance
-				//but with no instance used for scale associated becuase the running instances have be found by the getDeployment
-				//call at the beginning of this threas. The controller initializes the tier instance used for scale.
-				if(ModelManager.getInstanceToScale(tier.getId())==null & tier.getInstances().size()>0){
-					journal.log(Level.INFO, "First time for the tier being deployed; initializing the instance used for scale");
-					ModelManager.initializeUsedForScale(tier.getId());
-				}
 				
 				int tierResult=algorithmResult[tier.getClassIndex()-1];
 				List<String> expiring=ModelManager.getExpiringInstances(tier.getId(), 1);
