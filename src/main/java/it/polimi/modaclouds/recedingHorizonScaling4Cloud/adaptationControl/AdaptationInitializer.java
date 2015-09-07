@@ -1,25 +1,19 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-
 import it.polimi.tower4clouds.rules.MonitoringRules;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector.FakeObserver;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector.MainObserver;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector.MonitoringConnector;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing.OptimizationInputWriter;
@@ -32,8 +26,6 @@ public class AdaptationInitializer {
 	public void initialize() {
 						
 		//loading the config.xml file
-		journal.log(Level.INFO, "Loading the configuration");
-
 		try {
 			ConfigManager.loadConfiguration();
 			ConfigManager.printConfig();
@@ -46,7 +38,6 @@ public class AdaptationInitializer {
 		journal.log(Level.INFO, "Loading the model");
 		ModelManager.loadModel();
 		
-		journal.log(Level.INFO, "Waiting for model initialization to end");
 		try {
 			Thread.sleep(5000);
 		} catch (InterruptedException e1) {
@@ -57,7 +48,7 @@ public class AdaptationInitializer {
 		//initializing the instances used for scale for each application tier
 		journal.log(Level.INFO, "Initializing the instances used for scale (the newest one) for each application tier");
 		ModelManager.initializeUsedForScale();
-		journal.log(Level.INFO, "Printing the initial model");
+		journal.log(Level.INFO, "Initial model:");
 		journal.log(Level.INFO, ModelManager.printCurrentModel());
 
 		

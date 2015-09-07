@@ -43,6 +43,9 @@ public class ConfigManager {
 	public static String MONITORING_PLATFORM_IP;
 	public static String MONITORING_PLATFORM_PORT;
 	public static String DEFAULT_DEMAND;
+	public static String OBJECT_STORE_IP;
+	public static String OBJECT_STORE_PORT;
+	public static String OBJECT_STORE_MODEL_PATH;
 	
 	private static boolean isSetFromArguments=false;
 
@@ -205,6 +208,18 @@ public class ConfigManager {
 		case "DEFAULT_DEMAND":
 			DEFAULT_DEMAND=value;
 			break;
+			
+		case "OBJECT_STORE_IP":
+				OBJECT_STORE_IP=value;
+			break;
+			
+		case "OBJECT_STORE_PORT":
+			OBJECT_STORE_PORT=value;
+			break;
+		
+		case "OBJECT_STORE_MODEL_PATH":
+			OBJECT_STORE_MODEL_PATH=value;
+			break;
 
 		default:
 			break;
@@ -212,6 +227,7 @@ public class ConfigManager {
 	}
 	
 	public static void setFromArguments(String ownIp, String t4cIp, String cloudMLIp, String listeningPort, String t4cPort, String cloudMLPort,
+											String objStoreIp, String objStorePort, String objStoreModelPath,
 											String pathToDesignAdapatationModel, String sshUser, String sshPass, String sshHost, 
 											String pathToOptInputFolder, String pathToOptLauncher, String pathToOptOutputFile, String defaultDemand){
 		
@@ -229,6 +245,9 @@ public class ConfigManager {
 		OPTIMIZATION_LAUNCHER=pathToOptLauncher;
 		OPTIMIZATION_OUTPUT_FILE=pathToOptOutputFile;
 		DEFAULT_DEMAND=defaultDemand;
+		OBJECT_STORE_IP=objStoreIp;
+		OBJECT_STORE_PORT=objStorePort;
+		OBJECT_STORE_MODEL_PATH=objStoreModelPath;
 		
 		isSetFromArguments=true;
 		
@@ -250,6 +269,10 @@ public class ConfigManager {
 		journal.log(Level.INFO,"pathToOptLauncher="+OPTIMIZATION_LAUNCHER);
 		journal.log(Level.INFO,"pathToOptOutputFile="+OPTIMIZATION_OUTPUT_FILE);
 		journal.log(Level.INFO,"defaultDemand="+DEFAULT_DEMAND);
+		journal.log(Level.INFO,"objStoreIp="+OBJECT_STORE_IP);
+		journal.log(Level.INFO,"objStorePort="+OBJECT_STORE_PORT);
+		journal.log(Level.INFO,"objSotreModelPath="+OBJECT_STORE_MODEL_PATH);
+
 
 
 	}

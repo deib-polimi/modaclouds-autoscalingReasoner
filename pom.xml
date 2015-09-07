@@ -77,12 +77,6 @@
 
 	<build>
 
-		<resources>
-			<resource>
-				<directory>META-INF</directory>
-			</resource>
-		</resources>
-
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

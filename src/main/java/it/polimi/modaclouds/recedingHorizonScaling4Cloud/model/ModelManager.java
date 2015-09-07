@@ -6,9 +6,12 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.CloudMLRetur
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.TierNotFoudException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.nio.file.Paths;
@@ -29,6 +32,10 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -56,6 +63,8 @@ public class ModelManager {
 	public static void loadModel(){
 		
 		journal.log(Level.INFO, "Getting the design time model.");
+		
+		if(ConfigManager.PATH_TO_DESIGN_TIME_MODEL!=null){
 		try {
 			JAXBContext jc;
 
@@ -66,8 +75,55 @@ public class ModelManager {
 		} catch (JAXBException e) {
 			e.printStackTrace();
 		}
+		} else{
+			try {
+	    		
+
+		    		DefaultHttpClient httpClient = new DefaultHttpClient();
+		    		HttpGet getRequest = new HttpGet(
+		    			"http://"+ConfigManager.OBJECT_STORE_IP+":"+ConfigManager.OBJECT_STORE_PORT+ConfigManager.OBJECT_STORE_MODEL_PATH);
+		    		//getRequest.addHeader("content-type", "application/octet-stream");
+	
+		    		HttpResponse response = httpClient.execute(getRequest);
+	
+		    		if (response.getStatusLine().getStatusCode() != 200) {
+		    			throw new RuntimeException("Failed : HTTP error code : "
+		    			   + response.getStatusLine().getStatusCode());
+		    		}
+	
+		    		BufferedReader br = new BufferedReader(
+		                             new InputStreamReader((response.getEntity().getContent())));
+	
+		    		String output;
+		    		System.out.println("Output from Server .... \n");
+		    		while ((output = br.readLine()) != null) {
+		    			System.out.println(output);
+		    		}
+	
+		    		httpClient.getConnectionManager().shutdown();
+		    		
+		    		//write the received content to a file
+		    		
+					/*
+					 JAXBContext jc;
+
+					jc = JAXBContext.newInstance(Containers.class);
+			        Unmarshaller unmarshaller = jc.createUnmarshaller();
+			        File xml = new File(PATH_TO_DOWNLOADED_FILE);
+			        model = (Containers) unmarshaller.unmarshal(xml);
+					 */
+
+	    	  } catch (ClientProtocolException e) {
+	    	
+	    		e.printStackTrace();
+
+	    	  } catch (IOException e) {
+	    	
+	    		e.printStackTrace();
+	    	  }		
+		}
 		
-		//setting the class idexes
+		//setting the class indexes
 		journal.log(Level.INFO, "Setting the class indexes for applucation tiers.");
 
 		for(Container c: model.getContainer()){

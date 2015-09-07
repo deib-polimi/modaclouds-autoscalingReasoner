@@ -33,6 +33,15 @@ public class Main {
 	@Parameter(names = "-pathToOptOutputFile")
 	private String pathToOptOutputFile = null;
 	
+	@Parameter(names = "-objStorIp")
+	private String objStorIp = "127.0.0.1";
+	
+	@Parameter(names = "-pbjStorePort")
+	private String objStorePort = "20622";
+	
+	@Parameter(names = "-objStorePathToModel")
+	private String objStorePathToModel = "/v1/collections/S4C/objects/OpsConfig/data";
+	
 	@Parameter(names = "-ownIp")
 	private String ownIp = "127.0.0.1";
 	
@@ -52,7 +61,7 @@ public class Main {
 	private String cloudMLPort = "9000";
 	
 	@Parameter(names = "-pathToDesignAdapatationModel")
-	private String pathToDesignAdapatationModel = "./";
+	private String pathToDesignAdapatationModel = null;
 	
 	@Parameter(names = "-defaultDemand")
 	private String defaultDemand = "0";
@@ -72,11 +81,12 @@ public class Main {
 			journal.log(Level.INFO,"All the mandatory configurations are given as arguments; setting configuration from arguments");
 			
 			ConfigManager.setFromArguments(m.ownIp, m.t4cIp, m.cloudMLIp, m.listeningPort, m.t4cPort, m.cloudMLPort, 
+					m.objStorIp, m.objStorePort, m.objStorePathToModel,
 					m.pathToDesignAdapatationModel, m.sshUser, m.sshPass, m.sshHost, m.pathToOptInputFolder, m.pathToOptLauncher,
 					m.pathToOptOutputFile, m.defaultDemand);
 			
 		}else{
-			journal.log(Level.INFO,"Not all the mandatory configurations are given as arguments; it will try to load configuration from config file");
+			journal.log(Level.INFO,"Not all the mandatory configurations are given as arguments; trying to load configuration from config file");
 
 		}
 		
