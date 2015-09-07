@@ -172,6 +172,7 @@ public class ModelManager {
 		
 		
 		Calendar max= Calendar.getInstance();
+		
 		max.setTime(Collections.max(startTimes));
 				
 		Calendar temp=Calendar.getInstance();
@@ -617,14 +618,19 @@ public class ModelManager {
 
 		for(Container c: model.getContainer()){
 			for(ApplicationTier t: c.getApplicationTier()){
-				String toSet=getNewestRunningInstance(t.getId());
-				for(Instance i: t.getInstances()){
-					if(i.getId().equals(toSet)){
-						i.setUsedForScale(true);
-					}else{
-						i.setUsedForScale(false);
+				
+				if(getRunningInstances(t.getId()).size()>0){	
+					String toSet=getNewestRunningInstance(t.getId());
+					for(Instance i: t.getInstances()){
+						if(i.getId().equals(toSet)){
+							i.setUsedForScale(true);
+						}else{
+							i.setUsedForScale(false);
+						}
 					}
 				}
+
+				
 			}
 		}
 	}
