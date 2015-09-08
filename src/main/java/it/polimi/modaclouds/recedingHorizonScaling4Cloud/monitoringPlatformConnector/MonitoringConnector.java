@@ -2,29 +2,29 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConn
 
 
 
-import java.io.IOException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Functionality;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ModelManager;
+import it.polimi.tower4clouds.common.net.UnexpectedAnswerFromServerException;
+import it.polimi.tower4clouds.manager.api.ManagerAPI;
+import it.polimi.tower4clouds.manager.api.NotFoundException;
 import it.polimi.tower4clouds.rules.Action;
 import it.polimi.tower4clouds.rules.Actions;
 import it.polimi.tower4clouds.rules.CollectedMetric;
 import it.polimi.tower4clouds.rules.MonitoredTarget;
 import it.polimi.tower4clouds.rules.MonitoredTargets;
+import it.polimi.tower4clouds.rules.MonitoringMetricAggregation;
 import it.polimi.tower4clouds.rules.MonitoringRule;
 import it.polimi.tower4clouds.rules.MonitoringRules;
 import it.polimi.tower4clouds.rules.ObjectFactory;
 import it.polimi.tower4clouds.rules.Parameter;
-import it.polimi.tower4clouds.rules.MonitoringMetricAggregation;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Functionality;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
-import it.polimi.tower4clouds.common.net.UnexpectedAnswerFromServerException;
-import it.polimi.tower4clouds.manager.api.ManagerAPI;
-import it.polimi.tower4clouds.manager.api.NotFoundException;
+
+import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 //need to build one different cpuRule per tier because of the demand rule required parameter?

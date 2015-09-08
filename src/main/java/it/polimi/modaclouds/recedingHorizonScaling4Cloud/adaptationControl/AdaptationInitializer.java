@@ -2,11 +2,11 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl;
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector.MainObserver;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector.MonitoringConnector;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing.OptimizationInputWriter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ModelManager;
 import it.polimi.tower4clouds.rules.MonitoringRules;
 
 import java.io.File;

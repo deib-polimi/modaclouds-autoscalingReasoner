@@ -1,16 +1,19 @@
-package it.polimi.modaclouds.recedingHorizonScaling4Cloud.model;
+package it.polimi.modaclouds.recedingHorizonScaling4Cloud.util;
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector.CloudMLAdapter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.CloudMLReturnedModelException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.TierNotFoudException;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Functionality;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Instance;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.WorkloadForecast;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.nio.file.Paths;
@@ -32,12 +35,10 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -52,7 +53,7 @@ public class ModelManager {
 	private static int currentTimeStep = 0;
 
 	public static int getOptimizationWindow() {
-		return model.optimizationWindowsLenght;
+		return model.getOptimizationWindowsLenght();
 	}
 
 	public static Containers getModel() {
@@ -252,7 +253,7 @@ public class ModelManager {
 		max.setTime(Collections.max(startTimes));
 
 		Calendar temp = Calendar.getInstance();
-		for (Instance i : tier.instances) {
+		for (Instance i : tier.getInstances()) {
 			if (i.getStatus().equals("RUNNING")) {
 				temp.setTime(i.getStartTime().toGregorianCalendar().getTime());
 				if (max.equals(temp)) {
@@ -271,7 +272,7 @@ public class ModelManager {
 
 		ApplicationTier tier = getTier(tierId);
 
-		for (Instance i : tier.instances) {
+		for (Instance i : tier.getInstances()) {
 			if (i.getStatus().equals("RUNNING")) {
 				startTimes
 						.add(i.getStartTime().toGregorianCalendar().getTime());
@@ -282,7 +283,7 @@ public class ModelManager {
 		min.setTime(Collections.max(startTimes));
 
 		Calendar temp = Calendar.getInstance();
-		for (Instance i : tier.instances) {
+		for (Instance i : tier.getInstances()) {
 			temp.setTime(i.getStartTime().toGregorianCalendar().getTime());
 			if (min.equals(temp)) {
 				toReturn = i;
@@ -495,7 +496,7 @@ public class ModelManager {
 	}
 
 	public static int getTimestepDuration() {
-		return model.timestepDuration;
+		return model.getTimestepDuration();
 	}
 
 	public static void stopInstances(List<String> instances)

@@ -37,9 +37,9 @@
             <OnMismatch>NEUTRAL</OnMismatch>
             <OnMatch>DENY</OnMatch>
         </filter>
-        <target>System.out</target>
+        <target>System.err</target>
         <encoder>
-            <pattern>%d{HH:mm:ss} [AutoscalingReasoner] %m%n
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
             </pattern>
         </encoder>
     </appender>
@@ -56,34 +56,15 @@
         </filter>
         <target>System.err</target>
         <encoder>
-            <pattern>%d{HH:mm:ss} [AutoscalingReasoner] %m%n%caller{5}
-            </pattern>
-        </encoder>
-    </appender>
-
-    <appender name="FILE"
-        class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <prudent>true</prudent>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>debug.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <!-- keep 3 days' worth of history -->
-            <maxHistory>3</maxHistory>
-        </rollingPolicy>
-
-        <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n%caller{5, DISP_CALLER_EVAL}
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n%caller{5}
             </pattern>
         </encoder>
     </appender>
 	
 	<logger name="it.polimi" level="TRACE" />
 
-	<root level="INFO">
+	<root level="ERROR">
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="STDERR" />
-	</root>
-	
-	<root level="TRACE">
-		<appender-ref ref="FILE" />
 	</root>
 </configuration>

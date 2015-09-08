@@ -2,6 +2,8 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl;
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -68,7 +70,9 @@ public class Main {
 	@Parameter(names = "-defaultDemand")
 	private String defaultDemand = "0";
 	
-	public static final String APP_TITLE = "\nAutoscaling Reasoner\n";
+	public static String APP_NAME;
+	public static String APP_FILE_NAME;
+	public static String APP_VERSION;
 
 	static {
 		// Optionally remove existing handlers attached to j.u.l root logger
@@ -81,15 +85,27 @@ public class Main {
 	 
 	public static void main(String[] args) {
 		
+		PropertiesConfiguration releaseProperties = null;
+		try {
+			releaseProperties = new PropertiesConfiguration("release.properties");
+		} catch (ConfigurationException e) {
+			journal.error("Internal error", e);
+			System.exit(1);
+		}
+		APP_NAME = releaseProperties.getString("application.name");
+//		APP_FILE_NAME = releaseProperties.getString("dist.file.name");
+		APP_VERSION = releaseProperties.getString("release.version");
+		
 		Main m = new Main();
 		JCommander jc = new JCommander(m, args);
 		
-		System.out.println(APP_TITLE);
-		
 		if (m.help) {
+			jc.setProgramName(APP_FILE_NAME);
 			jc.usage();
 			System.exit(0);
 		}
+		
+		journal.info("{} {}", APP_NAME, APP_VERSION);
 		
 		if(m.sshHost!=null & m.sshPass!=null & m.sshUser!=null 
 				& m.pathToOptInputFolder!=null & m.pathToOptLauncher!=null & m.pathToOptOutputFile!=null){

@@ -5,7 +5,7 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileS
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ModelManager;
 
 import java.io.BufferedWriter;
 import java.io.File;

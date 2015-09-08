@@ -1,6 +1,6 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector;
 
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ModelManager;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;

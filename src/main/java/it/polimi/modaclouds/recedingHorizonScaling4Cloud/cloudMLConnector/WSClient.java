@@ -2,7 +2,7 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector;
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.CloudMLReturnedModelException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.TierNotFoudException;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ModelManager;
 
 import java.net.URI;
 

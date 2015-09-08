@@ -2,8 +2,8 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl;
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector.MonitoringConnector;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ModelManager;
 
 import java.util.Timer;
 import java.util.TimerTask;
