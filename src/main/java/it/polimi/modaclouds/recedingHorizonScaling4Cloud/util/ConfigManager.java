@@ -213,21 +213,11 @@ public class ConfigManager {
 	
 	public static void loadConfiguration(Map<String, String> paramsMap) throws ConfigurationFileException {
 		if (!isAlreadySet || paramsMap != null) {
-			journal.debug("1");
-			printConfig();
 			setFromFile();
-			journal.debug("2");
-			printConfig();
 			setFromEnrivonmentVariables();
-			journal.debug("3");
-			printConfig();
 			setFromSystemProperties();
-			journal.debug("4");
-			printConfig();
 			if (paramsMap != null) {
 				setFromArguments(paramsMap);
-				journal.debug("5");
-				printConfig();
 			}
 			isAlreadySet = true;
 		}
