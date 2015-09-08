@@ -88,8 +88,6 @@ public class Main {
 	 
 	public static void main(String[] args) {
 		
-		args = "-listeningPort 234762374".split(" ");
-		
 		PropertiesConfiguration releaseProperties = null;
 		try {
 			releaseProperties = new PropertiesConfiguration("release.properties");
@@ -98,7 +96,7 @@ public class Main {
 			System.exit(1);
 		}
 		APP_NAME = releaseProperties.getString("application.name");
-//		APP_FILE_NAME = releaseProperties.getString("dist.file.name");
+		APP_FILE_NAME = releaseProperties.getString("dist.file.name");
 		APP_VERSION = releaseProperties.getString("release.version");
 		
 		Main m = new Main();
