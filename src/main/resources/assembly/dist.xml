@@ -40,6 +40,10 @@
 			<destName>${dist.file.name}</destName>
 			<fileMode>0755</fileMode>
 		</file>
+		<file>
+            <source>config.xml</source>
+            <destName>config.xml</destName>
+        </file>
 	</files>
 
 	<fileSets>

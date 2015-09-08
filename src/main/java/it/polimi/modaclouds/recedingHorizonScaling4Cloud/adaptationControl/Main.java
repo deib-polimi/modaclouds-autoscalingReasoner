@@ -2,6 +2,8 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl;
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 
+import java.util.HashMap;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.slf4j.Logger;
@@ -10,6 +12,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterDescription;
 
 public class Main {
 
@@ -20,55 +23,55 @@ public class Main {
 	private boolean help = false;
 	
 	@Parameter(names = "-sshUser", description = "The user name that will be used to connect to the SSH server")
-	private String sshUser = null;
+	public String sshUser = null;
 	
 	@Parameter(names = "-sshPass", description = "The password for the user on the SSH server")
-	private String sshPass = null;
+	public String sshPass = null;
 	
 	@Parameter(names = "-sshHost", description = "The IP of the machine with the AMPL/CMPL binaries")
-	private String sshHost = null;
+	public String sshHost = null;
 	
 	@Parameter(names = "-pathToOptInputFolder")
-	private String pathToOptInputFolder = null;
+	public String pathToOptInputFolder = null;
 	
 	@Parameter(names = "-pathToOptLauncher")
-	private String pathToOptLauncher = null;
+	public String pathToOptLauncher = null;
 	
 	@Parameter(names = "-pathToOptOutputFile")
-	private String pathToOptOutputFile = null;
+	public String pathToOptOutputFile = null;
 	
 	@Parameter(names = "-objStorIp", description = "The IP of the object store")
-	private String objStorIp = "127.0.0.1";
+	public String objStorIp = "127.0.0.1";
 	
-	@Parameter(names = "-pbjStorePort", description = "The port of the object store")
-	private String objStorePort = "20622";
+	@Parameter(names = "-objStorePort", description = "The port of the object store")
+	public String objStorePort = "20622";
 	
 	@Parameter(names = "-objStorePathToModel", description = "The path in the object store where the data will be saved")
-	private String objStorePathToModel = "/v1/collections/S4C/objects/OpsConfig/data";
+	public String objStorePathToModel = "/v1/collections/S4C/objects/OpsConfig/data";
 	
 	@Parameter(names = "-ownIp", description = "The IP of this machine")
-	private String ownIp = "127.0.0.1";
+	public String ownIp = "127.0.0.1";
 	
 	@Parameter(names = "-t4cIp", description = "The IP of the monitoring platform")
-	private String t4cIp = "127.0.0.1";
+	public String t4cIp = "127.0.0.1";
 	
 	@Parameter(names = "-cloudMLIp", description = "The IP of the CloudML daemon")
-	private String cloudMLIp = "127.0.0.1";
+	public String cloudMLIp = "127.0.0.1";
 	
 	@Parameter(names = "-listeningPort", description = "The port to which this program is going to listen")
-	private String listeningPort = "8179";
+	public String listeningPort = "8179";
 	
 	@Parameter(names = "-t4cPort", description = "The port of the monitoring platform")
-	private String t4cPort = "8170";
+	public String t4cPort = "8170";
 	
 	@Parameter(names = "-cloudMLPort", description = "The port of the CloudML daemon")
-	private String cloudMLPort = "9000";
+	public String cloudMLPort = "9000";
 	
-	@Parameter(names = "-pathToDesignAdapatationModel")
-	private String pathToDesignAdapatationModel = null;
+	@Parameter(names = "-pathToDesignAdaptationModel")
+	public String pathToDesignAdaptationModel = null;
 	
 	@Parameter(names = "-defaultDemand")
-	private String defaultDemand = "0";
+	public String defaultDemand = "0";
 	
 	public static String APP_NAME;
 	public static String APP_FILE_NAME;
@@ -84,6 +87,8 @@ public class Main {
 	}
 	 
 	public static void main(String[] args) {
+		
+		args = "-listeningPort 234762374".split(" ");
 		
 		PropertiesConfiguration releaseProperties = null;
 		try {
@@ -107,19 +112,25 @@ public class Main {
 		
 		journal.info("{} {}", APP_NAME, APP_VERSION);
 		
-		if(m.sshHost!=null & m.sshPass!=null & m.sshUser!=null 
-				& m.pathToOptInputFolder!=null & m.pathToOptLauncher!=null & m.pathToOptOutputFile!=null){
-			
-			journal.info("All the mandatory configurations are given as arguments; setting configuration from arguments");
-			
-			ConfigManager.setFromArguments(m.ownIp, m.t4cIp, m.cloudMLIp, m.listeningPort, m.t4cPort, m.cloudMLPort, 
-					m.objStorIp, m.objStorePort, m.objStorePathToModel,
-					m.pathToDesignAdapatationModel, m.sshUser, m.sshPass, m.sshHost, m.pathToOptInputFolder, m.pathToOptLauncher,
-					m.pathToOptOutputFile, m.defaultDemand);
-			
-		}else{
-			journal.info("Not all the mandatory configurations are given as arguments; trying to load configuration from config file");
+		HashMap<String, String> paramsMap = new HashMap<String, String>();
 
+		for (ParameterDescription param : jc.getParameters())
+			if (param.isAssigned()) {
+				String name = param.getLongestName().replaceAll("-", "");
+				String value = null;
+				try {
+					value = Main.class.getField(name).get(m).toString();
+				} catch (Exception e) {
+				}
+
+				paramsMap.put(name, value);
+			}
+		
+		try {
+			ConfigManager.loadConfiguration(paramsMap);
+		} catch (Exception e) {
+			journal.error("Error while parsing the configuration. Exiting.", e);
+			System.exit(-1);
 		}
 		
 		journal.info("Autoscaling Reasoner started");

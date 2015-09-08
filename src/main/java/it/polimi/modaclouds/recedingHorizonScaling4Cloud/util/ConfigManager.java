@@ -7,6 +7,7 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -45,9 +46,134 @@ public class ConfigManager {
 	public static String OBJECT_STORE_PORT;
 	public static String OBJECT_STORE_MODEL_PATH;
 	
-	private static boolean isSetFromArguments=false;
-
+	private static boolean isAlreadySet=false;
 	
+	public static void setFromFile() throws ConfigurationFileException {
+
+		DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
+		DocumentBuilder b;
+		Document d;
+		
+
+		try {
+			b = f.newDocumentBuilder();
+		} catch (ParserConfigurationException e) {
+			throw new ConfigurationFileException(e.getMessage());
+		}
+		
+		try {
+			d = b.parse(findConfigFile());
+		} catch (SAXException e) {
+			throw new ConfigurationFileException(e.getMessage());
+		} catch (IOException e) {
+			throw new ConfigurationFileException(e.getMessage());
+		}
+		
+		Element root = d.getDocumentElement();
+		
+		if (!root.getNodeName().equals("properties")) {
+			throw new ConfigurationFileException(
+					"Error in the root element!!!IT MUST BE <properties>");
+		}
+		
+		NodeList children = root.getChildNodes();
+		
+		if (children.getLength() == 0) {
+			throw new ConfigurationFileException(
+					"THERE IS NO PROPERTY");
+		}
+		
+		for (int i = 0; i < children.getLength(); i++) {
+			Node n = children.item(i);
+
+							if (n.getNodeName().equals("property")) {
+								
+								NamedNodeMap map=n.getAttributes();
+								
+								String key=map.getNamedItem("name").getNodeValue();
+								String value=map.getNamedItem("value").getNodeValue();
+								setProperty(key, value);
+							}		
+		}
+	}
+	
+	public static final String PROPERTY_NAME_OWN_IP = "MODACLOUDS_AR_OWN_IP";
+	public static final String PROPERTY_NAME_LISTENING_PORT = "MODACLOUDS_AR_LISTENER_PORT";
+	public static final String PROPERTY_NAME_PATH_TO_DESIGN_TIME_MODEL = "MODACLOUDS_AR_PATH_TO_MODEL";
+	public static final String PROPERTY_NAME_SSH_USER_NAME = "MODACLOUDS_AR_SSH_USER";
+	public static final String PROPERTY_NAME_SSH_HOST = "MODACLOUDS_AR_SSH_HOST";
+	public static final String PROPERTY_NAME_SSH_PASSWORD = "MODACLOUDS_AR_SSH_PASS";
+	public static final String PROPERTY_NAME_OPTIMIZATION_LAUNCHER = "MODACLOUDS_AR_OPT_LAUNCHER";
+	public static final String PROPERTY_NAME_OPTIMIZATION_INPUT_FOLDER = "MODACLOUDS_AR_OPT_IN_FOLDER";
+	public static final String PROPERTY_NAME_OPTIMIZATION_OUTPUT_FILE = "MODACLOUDS_AR_OPT_OUT_FOLDER";
+	public static final String PROPERTY_NAME_CLOUDML_WEBSOCKET_IP = "MODACLOUDS_AR_CLOUDML_IP";
+	public static final String PROPERTY_NAME_CLOUDML_WEBSOCKET_PORT = "MODACLOUDS_AR_CLOUDML_PORT";
+	public static final String PROPERTY_NAME_MONITORING_PLATFORM_IP = "MODACLOUDS_AR_T4C_IP";
+	public static final String PROPERTY_NAME_MONITORING_PLATFORM_PORT = "MODACLOUDS_AR_T4C_PORT";
+	public static final String PROPERTY_NAME_DEFAULT_DEMAND = "MODACLOUDS_AR_DEF_DEMAND";
+	public static final String PROPERTY_NAME_OBJECT_STORE_IP = "MODACLOUDS_AR_OBJ_STORE_IP";
+	public static final String PROPERTY_NAME_OBJECT_STORE_PORT = "MODACLOUDS_AR_OBJ_STORE_PORT";
+	public static final String PROPERTY_NAME_OBJECT_STORE_MODEL_PATH = "MODACLOUDS_AR_OBJ_STORE_PATH";
+
+	public static void setFromEnrivonmentVariables() throws ConfigurationFileException {
+		setPropertyIfNotNull("OWN_IP", System.getenv(PROPERTY_NAME_OWN_IP));
+		setPropertyIfNotNull("LISTENING_PORT", System.getenv(PROPERTY_NAME_LISTENING_PORT));
+		setPropertyIfNotNull("PATH_TO_DESIGN_TIME_MODEL", System.getenv(PROPERTY_NAME_PATH_TO_DESIGN_TIME_MODEL));
+		setPropertyIfNotNull("SSH_USER_NAME", System.getenv(PROPERTY_NAME_SSH_USER_NAME));
+		setPropertyIfNotNull("SSH_HOST", System.getenv(PROPERTY_NAME_SSH_HOST));
+		setPropertyIfNotNull("SSH_PASSWORD", System.getenv(PROPERTY_NAME_SSH_PASSWORD));
+		setPropertyIfNotNull("OPTIMIZATION_LAUNCHER", System.getenv(PROPERTY_NAME_OPTIMIZATION_LAUNCHER));
+		setPropertyIfNotNull("OPTIMIZATION_INPUT_FOLDER", System.getenv(PROPERTY_NAME_OPTIMIZATION_INPUT_FOLDER));
+		setPropertyIfNotNull("OPTIMIZATION_OUTPUT_FILE", System.getenv(PROPERTY_NAME_OPTIMIZATION_OUTPUT_FILE));
+		setPropertyIfNotNull("CLOUDML_WEBSOCKET_IP", System.getenv(PROPERTY_NAME_CLOUDML_WEBSOCKET_IP));
+		setPropertyIfNotNull("CLOUDML_WEBSOCKET_PORT", System.getenv(PROPERTY_NAME_CLOUDML_WEBSOCKET_PORT));
+		setPropertyIfNotNull("MONITORING_PLATFORM_IP", System.getenv(PROPERTY_NAME_MONITORING_PLATFORM_IP));
+		setPropertyIfNotNull("MONITORING_PLATFORM_PORT", System.getenv(PROPERTY_NAME_MONITORING_PLATFORM_PORT));
+		setPropertyIfNotNull("DEFAULT_DEMAND", System.getenv(PROPERTY_NAME_DEFAULT_DEMAND));
+		setPropertyIfNotNull("OBJECT_STORE_IP", System.getenv(PROPERTY_NAME_OBJECT_STORE_IP));
+		setPropertyIfNotNull("OBJECT_STORE_PORT", System.getenv(PROPERTY_NAME_OBJECT_STORE_PORT));
+		setPropertyIfNotNull("OBJECT_STORE_MODEL_PATH", System.getenv(PROPERTY_NAME_OBJECT_STORE_MODEL_PATH));
+	}
+	
+	public static void setFromSystemProperties() throws ConfigurationFileException {
+		setPropertyIfNotNull("OWN_IP", System.getProperty(PROPERTY_NAME_OWN_IP));
+		setPropertyIfNotNull("LISTENING_PORT", System.getProperty(PROPERTY_NAME_LISTENING_PORT));
+		setPropertyIfNotNull("PATH_TO_DESIGN_TIME_MODEL", System.getProperty(PROPERTY_NAME_PATH_TO_DESIGN_TIME_MODEL));
+		setPropertyIfNotNull("SSH_USER_NAME", System.getProperty(PROPERTY_NAME_SSH_USER_NAME));
+		setPropertyIfNotNull("SSH_HOST", System.getProperty(PROPERTY_NAME_SSH_HOST));
+		setPropertyIfNotNull("SSH_PASSWORD", System.getProperty(PROPERTY_NAME_SSH_PASSWORD));
+		setPropertyIfNotNull("OPTIMIZATION_LAUNCHER", System.getProperty(PROPERTY_NAME_OPTIMIZATION_LAUNCHER));
+		setPropertyIfNotNull("OPTIMIZATION_INPUT_FOLDER", System.getProperty(PROPERTY_NAME_OPTIMIZATION_INPUT_FOLDER));
+		setPropertyIfNotNull("OPTIMIZATION_OUTPUT_FILE", System.getProperty(PROPERTY_NAME_OPTIMIZATION_OUTPUT_FILE));
+		setPropertyIfNotNull("CLOUDML_WEBSOCKET_IP", System.getProperty(PROPERTY_NAME_CLOUDML_WEBSOCKET_IP));
+		setPropertyIfNotNull("CLOUDML_WEBSOCKET_PORT", System.getProperty(PROPERTY_NAME_CLOUDML_WEBSOCKET_PORT));
+		setPropertyIfNotNull("MONITORING_PLATFORM_IP", System.getProperty(PROPERTY_NAME_MONITORING_PLATFORM_IP));
+		setPropertyIfNotNull("MONITORING_PLATFORM_PORT", System.getProperty(PROPERTY_NAME_MONITORING_PLATFORM_PORT));
+		setPropertyIfNotNull("DEFAULT_DEMAND", System.getProperty(PROPERTY_NAME_DEFAULT_DEMAND));
+		setPropertyIfNotNull("OBJECT_STORE_IP", System.getProperty(PROPERTY_NAME_OBJECT_STORE_IP));
+		setPropertyIfNotNull("OBJECT_STORE_PORT", System.getProperty(PROPERTY_NAME_OBJECT_STORE_PORT));
+		setPropertyIfNotNull("OBJECT_STORE_MODEL_PATH", System.getProperty(PROPERTY_NAME_OBJECT_STORE_MODEL_PATH));
+	}
+
+	public static void setFromArguments(Map<String, String> paramsMap) throws ConfigurationFileException {
+		setPropertyIfNotNull("OWN_IP", paramsMap.get("ownIp"));
+		setPropertyIfNotNull("LISTENING_PORT", paramsMap.get("listeningPort"));
+		setPropertyIfNotNull("PATH_TO_DESIGN_TIME_MODEL", paramsMap.get("pathToDesignAdaptationModel"));
+		setPropertyIfNotNull("SSH_USER_NAME", paramsMap.get("sshUser"));
+		setPropertyIfNotNull("SSH_HOST", paramsMap.get("sshHost"));
+		setPropertyIfNotNull("SSH_PASSWORD", paramsMap.get("sshPass"));
+		setPropertyIfNotNull("OPTIMIZATION_LAUNCHER", paramsMap.get("pathToOptLauncher"));
+		setPropertyIfNotNull("OPTIMIZATION_INPUT_FOLDER", paramsMap.get("pathToOptInputFolder"));
+		setPropertyIfNotNull("OPTIMIZATION_OUTPUT_FILE", paramsMap.get("pathToOptOutputFile"));
+		setPropertyIfNotNull("CLOUDML_WEBSOCKET_IP", paramsMap.get("cloudMLIp"));
+		setPropertyIfNotNull("CLOUDML_WEBSOCKET_PORT", paramsMap.get("cloudMLPort"));
+		setPropertyIfNotNull("MONITORING_PLATFORM_IP", paramsMap.get("t4cIp"));
+		setPropertyIfNotNull("MONITORING_PLATFORM_PORT", paramsMap.get("t4cPort"));
+		setPropertyIfNotNull("DEFAULT_DEMAND", paramsMap.get("defaultDemand"));
+		setPropertyIfNotNull("OBJECT_STORE_IP", paramsMap.get("objStorIp"));
+		setPropertyIfNotNull("OBJECT_STORE_PORT", paramsMap.get("objStorePort"));
+		setPropertyIfNotNull("OBJECT_STORE_MODEL_PATH", paramsMap.get("objStorePathToModel"));
+	}
 
 	public static void inizializeFileSystem() throws ProjectFileSystemException{
 
@@ -82,59 +208,29 @@ public class ConfigManager {
 	}
 	
 	public static void loadConfiguration() throws ConfigurationFileException {
-		
-		
-		
-		if(!isSetFromArguments)	{
-			DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
-			DocumentBuilder b;
-			Document d;
-			
+		loadConfiguration(null);
+	}
 	
-			try {
-				b = f.newDocumentBuilder();
-			} catch (ParserConfigurationException e) {
-				throw new ConfigurationFileException(e.getMessage());
+	public static void loadConfiguration(Map<String, String> paramsMap) throws ConfigurationFileException {
+		if (!isAlreadySet || paramsMap != null) {
+			journal.debug("1");
+			printConfig();
+			setFromFile();
+			journal.debug("2");
+			printConfig();
+			setFromEnrivonmentVariables();
+			journal.debug("3");
+			printConfig();
+			setFromSystemProperties();
+			journal.debug("4");
+			printConfig();
+			if (paramsMap != null) {
+				setFromArguments(paramsMap);
+				journal.debug("5");
+				printConfig();
 			}
-			
-			try {
-				d = b.parse(findConfigFile());
-			} catch (SAXException e) {
-				throw new ConfigurationFileException(e.getMessage());
-			} catch (IOException e) {
-				throw new ConfigurationFileException(e.getMessage());
-			}
-			
-			Element root = d.getDocumentElement();
-			
-			if (!root.getNodeName().equals("properties")) {
-				throw new ConfigurationFileException(
-						"Error in the root element!!!IT MUST BE <properties>");
-			}
-			
-			NodeList children = root.getChildNodes();
-			
-			if (children.getLength() == 0) {
-				throw new ConfigurationFileException(
-						"THERE IS NO PROPERTY");
-			}
-			
-			for (int i = 0; i < children.getLength(); i++) {
-				Node n = children.item(i);
-	
-								if (n.getNodeName().equals("property")) {
-									
-									NamedNodeMap map=n.getAttributes();
-									
-									String key=map.getNamedItem("name").getNodeValue();
-									String value=map.getNamedItem("value").getNodeValue();
-									setProperty(key, value);
-								}		
-			}
-			
-			
+			isAlreadySet = true;
 		}
-		
 	}
 
 	
@@ -147,6 +243,11 @@ public class ConfigManager {
 		}
 		
 		return toReturn;
+	}
+	
+	private static void setPropertyIfNotNull(String key, String value){
+		if (key != null && value != null)
+			setProperty(key, value);
 	}
 	
 	private static void setProperty(String key, String value){
@@ -224,52 +325,25 @@ public class ConfigManager {
 		}
 	}
 	
-	public static void setFromArguments(String ownIp, String t4cIp, String cloudMLIp, String listeningPort, String t4cPort, String cloudMLPort,
-											String objStoreIp, String objStorePort, String objStoreModelPath,
-											String pathToDesignAdapatationModel, String sshUser, String sshPass, String sshHost, 
-											String pathToOptInputFolder, String pathToOptLauncher, String pathToOptOutputFile, String defaultDemand){
-		
-		OWN_IP=ownIp;
-		CLOUDML_WEBSOCKET_IP=cloudMLIp;
-		CLOUDML_WEBSOCKET_PORT=cloudMLPort;
-		MONITORING_PLATFORM_IP=t4cIp;
-		MONITORING_PLATFORM_PORT=t4cPort;
-		LISTENING_PORT=listeningPort;
-		PATH_TO_DESIGN_TIME_MODEL=pathToDesignAdapatationModel;
-		SSH_HOST=sshHost;
-		SSH_USER_NAME=sshUser;
-		SSH_PASSWORD=sshPass;
-		OPTIMIZATION_INPUT_FOLDER=pathToOptInputFolder;
-		OPTIMIZATION_LAUNCHER=pathToOptLauncher;
-		OPTIMIZATION_OUTPUT_FILE=pathToOptOutputFile;
-		DEFAULT_DEMAND=defaultDemand;
-		OBJECT_STORE_IP=objStoreIp;
-		OBJECT_STORE_PORT=objStorePort;
-		OBJECT_STORE_MODEL_PATH=objStoreModelPath;
-		
-		isSetFromArguments=true;
-		
-	}
-	
 	public static void printConfig(){
 		
-		journal.info("ownIp="+OWN_IP);
-		journal.info("t4cIp)"+MONITORING_PLATFORM_IP);
-		journal.info("cloudMLIp="+CLOUDML_WEBSOCKET_IP);
-		journal.info("listeningPort="+LISTENING_PORT);
-		journal.info("t4cPort="+MONITORING_PLATFORM_PORT);
-		journal.info("cloudMLPort="+CLOUDML_WEBSOCKET_PORT);
-		journal.info("pathToDesignAdapatationModel="+PATH_TO_DESIGN_TIME_MODEL);
-		journal.info("sshUser="+SSH_USER_NAME);
-		journal.info("sshPass="+SSH_PASSWORD);
-		journal.info("sshHost="+SSH_HOST);
-		journal.info("pathToOptInputFolder="+OPTIMIZATION_INPUT_FOLDER);
-		journal.info("pathToOptLauncher="+OPTIMIZATION_LAUNCHER);
-		journal.info("pathToOptOutputFile="+OPTIMIZATION_OUTPUT_FILE);
-		journal.info("defaultDemand="+DEFAULT_DEMAND);
-		journal.info("objStoreIp="+OBJECT_STORE_IP);
-		journal.info("objStorePort="+OBJECT_STORE_PORT);
-		journal.info("objSotreModelPath="+OBJECT_STORE_MODEL_PATH);
+		journal.info("ownIp={}", OWN_IP);
+		journal.info("t4cIp={}", MONITORING_PLATFORM_IP);
+		journal.info("cloudMLIp={}", CLOUDML_WEBSOCKET_IP);
+		journal.info("listeningPort={}", LISTENING_PORT);
+		journal.info("t4cPort={}", MONITORING_PLATFORM_PORT);
+		journal.info("cloudMLPort={}", CLOUDML_WEBSOCKET_PORT);
+		journal.info("pathToDesignAdapatationModel={}", PATH_TO_DESIGN_TIME_MODEL);
+		journal.info("sshUser={}", SSH_USER_NAME);
+		journal.info("sshPass={}", SSH_PASSWORD);
+		journal.info("sshHost={}", SSH_HOST);
+		journal.info("pathToOptInputFolder={}", OPTIMIZATION_INPUT_FOLDER);
+		journal.info("pathToOptLauncher={}", OPTIMIZATION_LAUNCHER);
+		journal.info("pathToOptOutputFile={}", OPTIMIZATION_OUTPUT_FILE);
+		journal.info("defaultDemand={}", DEFAULT_DEMAND);
+		journal.info("objStoreIp={}", OBJECT_STORE_IP);
+		journal.info("objStorePort={}", OBJECT_STORE_PORT);
+		journal.info("objSotreModelPath={}", OBJECT_STORE_MODEL_PATH);
 
 
 
