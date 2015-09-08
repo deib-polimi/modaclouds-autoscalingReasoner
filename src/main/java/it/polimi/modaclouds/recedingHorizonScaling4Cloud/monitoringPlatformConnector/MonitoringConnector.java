@@ -4,6 +4,9 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConn
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import it.polimi.tower4clouds.rules.Action;
 import it.polimi.tower4clouds.rules.Actions;
 import it.polimi.tower4clouds.rules.CollectedMetric;
@@ -28,6 +31,9 @@ import it.polimi.tower4clouds.manager.api.NotFoundException;
 //need to properly set up (look for the right value if static) some dynamic parameters in the rules possibly received via some configuration
 public class MonitoringConnector {
 	
+	private static final Logger journal = LoggerFactory
+			.getLogger(MonitoringConnector.class);
+	
 	private ManagerAPI monitoring;
 	private ObjectFactory factory;
 	
@@ -41,7 +47,7 @@ public class MonitoringConnector {
 			try {
 				monitoring.installRules(toInstall);
 			} catch (IOException e) {
-				e.printStackTrace();
+				journal.error("Error while installing the rules.", e);
 			}
 	}
 	
@@ -78,9 +84,9 @@ public class MonitoringConnector {
 				this.attachObserver("ForecastedWorkload"+i, ConfigManager.OWN_IP, ConfigManager.LISTENING_PORT);
 			}
 		} catch (NotFoundException e) {
-			e.printStackTrace();
+			journal.error("File not found.", e);
 		} catch (IOException e) {
-			e.printStackTrace();
+			journal.error("Error while reading the files.", e);
 		}
 
 	}
@@ -547,11 +553,11 @@ public class MonitoringConnector {
 					}
 				}
 			} catch (UnexpectedAnswerFromServerException e) {
-				e.printStackTrace();
+				journal.error("Unexpected answer from the server.", e);
 			} catch (IOException e) {
-				e.printStackTrace();
+				journal.error("Error while dealing with the files.", e);
 			} catch (NotFoundException e) {
-				e.printStackTrace();
+				journal.error("File not found.", e);
 			}			
 		
 	}

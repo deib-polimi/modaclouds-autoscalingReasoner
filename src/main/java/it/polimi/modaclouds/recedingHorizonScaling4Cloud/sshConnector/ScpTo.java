@@ -16,16 +16,31 @@
  */
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.sshConnector;
 
-import com.jcraft.jsch.*;
-
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 
-import javax.swing.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-import java.io.*;
+import javax.swing.JOptionPane;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelExec;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
+import com.jcraft.jsch.UIKeyboardInteractive;
+import com.jcraft.jsch.UserInfo;
 
 //this class is used to upload files on AMPL server
 public class ScpTo {
+	
+	private static final Logger journal = LoggerFactory
+			.getLogger(ScpTo.class);
 
 	// login to AMPL server
 	public String ScpUserName;
@@ -128,7 +143,7 @@ public class ScpTo {
 			session.disconnect();
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			journal.error("Error while sending the file.", e);
 			try {
 				if (fis != null)
 					fis.close();
@@ -156,10 +171,10 @@ public class ScpTo {
 				sb.append((char) c);
 			} while (c != '\n');
 			if (b == 1) { // error
-				System.out.print(sb.toString());
+				journal.error(sb.toString());
 			}
 			if (b == 2) { // fatal error
-				System.out.print(sb.toString());
+				journal.error(sb.toString());
 			}
 		}
 		return b;

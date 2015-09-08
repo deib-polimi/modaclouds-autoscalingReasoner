@@ -1,19 +1,14 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector;
 
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl.AdaptationInitializer;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -27,16 +22,18 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Path("/")
 public class MainObserver {
-	private static final Logger journal = Logger
-			.getLogger(MainObserver.class.getName());
+	private static final Logger journal = LoggerFactory
+			.getLogger(MainObserver.class);
 	@POST
     @Path("/v1/results")
     public Response receiveData(InputStream incomingData) {
 		
-		journal.log(Level.INFO,"New monitoring data received");
+		journal.info("New monitoring data received");
 
         StringBuilder dataBuilder = new StringBuilder();
         try {
@@ -46,13 +43,13 @@ public class MainObserver {
                 dataBuilder.append(line);
             }
         } catch (Exception e) {
-            System.out.println("Error Parsing: - ");
+            journal.error("Error Parsing: - ", e);
         }
         
 
 		try {
 			
-			journal.log(Level.INFO,"Reading the received data");
+			journal.info("Reading the received data");
 
 			JSONArray data=new JSONArray(dataBuilder.toString());
 			
@@ -61,7 +58,7 @@ public class MainObserver {
 				JSONObject datum=data.getJSONObject(i);
 				
 				if(datum.get("metric").equals("EstimatedDemand")){
-					journal.log(Level.INFO,"Received a datum for metric:"+datum.getString("metric")+" and resource:"+datum.getString("resourceId"));
+					journal.info("Received a datum for metric:{} and resource:{}", datum.getString("metric"), datum.getString("resourceId"));
 					ModelManager.updateServiceDemand(datum.getString("resourceId"),
 							datum.getDouble("value"));
 				}else if(datum.get("metric").toString().contains("ForecastedWorkload")){
@@ -70,8 +67,7 @@ public class MainObserver {
 				}
 	        }
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			journal.error("Error while parsing the returned data from the request.", e);
 		}
  
         return Response.status(204).build();
@@ -89,7 +85,7 @@ public class MainObserver {
 		try {
 			httpServer.start();
 		} catch (IOException e) {
-			e.printStackTrace();
+			journal.error("Error while starting the HTTP server.", e);
 		}
     }
 

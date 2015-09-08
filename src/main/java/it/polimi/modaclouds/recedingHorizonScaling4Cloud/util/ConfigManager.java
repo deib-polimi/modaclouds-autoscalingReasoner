@@ -1,6 +1,5 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.util;
 
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl.AdaptationInitializer;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
@@ -9,14 +8,14 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -26,8 +25,8 @@ import org.xml.sax.SAXException;
 
 public class ConfigManager {
 	
-	private static final Logger journal = Logger
-			.getLogger(ConfigManager.class.getName());
+	private static final Logger journal = LoggerFactory
+			.getLogger(ConfigManager.class);
 
 	public static String OWN_IP;
 	public static String LISTENING_PORT;
@@ -78,7 +77,7 @@ public class ConfigManager {
 			try {
 				FileUtils.deleteDirectory(file);
 			} catch (IOException e) {
-				e.printStackTrace();
+				journal.error("Error while deleting the directory.", e);
 			}
 		}
 	}
@@ -145,7 +144,7 @@ public class ConfigManager {
 		InputStream toReturn=loader.getResourceAsStream("config.xml");
 		
 		if(toReturn==null){
-			System.out.println("input stream null");
+			journal.warn("input stream null");
 		}
 		
 		return toReturn;
@@ -255,23 +254,23 @@ public class ConfigManager {
 	
 	public static void printConfig(){
 		
-		journal.log(Level.INFO,"ownIp="+OWN_IP);
-		journal.log(Level.INFO,"t4cIp)"+MONITORING_PLATFORM_IP);
-		journal.log(Level.INFO,"cloudMLIp="+CLOUDML_WEBSOCKET_IP);
-		journal.log(Level.INFO,"listeningPort="+LISTENING_PORT);
-		journal.log(Level.INFO,"t4cPort="+MONITORING_PLATFORM_PORT);
-		journal.log(Level.INFO,"cloudMLPort="+CLOUDML_WEBSOCKET_PORT);
-		journal.log(Level.INFO,"pathToDesignAdapatationModel="+PATH_TO_DESIGN_TIME_MODEL);
-		journal.log(Level.INFO,"sshUser="+SSH_USER_NAME);
-		journal.log(Level.INFO,"sshPass="+SSH_PASSWORD);
-		journal.log(Level.INFO,"sshHost="+SSH_HOST);
-		journal.log(Level.INFO,"pathToOptInputFolder="+OPTIMIZATION_INPUT_FOLDER);
-		journal.log(Level.INFO,"pathToOptLauncher="+OPTIMIZATION_LAUNCHER);
-		journal.log(Level.INFO,"pathToOptOutputFile="+OPTIMIZATION_OUTPUT_FILE);
-		journal.log(Level.INFO,"defaultDemand="+DEFAULT_DEMAND);
-		journal.log(Level.INFO,"objStoreIp="+OBJECT_STORE_IP);
-		journal.log(Level.INFO,"objStorePort="+OBJECT_STORE_PORT);
-		journal.log(Level.INFO,"objSotreModelPath="+OBJECT_STORE_MODEL_PATH);
+		journal.info("ownIp="+OWN_IP);
+		journal.info("t4cIp)"+MONITORING_PLATFORM_IP);
+		journal.info("cloudMLIp="+CLOUDML_WEBSOCKET_IP);
+		journal.info("listeningPort="+LISTENING_PORT);
+		journal.info("t4cPort="+MONITORING_PLATFORM_PORT);
+		journal.info("cloudMLPort="+CLOUDML_WEBSOCKET_PORT);
+		journal.info("pathToDesignAdapatationModel="+PATH_TO_DESIGN_TIME_MODEL);
+		journal.info("sshUser="+SSH_USER_NAME);
+		journal.info("sshPass="+SSH_PASSWORD);
+		journal.info("sshHost="+SSH_HOST);
+		journal.info("pathToOptInputFolder="+OPTIMIZATION_INPUT_FOLDER);
+		journal.info("pathToOptLauncher="+OPTIMIZATION_LAUNCHER);
+		journal.info("pathToOptOutputFile="+OPTIMIZATION_OUTPUT_FILE);
+		journal.info("defaultDemand="+DEFAULT_DEMAND);
+		journal.info("objStoreIp="+OBJECT_STORE_IP);
+		journal.info("objStorePort="+OBJECT_STORE_PORT);
+		journal.info("objSotreModelPath="+OBJECT_STORE_MODEL_PATH);
 
 
 

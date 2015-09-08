@@ -1,16 +1,5 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.nio.file.Paths;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import it.polimi.tower4clouds.rules.MonitoringRules;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
@@ -18,10 +7,24 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConne
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector.MonitoringConnector;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing.OptimizationInputWriter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
+import it.polimi.tower4clouds.rules.MonitoringRules;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.nio.file.Paths;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AdaptationInitializer {
-	private static final Logger journal = Logger
-			.getLogger(AdaptationInitializer.class.getName());
+	private static final Logger journal = LoggerFactory
+			.getLogger(AdaptationInitializer.class);
 	
 	public void initialize() {
 						
@@ -30,34 +33,34 @@ public class AdaptationInitializer {
 			ConfigManager.loadConfiguration();
 			ConfigManager.printConfig();
 		} catch (ConfigurationFileException e) {
-			e.printStackTrace();
+			journal.error("Error while considering the config.xml file.", e);
 		}
 
 		
 		//loading the internal model
-		journal.log(Level.INFO, "Loading the model");
+		journal.info("Loading the model");
 		ModelManager.loadModel();
 		
 		try {
 			Thread.sleep(5000);
 		} catch (InterruptedException e1) {
-			e1.printStackTrace();
+			journal.error("Error while waiting.", e1);
 		}
 		
 		
 		//initializing the instances used for scale for each application tier
-		journal.log(Level.INFO, "Initializing the instances used for scale (the newest one) for each application tier");
+		journal.info("Initializing the instances used for scale (the newest one) for each application tier");
 		ModelManager.initializeUsedForScale();
-		journal.log(Level.INFO, "Initial model:");
-		journal.log(Level.INFO, ModelManager.printCurrentModel());
+		journal.info("Initial model:");
+		journal.info( ModelManager.printCurrentModel());
 
 		
 		//initialize the local file system
-		journal.log(Level.INFO, "Initializing the internal file system");
+		journal.info("Initializing the internal file system");
 		try {
 			ConfigManager.inizializeFileSystem();
 		} catch (ProjectFileSystemException e1) {
-			e1.printStackTrace();
+			journal.error("Error while inizializing the file system.", e1);
 		}
 		
 		
@@ -67,7 +70,7 @@ public class AdaptationInitializer {
 				
 		try {
 			//getting required monitoring rules
-			journal.log(Level.INFO, "Building the required monitoring rules");
+			journal.info("Building the required monitoring rules");
 			MonitoringRules toInstall=monitor.buildRequiredRules();
 
 			//serializing built rules
@@ -80,32 +83,32 @@ public class AdaptationInitializer {
 			
 			
 			//installing required rules
-			journal.log(Level.INFO, "Installing monitoring rules");
+			journal.info("Installing monitoring rules");
 			monitor.installRules(toInstall);
 			
 			//attaching required observers
-			//journal.log(Level.INFO, "Attaching required observers on port "+ConfigManager.LISTENING_PORT);
+			//journal.info("Attaching required observers on port {}", ConfigManager.LISTENING_PORT);
 			//monitor.attachRequiredObservers();
 
 			//starting observer
-			journal.log(Level.INFO, "Starting the observer");
+			journal.info("Starting the observer");
 			MainObserver.startServer(ConfigManager.LISTENING_PORT);
 
 		} catch (JAXBException e) {
-			e.printStackTrace();
+			journal.error("JAXB error.", e);
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			journal.error("File not found!", e);
 		} 
 		
 		
 		//writing the static input files for each container
-		journal.log(Level.INFO, "Writing the static input files");
+		journal.info("Writing the static input files");
 		OptimizationInputWriter siw= new OptimizationInputWriter();
 		siw.writeStaticInput(ModelManager.getModel());
-		journal.log(Level.INFO, "Static input files wrote");
+		journal.info("Static input files wrote");
 		
 		//starting a clock changing the response time thresholds for each application tier every hour
-		journal.log(Level.INFO, "Starting a clock changing the threshold in the model every hour for each managed application tier");
+		journal.info("Starting a clock changing the threshold in the model every hour for each managed application tier");
 		@SuppressWarnings("unused")
 		HourClock hourClock=new HourClock();
 		
@@ -114,9 +117,9 @@ public class AdaptationInitializer {
 		//FakeObserver obs=new FakeObserver(ModelManager.getTimestepDuration());
 		
 		//starting the adaptation clock running the adaptation every timestepDuration minutes
-		journal.log(Level.INFO, "Starting the adaptation clock to run an adaptation step every "+ModelManager.getTimestepDuration()+" minutes");
+		journal.info("Starting the adaptation clock to run an adaptation step every {} minutes", ModelManager.getTimestepDuration());
 		@SuppressWarnings("unused")
-		AdapatationClock clock=new AdapatationClock(ModelManager.getTimestepDuration());
+		AdaptationClock clock=new AdaptationClock(ModelManager.getTimestepDuration());
 		
 
 		

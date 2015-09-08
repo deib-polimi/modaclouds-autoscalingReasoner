@@ -1,13 +1,11 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing;
 
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.TierNotFoudException;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.WorkloadForecast;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -18,9 +16,14 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class OptimizationInputWriter {
 
-
+	private static final Logger journal = LoggerFactory
+			.getLogger(OptimizationInputWriter.class);
+	
 	public OptimizationInputWriter() {	
 	}
 	
@@ -85,7 +88,7 @@ public class OptimizationInputWriter {
 		try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file, true)))) {
 		    out.println(fileContent);
 		}catch (IOException e) {
-		e.printStackTrace();
+			journal.error("Error while writing to the file.", e);
 		}
 	}
 	
@@ -93,7 +96,7 @@ public class OptimizationInputWriter {
 		try {
 			Files.deleteIfExists(Paths.get("executions/execution_"+execution+"/IaaS_1/" + fileName));
 		} catch (IOException e1) {
-			e1.printStackTrace();
+			journal.error("Error while deleting the file.", e1);
 		}
 	}
 	
@@ -113,7 +116,7 @@ public class OptimizationInputWriter {
 							Paths.get(file.getAbsolutePath()+"/"+f),
 							REPLACE_EXISTING);
 				} catch (IOException e) {
-					e.printStackTrace();
+					journal.error("Error while moving the file.", e);
 				}
 			}
 		}

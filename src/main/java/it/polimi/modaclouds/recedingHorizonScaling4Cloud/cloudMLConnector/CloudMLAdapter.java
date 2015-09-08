@@ -5,13 +5,14 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class CloudMLAdapter {
-	private static final Logger journal = Logger
-			.getLogger(WSClient.class.getName());
+	private static final Logger journal = LoggerFactory
+			.getLogger(CloudMLAdapter.class);
 	private WSClient wsClient;
 	private Thread t;
 	
@@ -20,7 +21,7 @@ public class CloudMLAdapter {
 		String serverURI="ws://"+ConfigManager.CLOUDML_WEBSOCKET_IP+":"+
 				ConfigManager.CLOUDML_WEBSOCKET_PORT;
 		try {
-		journal.log(Level.INFO, "Connecting to CloudML Web Socket server");
+		journal.info("Connecting to CloudML Web Socket server");
 		wsClient=new WSClient(new URI(serverURI));
 		t =new Thread(wsClient);
 		t.start();
@@ -28,9 +29,9 @@ public class CloudMLAdapter {
 		Thread.sleep(2000);
 		}
 		} catch (URISyntaxException e) {
-		e.printStackTrace();
+			journal.error("Error in the URI sintax (" + serverURI + ").", e);
 		} catch (InterruptedException e) {
-		e.printStackTrace();
+			journal.error("Error while waiting.", e);
 		}
 
 		

@@ -1,18 +1,23 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.sshConnector;
 
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
+
 import java.io.InputStream;
 
-
 import javax.swing.JOptionPane;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
-
 public class ExecSSH {
+	
+	private static final Logger journal = LoggerFactory
+			.getLogger(ExecSSH.class);
 
 	public String ScpUserName;
 	public String ScpHost;
@@ -77,7 +82,7 @@ public class ExecSSH {
 			session.disconnect();
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			journal.error("Error while executing the command.", e);
 		}
 	}
 }

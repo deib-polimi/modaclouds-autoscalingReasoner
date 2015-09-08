@@ -1,22 +1,23 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl;
 
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
 
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-public class AdapatationClock {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class AdaptationClock {
 	Timer timer;
-	private static final Logger journal = Logger
-			.getLogger(AdapatationClock.class.getName());
+	private static final Logger journal = LoggerFactory
+			.getLogger(AdaptationClock.class);
 	
-    public AdapatationClock(int timeStepDurationInMinutes) {
+    public AdaptationClock(int timeStepDurationInMinutes) {
         timer = new Timer();
-		journal.log(Level.INFO, "Here is the adaptation clock!");
+		journal.info("Here is the adaptation clock!");
 		
 
         timer.scheduleAtFixedRate(new ControllerLauncher(), 5000, timeStepDurationInMinutes*60*1000);
@@ -27,7 +28,7 @@ public class AdapatationClock {
     	
         public void run() {
         	
-    		journal.log(Level.INFO, "Launching the adaptation step at the end of timestep "+ModelManager.getCurrentTimeStep());
+    		journal.info("Launching the adaptation step at the end of timestep {}", ModelManager.getCurrentTimeStep());
         	
         	List<Container> toLaunch=ModelManager.getModel().getContainer();
         	Thread[] toWait=new Thread[toLaunch.size()];
@@ -38,22 +39,22 @@ public class AdapatationClock {
         		toWait[i]=t;
         		i++;
         		
-        		journal.log(Level.INFO, "Starting a controller for container "+c.getId());
+        		journal.info("Starting a controller for container {}", c.getId());
         		t.start();
         	}
 
         	
-    		journal.log(Level.INFO, "Waiting for all the controller to end");
+    		journal.info("Waiting for all the controller to end");
 
         	for(i = 0; i < toWait.length; i++){
 				try {
 					toWait[i].join();
 				} catch (InterruptedException e) {
-					e.printStackTrace();
+					journal.error("Error while waiting the " + i + " thread.", e);
 				}
         	}
         	
-    		journal.log(Level.INFO, "Printing the current model");
+    		journal.info("Printing the current model");
         	ModelManager.increaseCurrentTimeStep();
     		ModelManager.printCurrentModel();
         }
@@ -62,7 +63,7 @@ public class AdapatationClock {
 
 
     public static void main(String args[]) {
-        new AdapatationClock(5);
+        new AdaptationClock(5);
         System.out.format("Task scheduled.%n");
     }
 }

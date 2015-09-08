@@ -1,8 +1,5 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector;
 
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl.AdapatationClock;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl.AdaptationController;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
 
 import java.io.BufferedReader;
@@ -13,25 +10,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FakeObserver {
 	Timer timer;
-	private static final Logger journal = Logger
-			.getLogger(AdapatationClock.class.getName());
+	private static final Logger journal = LoggerFactory
+			.getLogger(FakeObserver.class);
 	
 	private static List<Double> worklaodPrediction;
 	
+	private static final String DEFAULT_FILE = "/home/ubuntu/autoscaling-reasoner/tests.txt";
+	
     public FakeObserver(int timeStepDurationInMinutes) {
         timer = new Timer();
-		journal.log(Level.INFO, "Here is the fake observer!");
+		journal.info("Here is the fake observer!");
 		worklaodPrediction=new ArrayList<Double>();
 		
 		//read from file the workload prediction and load the array
-		BufferedReader br;
-		try {
-			br = new BufferedReader(new FileReader("/home/ubuntu/autoscaling-reasoner/tests.txt"));
+		try (BufferedReader br = new BufferedReader(new FileReader(DEFAULT_FILE))) {
 			try {
 			    String line = br.readLine();
 			    while (line != null) {
@@ -39,20 +37,13 @@ public class FakeObserver {
 			    	line = br.readLine();
 			    }
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} finally {
-			    try {
-					br.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				journal.error("Error while reading the file.", e);
 			}
 
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			journal.error("File not found.", e);
+		} catch (IOException e) {
+			journal.error("Error while closing the stream.", e);
 		}
 
         timer.scheduleAtFixedRate(new FakeObserverLauncher(), 0, timeStepDurationInMinutes*60*1000);
@@ -67,7 +58,7 @@ public class FakeObserver {
             	ModelManager.updateServiceWorkloadPrediction("register_123", "ForecastedWorkload"+i, worklaodPrediction.get(i-1));
         	}
         	worklaodPrediction.remove(0);
-    		journal.log(Level.INFO, "Launching the adaptation step at the end of timestep "+ModelManager.getCurrentTimeStep());
+    		journal.info("Launching the adaptation step at the end of timestep {}", ModelManager.getCurrentTimeStep());
 
         }
     }

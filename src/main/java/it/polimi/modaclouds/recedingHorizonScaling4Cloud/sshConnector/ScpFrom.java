@@ -1,21 +1,23 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.sshConnector;
 
 
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.swing.JOptionPane;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 
 
 
@@ -24,7 +26,7 @@ public class ScpFrom {
 	public String ScpUserName;
 	public String ScpHost;
 	public String ScpPasswd;
-	private static final Logger journal = Logger
+	private static final Logger journal = LoggerFactory
 			.getLogger(ScpFrom.class.getName());	
 	
 	public ScpFrom() {
@@ -129,7 +131,7 @@ public class ScpFrom {
 
 			session.disconnect();
 		} catch (Exception e) {
-			journal.log(Level.INFO, "Error while getting a file.", e);
+			journal.error("Error while getting a file.", e);
 			try {
 				if (fos != null)
 					fos.close();
@@ -153,10 +155,10 @@ public class ScpFrom {
 				sb.append((char) c);
 			} while (c != '\n');
 			if (b == 1) { // error
-				System.out.print(sb.toString());
+				journal.error(sb.toString());
 			}
 			if (b == 2) { // fatal error
-				System.out.print(sb.toString());
+				journal.error(sb.toString());
 			}
 		}
 		return b;

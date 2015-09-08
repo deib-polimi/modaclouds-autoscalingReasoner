@@ -1,25 +1,21 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing;
 
 
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ModelManager;
-
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Map;
-import java.util.Scanner;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class OptimizationOutputParser {
+	
+	private static final Logger journal = LoggerFactory
+			.getLogger(OptimizationOutputParser.class);
 
 	private final static Charset ENCODING = StandardCharsets.UTF_8;
-
-
 	
 	public OptimizationOutputParser(){
 		
@@ -27,11 +23,8 @@ public class OptimizationOutputParser {
 	
 	public int[] parseExecutionOutput(String pathToOutput, int nTier){
 		
-		BufferedReader br;
-		
 		int[] toReturn=new int[nTier];
-		try {
-			br = new BufferedReader(new FileReader(pathToOutput));
+		try (BufferedReader br = new BufferedReader(new FileReader(pathToOutput))) {
 			String line;
 			int cont=0;
 			
@@ -48,12 +41,9 @@ public class OptimizationOutputParser {
 				}
 			}
 			
-			br.close();
-			
 			return toReturn;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			journal.error("Error while dealing with the file.", e);
 		}
 		
 		return null;
