@@ -5,6 +5,7 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileS
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -222,11 +223,22 @@ public class ConfigManager {
 			isAlreadySet = true;
 		}
 	}
-
+	
+	public static InputStream getInputStream(String filePath) {
+		File f = new File(filePath);
+		if (f.exists())
+			try {
+				return new FileInputStream(f);
+			} catch (Exception e) { }
+		
+		InputStream is = ConfigManager.class.getResourceAsStream(filePath);
+		if (is == null)
+			is = ConfigManager.class.getResourceAsStream("/" + filePath);
+		return is;
+	}
 	
 	private static InputStream findConfigFile() {
-		ClassLoader loader = Thread.currentThread().getContextClassLoader();
-		InputStream toReturn=loader.getResourceAsStream("config.xml");
+		InputStream toReturn = getInputStream("config.xml");
 		
 		if(toReturn==null){
 			journal.warn("input stream null");
