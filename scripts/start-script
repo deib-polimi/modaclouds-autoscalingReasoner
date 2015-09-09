@@ -1,14 +1,15 @@
 #!/bin/sh
 
-export HDB_HOME="${HDB_HOME:-$PWD}"
+export AR_HOME="${AR_HOME:-$PWD}"
 
-if [ ! -e "$HDB_HOME" ]
+if [ ! -e "$AR_HOME" ]
 then
-    echo "$HDB_HOME does not exist" 1>&2
+    echo "$AR_HOME does not exist" 1>&2
     exit 1
 fi
 
-JAR="$HDB_HOME/tower4clouds-rdf-history-db.jar"
+JAR="$AR_HOME/modaclouds-autoscalingReasoner.jar"
+CLASS="it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl.Main"
 if [ ! -e "$JAR" ]
 then
     echo "Can't find jarfile to run"
@@ -23,9 +24,10 @@ esac
 if [ "$cygwin" = "true" ]
 then
     JAR=`cygpath -w "$JAR"`
-    HDB_HOME=`cygpath -w "$HDB_HOME"`
+    AR_HOME=`cygpath -w "$AR_HOME"`
 fi
 
 JVM_ARGS=${JVM_ARGS:--Xmx1200M}
 
-exec java  $JVM_ARGS -jar "$JAR" "$@"
+#exec java  $JVM_ARGS -jar "$JAR" "$@"
+exec java $JVM_ARGS -cp "$JAR:lib/*" $CLASS "$@"
