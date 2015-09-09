@@ -8,6 +8,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.DecimalFormat;
+import java.util.Calendar;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -48,6 +53,120 @@ public class ConfigManager {
 	public static String OBJECT_STORE_MODEL_PATH;
 	
 	private static boolean isAlreadySet=false;
+
+	public static final String DEFAULTS_WORKING_DIRECTORY_PREFIX = "autoscalingReasoner";
+	public static Path LOCAL_TEMPORARY_FOLDER = null;
+	
+	public static String DEFAULTS_WORKING_DIRECTORY = "/tmp/modaclouds";
+	public static String RUN_WORKING_DIRECTORY = DEFAULTS_WORKING_DIRECTORY;
+	
+	
+	
+	public static void initFolders() {
+		setWorkingSubDirectory();
+		createNewLocalTmp();
+	}
+
+	public static void setWorkingSubDirectory() {
+		if (isRunningLocally())
+			RUN_WORKING_DIRECTORY = LOCAL_TEMPORARY_FOLDER.toString();
+		else
+			RUN_WORKING_DIRECTORY = DEFAULTS_WORKING_DIRECTORY + "/" + DEFAULTS_WORKING_DIRECTORY_PREFIX + "/" + getDate();
+	}
+	
+	public static Path createNewLocalTmp() {
+		try {
+			LOCAL_TEMPORARY_FOLDER = Files.createTempDirectory(DEFAULTS_WORKING_DIRECTORY_PREFIX);
+		} catch (Exception e) {
+			journal.error("Error while creating the temporary folder. Reverting to /tmp/" + DEFAULTS_WORKING_DIRECTORY_PREFIX + ".", e);
+			LOCAL_TEMPORARY_FOLDER = Paths.get("/tmp", DEFAULTS_WORKING_DIRECTORY_PREFIX);
+		}
+		return LOCAL_TEMPORARY_FOLDER;
+	}
+	
+	public static String getDate() {
+		Calendar c = Calendar.getInstance();
+		
+		DecimalFormat f = new DecimalFormat("00");
+		
+		return String.format("%d%s%s-%s%s%s",
+				c.get(Calendar.YEAR),
+				f.format(c.get(Calendar.MONTH) + 1),
+				f.format(c.get(Calendar.DAY_OF_MONTH)),
+				f.format(c.get(Calendar.HOUR_OF_DAY)),
+				f.format(c.get(Calendar.MINUTE)),
+				f.format(c.get(Calendar.SECOND))
+				);
+	}
+	
+	public static final String RUN_FILE = "AMPL.run"; //sets where temp AMPL file AMPL.run will be saved
+	public static final String RUN_MODEL_STANDARD = "model.mod";
+	public static final String RUN_MODEL_STARTING_SOLUTION = "modelstartingsolution.mod";
+	public static final String RUN_DATA = "data.dat"; //sets where temp AMPL file data.dat will be saved
+	public static String RUN_SOLVER = "/usr/optimization/cplex-studio/cplex/bin/x86-64_linux/cplexamp";
+	public static String RUN_AMPL_FOLDER = "/usr/optimization/ampl";
+	public static final String RUN_LOG = "solution.log"; //"log.tmp";//sets where temp AMPL file log.tmp will be saved
+	public static final String RUN_RES = "solution.sol"; //"shortrez.out";//sets where temp AMPL file shortrez.out will be saved
+	public static final String DEFAULTS_BASH = "bashAMPL.run";
+
+	public static final String RUN_FILE_CMPL = "CMPL.run";
+	public static final String RUN_MODEL_STANDARD_CMPL = "model.cmpl";
+	public static final String RUN_MODEL_STARTING_SOLUTION_CMPL = "modelstartingsolution.cmpl";
+	public static String RUN_SOLVER_CMPL = "cbc"; // glpk, cbc, scip, gurobi, cplex
+	public static final String RUN_DATA_CMPL = "data.cdat";
+	public static String RUN_CMPL_FOLDER = "/usr/share/Cmpl";
+	public static final String RUN_LOG_CMPL = "solution.log";
+	public static final String RUN_RES_CMPL = "solution.sol";
+	public static final String DEFAULTS_BASH_CMPL = "bashCMPL.run";
+	public static int CMPL_THREADS = 4;
+	
+	public static int getCMPLThreads() {
+		int threads = CMPL_THREADS;
+		if (isRunningLocally()) {
+			threads = Runtime.getRuntime().availableProcessors() - 1;
+			if (threads <= 0)
+				threads = 1;
+		}
+		return threads;
+	}
+
+	public static Solver MATH_SOLVER = Solver.CMPL;
+	
+	public static enum Solver {
+		AMPL("AMPL"), CMPL("CMPL");
+
+		private String name;
+
+		private Solver(String name) {
+			this.name = name;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public static Solver getById(int id) {
+			Solver[] values = Solver.values();
+			if (id < 0)
+				id = 0;
+			else if (id >= values.length)
+				id = values.length - 1;
+			return values[id];
+		}
+
+		public static int size() {
+			return Solver.values().length;
+		}
+
+		public static Solver getByName(String name) {
+			Solver[] values = Solver.values();
+			for (Solver s : values)
+				if (s.name.equals(name))
+					return s;
+			return values[0];
+		}
+
+	}
 	
 	public static void setFromFile() throws ConfigurationFileException {
 
