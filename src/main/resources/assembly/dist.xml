@@ -41,7 +41,7 @@
 			<fileMode>0755</fileMode>
 		</file>
 		<file>
-            <source>config.xml</source>
+            <source>src/main/resources/config.xml</source>
             <destName>config.xml</destName>
         </file>
 	</files>
