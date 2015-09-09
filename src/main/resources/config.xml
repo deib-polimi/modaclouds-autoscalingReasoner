@@ -3,9 +3,9 @@
 	<property name="OWN_IP" value="52.19.87.123" />
 	<property name="LISTENING_PORT" value="8179" />
 	<property name="PATH_TO_DESIGN_TIME_MODEL" value="/home/micheleguerriero/workspace/recedingHorizonScaling4Cloud/resources/S4COpsConfigTest.xml" />
-	<property name="SSH_USER_NAME" value="guerriero" />
+	<property name="SSH_USER_NAME" value="" />
 	<property name="SSH_HOST" value="specclient1.dei.polimi.it" />
-	<property name="SSH_PASSWORD" value="mahalkita1" />
+	<property name="SSH_PASSWORD" value="" />
 	<property name="OPTIMIZATION_INPUT_FOLDER" value="/home/guerriero/molinari/k10/second/data/IaaS_1" />
 	<property name="OPTIMIZATION_OUTPUT_FILE" value="/home/guerriero/molinari/k10/second/data/IaaS_1/rawGlobal/dati.txt" />
 	<property name="OPTIMIZATION_LAUNCHER" value="/home/guerriero/molinari/k10/run_Short.sh 1" />

@@ -20,6 +20,7 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -33,8 +34,6 @@ import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
-import com.jcraft.jsch.UIKeyboardInteractive;
-import com.jcraft.jsch.UserInfo;
 
 //this class is used to upload files on AMPL server
 public class ScpTo {
@@ -58,98 +57,95 @@ public class ScpTo {
 
 	// main execution function
 	// coping LFile on local machine in RFile on AMPL server
-	public void sendfile(String LFile, String RFile) {
+	public void sendfile(String LFile, String RFile) throws Exception {
+		
+		if (ConfigManager.isRunningLocally()) {
+			localSendfile(LFile, RFile);
+			return;
+		}
+		
 		FileInputStream fis = null;
-		try {
-			String lfile = LFile;
-			String rfile = RFile;
 
-			// creating session with username, server's address and port (22 by
-			// default)
-			JSch jsch = new JSch();
-			Session session = jsch.getSession(this.ScpUserName, this.ScpHost, 22);
+		String lfile = LFile;
+		String rfile = RFile;
 
-			// receiving user password if it was not collected before
-			if (this.ScpPasswd == "")
-				this.ScpPasswd = JOptionPane.showInputDialog("Enter password");
-			session.setPassword(this.ScpPasswd);
+		// creating session with username, server's address and port (22 by
+		// default)
+		JSch jsch = new JSch();
+		Session session = jsch.getSession(this.ScpUserName, this.ScpHost, 22);
 
-			// disabling of certificate checks
-			session.setConfig("StrictHostKeyChecking", "no");
-			// creating connection
-			session.connect();
+		// receiving user password if it was not collected before
+		if (this.ScpPasswd == "")
+			this.ScpPasswd = JOptionPane.showInputDialog("Enter password");
+		session.setPassword(this.ScpPasswd);
 
-			boolean ptimestamp = true;
-			// exec 'scp -t rfile' remotely
-			String command = "scp " + (ptimestamp ? "-p" : "") + " -t " + rfile;
-			Channel channel = session.openChannel("exec");
-			((ChannelExec) channel).setCommand(command);
-			// get I/O streams for remote scp
-			OutputStream out = channel.getOutputStream();
-			InputStream in = channel.getInputStream();
-			// connecting channel
-			channel.connect();
+		// disabling of certificate checks
+		session.setConfig("StrictHostKeyChecking", "no");
+		// creating connection
+		session.connect();
 
-			if (checkAck(in) != 0) {
-				System.exit(0);
-			}
+		boolean ptimestamp = true;
+		// exec 'scp -t rfile' remotely
+		String command = "scp " + (ptimestamp ? "-p" : "") + " -t " + rfile;
+		Channel channel = session.openChannel("exec");
+		((ChannelExec) channel).setCommand(command);
+		// get I/O streams for remote scp
+		OutputStream out = channel.getOutputStream();
+		InputStream in = channel.getInputStream();
+		// connecting channel
+		channel.connect();
 
-			File _lfile = new File(lfile); 
+		if (checkAck(in) != 0) {
+			System.exit(0);
+		}
 
-			if (ptimestamp) {
-				command = "T" + (_lfile.lastModified() / 1000) + " 0";
-				command += (" " + (_lfile.lastModified() / 1000) + " 0\n");
-				out.write(command.getBytes());
-				out.flush();
-				if (checkAck(in) != 0) {
-					System.exit(0);
-				}
-			}
-			// send "C0644 filesize filename", where filename should not include
-			// '/'
-			long filesize = _lfile.length();
-			command = "C0644 " + filesize + " ";
-			if (lfile.lastIndexOf('/') > 0) {
-				command += lfile.substring(lfile.lastIndexOf('/') + 1);
-			} else {
-				command += lfile;
-			}
-			command += "\n";
+		File _lfile = new File(lfile); 
+
+		if (ptimestamp) {
+			command = "T" + (_lfile.lastModified() / 1000) + " 0";
+			command += (" " + (_lfile.lastModified() / 1000) + " 0\n");
 			out.write(command.getBytes());
 			out.flush();
 			if (checkAck(in) != 0) {
 				System.exit(0);
 			}
-			// send a content of lfile
-			fis = new FileInputStream(lfile);
-			byte[] buf = new byte[1024];
-			while (true) {
-				int len = fis.read(buf, 0, buf.length);
-				if (len <= 0)
-					break;
-				out.write(buf, 0, len);
-			}
-			fis.close();
-			fis = null;
-			buf[0] = 0;
-			out.write(buf, 0, 1);
-			out.flush();
-			if (checkAck(in) != 0) {
-				System.exit(0);
-			}
-			out.close();
-
-			channel.disconnect();
-			session.disconnect();
-
-		} catch (Exception e) {
-			journal.error("Error while sending the file.", e);
-			try {
-				if (fis != null)
-					fis.close();
-			} catch (Exception ee) {
-			}
 		}
+		// send "C0644 filesize filename", where filename should not include
+		// '/'
+		long filesize = _lfile.length();
+		command = "C0644 " + filesize + " ";
+		if (lfile.lastIndexOf('/') > 0) {
+			command += lfile.substring(lfile.lastIndexOf('/') + 1);
+		} else {
+			command += lfile;
+		}
+		command += "\n";
+		out.write(command.getBytes());
+		out.flush();
+		if (checkAck(in) != 0) {
+			System.exit(0);
+		}
+		// send a content of lfile
+		fis = new FileInputStream(lfile);
+		byte[] buf = new byte[1024];
+		while (true) {
+			int len = fis.read(buf, 0, buf.length);
+			if (len <= 0)
+				break;
+			out.write(buf, 0, len);
+		}
+		fis.close();
+		fis = null;
+		buf[0] = 0;
+		out.write(buf, 0, 1);
+		out.flush();
+		if (checkAck(in) != 0) {
+			System.exit(0);
+		}
+		out.close();
+
+		channel.disconnect();
+		session.disconnect();
 	}
 
 	static int checkAck(InputStream in) throws IOException {
@@ -180,34 +176,17 @@ public class ScpTo {
 		return b;
 	}
 
-	public static abstract class MyUserInfo implements UserInfo,
-			UIKeyboardInteractive {
-		public String getPassword() {
-			return null;
-		}
-
-		public boolean promptYesNo(String str) {
-			return false;
-		}
-
-		public String getPassphrase() {
-			return null;
-		}
-
-		public boolean promptPassphrase(String message) {
-			return false;
-		}
-
-		public boolean promptPassword(String message) {
-			return false;
-		}
-
-		public void showMessage(String message) {
-		}
-
-		public String[] promptKeyboardInteractive(String destination,
-				String name, String instruction, String[] prompt, boolean[] echo) {
-			return null;
-		}
+	public void localSendfile(String LFile, String RFile) throws Exception {
+		if (!new File(LFile).exists())
+			throw new FileNotFoundException("File " + LFile + " not found!");
+		
+		ExecSSH ex = new ExecSSH();
+		
+		if (new File(RFile).exists() && new File(RFile).isDirectory() && !RFile.endsWith(File.separator))
+			RFile = RFile + File.separator;
+		
+		String command = String.format("cp %s %s", LFile, RFile);
+		ex.localExec(command);
+		
 	}
 }

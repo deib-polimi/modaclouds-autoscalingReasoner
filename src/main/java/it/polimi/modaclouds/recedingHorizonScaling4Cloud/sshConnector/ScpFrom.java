@@ -4,6 +4,7 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.sshConnector;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,109 +36,105 @@ public class ScpFrom {
 		ScpPasswd = ConfigManager.SSH_PASSWORD;
 	}
 
-	public void receivefile(String LFile, String RFile) {
+	public void receivefile(String LFile, String RFile) throws Exception {
+		
+		if (ConfigManager.isRunningLocally()) {
+			localReceivefile(LFile, RFile);
+			return;
+		}
+		
 		FileOutputStream fos = null;
-				
-		try {
 
-			String lfile = LFile;
-			String rfile = RFile;
+		String lfile = LFile;
+		String rfile = RFile;
 
-			JSch jsch = new JSch();
-			Session session = jsch.getSession(this.ScpUserName, this.ScpHost, 22);
+		JSch jsch = new JSch();
+		Session session = jsch.getSession(this.ScpUserName, this.ScpHost, 22);
 
-			if (this.ScpPasswd == "")
-				this.ScpPasswd = JOptionPane.showInputDialog("Enter password");
-			session.setPassword(this.ScpPasswd);
+		if (this.ScpPasswd == "")
+			this.ScpPasswd = JOptionPane.showInputDialog("Enter password");
+		session.setPassword(this.ScpPasswd);
 
-			String prefix = null;
-			if (new File(lfile).isDirectory()) {
-				prefix = lfile + File.separator;
+		String prefix = null;
+		if (new File(lfile).isDirectory()) {
+			prefix = lfile + File.separator;
+		}
+		session.setConfig("StrictHostKeyChecking", "no");
+		session.connect();
+		String command = "scp -f " + rfile;
+		Channel channel = session.openChannel("exec");
+		((ChannelExec) channel).setCommand(command);
+		OutputStream out = channel.getOutputStream();
+		InputStream in = channel.getInputStream();
+
+		channel.connect();
+
+		byte[] buf = new byte[1024];
+
+		buf[0] = 0;
+		out.write(buf, 0, 1);
+		out.flush();
+		// reading channel
+		while (true) {
+			int c = checkAck(in);
+			if (c != 'C') {
+				break;
 			}
-			session.setConfig("StrictHostKeyChecking", "no");
-			session.connect();
-			String command = "scp -f " + rfile;
-			Channel channel = session.openChannel("exec");
-			((ChannelExec) channel).setCommand(command);
-			OutputStream out = channel.getOutputStream();
-			InputStream in = channel.getInputStream();
 
-			channel.connect();
+			in.read(buf, 0, 5);
 
-			byte[] buf = new byte[1024];
+			long filesize = 0L;
+			while (true) {
+				if (in.read(buf, 0, 1) < 0) {
+					break;
+				}
+				if (buf[0] == ' ')
+					break;
+				filesize = filesize * 10L + (long) (buf[0] - '0');
+			}
+
+			String file = null;
+			for (int i = 0;; i++) {
+				in.read(buf, i, 1);
+				if (buf[i] == (byte) 0x0a) {
+					file = new String(buf, 0, i);
+					break;
+				}
+			}
 
 			buf[0] = 0;
 			out.write(buf, 0, 1);
 			out.flush();
-			// reading channel
+			fos = new FileOutputStream(prefix == null ? lfile : prefix
+					+ file);
+			int foo;
 			while (true) {
-				int c = checkAck(in);
-				if (c != 'C') {
+				if (buf.length < filesize)
+					foo = buf.length;
+				else
+					foo = (int) filesize;
+				foo = in.read(buf, 0, foo);
+				if (foo < 0) {
 					break;
 				}
+				fos.write(buf, 0, foo);
+				filesize -= foo;
+				if (filesize == 0L)
+					break;
+			}
+			fos.close();
+			fos = null;
 
-				in.read(buf, 0, 5);
-
-				long filesize = 0L;
-				while (true) {
-					if (in.read(buf, 0, 1) < 0) {
-						break;
-					}
-					if (buf[0] == ' ')
-						break;
-					filesize = filesize * 10L + (long) (buf[0] - '0');
-				}
-
-				String file = null;
-				for (int i = 0;; i++) {
-					in.read(buf, i, 1);
-					if (buf[i] == (byte) 0x0a) {
-						file = new String(buf, 0, i);
-						break;
-					}
-				}
-
-				buf[0] = 0;
-				out.write(buf, 0, 1);
-				out.flush();
-				fos = new FileOutputStream(prefix == null ? lfile : prefix
-						+ file);
-				int foo;
-				while (true) {
-					if (buf.length < filesize)
-						foo = buf.length;
-					else
-						foo = (int) filesize;
-					foo = in.read(buf, 0, foo);
-					if (foo < 0) {
-						break;
-					}
-					fos.write(buf, 0, foo);
-					filesize -= foo;
-					if (filesize == 0L)
-						break;
-				}
-				fos.close();
-				fos = null;
-
-				if (checkAck(in) != 0) {
-					System.exit(0);
-				}
-
-				buf[0] = 0;
-				out.write(buf, 0, 1);
-				out.flush();
+			if (checkAck(in) != 0) {
+				System.exit(0);
 			}
 
-			session.disconnect();
-		} catch (Exception e) {
-			journal.error("Error while getting a file.", e);
-			try {
-				if (fos != null)
-					fos.close();
-			} catch (Exception ee) {
-			}
+			buf[0] = 0;
+			out.write(buf, 0, 1);
+			out.flush();
 		}
+
+		session.disconnect();
 	}
 
 	static int checkAck(InputStream in) throws IOException {
@@ -162,5 +159,19 @@ public class ScpFrom {
 			}
 		}
 		return b;
+	}
+	
+	public void localReceivefile(String LFile, String RFile) throws Exception {
+		if (!new File(RFile).exists())
+			throw new FileNotFoundException("File " + RFile + " not found!");
+		
+		ExecSSH ex = new ExecSSH();
+		
+		if (new File(LFile).exists() && new File(LFile).isDirectory() && !LFile.endsWith(File.separator))
+			LFile = LFile + File.separator;
+		
+		String command = String.format("cp %s %s", RFile, LFile);
+		ex.localExec(command);
+		
 	}
 }

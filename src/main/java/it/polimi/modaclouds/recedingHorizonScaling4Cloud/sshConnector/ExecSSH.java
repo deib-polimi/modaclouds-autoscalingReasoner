@@ -2,7 +2,11 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.sshConnector;
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 
+import java.io.BufferedReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JOptionPane;
 
@@ -16,6 +20,7 @@ import com.jcraft.jsch.Session;
 
 public class ExecSSH {
 	
+	@SuppressWarnings("unused")
 	private static final Logger journal = LoggerFactory
 			.getLogger(ExecSSH.class);
 
@@ -32,57 +37,78 @@ public class ExecSSH {
 			ScpHost = ConfigManager.SSH_HOST;
 			ScpPasswd = ConfigManager.SSH_PASSWORD;
 			optLauncher= ConfigManager.OPTIMIZATION_LAUNCHER;
-
-		
+	}
 	
+	public List<String> mainExec() throws Exception {
+		return mainExec("bash " + this.optLauncher);
 	}
 
-	public void mainExec() {
-		try {
+	public List<String> mainExec(String command) throws Exception {
+		
+		if (ConfigManager.isRunningLocally())
+			return localExec(command);
+		
+		List<String> res = new ArrayList<String>();
 
-			JSch jsch = new JSch();
-			Session session = jsch.getSession(this.ScpUserName, this.ScpHost, 22);
+		JSch jsch = new JSch();
+		Session session = jsch.getSession(this.ScpUserName, this.ScpHost, 22);
 
-			if (this.ScpPasswd == "")
-				this.ScpPasswd = JOptionPane.showInputDialog("Enter password");
-			session.setPassword(this.ScpPasswd);
+		if (this.ScpPasswd == "")
+			this.ScpPasswd = JOptionPane.showInputDialog("Enter password");
+		session.setPassword(this.ScpPasswd);
 
-			session.setConfig("StrictHostKeyChecking", "no");
-			
-			
-			session.connect();
+		session.setConfig("StrictHostKeyChecking", "no");
+		
+		
+		session.connect();
 
-			Channel channel = session.openChannel("exec");
-			((ChannelExec) channel).setCommand("bash " 
-					+ this.optLauncher);
-			channel.setInputStream(null);
-			//((ChannelExec) channel).setErrStream(System.err);
+		Channel channel = session.openChannel("exec");
+		((ChannelExec) channel).setCommand(command);
+		channel.setInputStream(null);
+		//((ChannelExec) channel).setErrStream(System.err);
 
-			
-			InputStream in = channel.getInputStream();
-			channel.connect();
-			byte[] tmp = new byte[1024];
+		
+		InputStream in = channel.getInputStream();
+		channel.connect();
+		byte[] tmp = new byte[1024];
 
-			while (true) {
-				while (in.available() > 0) {
-					int i = in.read(tmp, 0, 1024);
-					if (i < 0)
-						break;
-				}
-				if (channel.isClosed()) {
+		while (true) {
+			while (in.available() > 0) {
+				int i = in.read(tmp, 0, 1024);
+				if (i < 0)
 					break;
-				}
-				try {
-					Thread.sleep(1000);
-				} catch (Exception ee) {
-				}
+				res.add(new String(tmp, 0, i));
 			}
-			
-			channel.disconnect();
-			session.disconnect();
-
-		} catch (Exception e) {
-			journal.error("Error while executing the command.", e);
+			if (channel.isClosed()) {
+				res.add("exit-status: " + channel.getExitStatus());
+				break;
+			}
+			try {
+				Thread.sleep(1000);
+			} catch (Exception ee) {
+			}
 		}
+		
+		channel.disconnect();
+		session.disconnect();
+		
+		return res;
+	}
+	
+	public List<String> localExec(String command) throws Exception {
+		List<String> res = new ArrayList<String>();
+		ProcessBuilder pb = new ProcessBuilder(command.split(" "));
+		pb.redirectErrorStream(true);
+		
+		Process p = pb.start();
+		BufferedReader stream = new BufferedReader(new InputStreamReader(p.getInputStream()));
+		String line = stream.readLine(); 
+		while (line != null) {
+			res.add(line);
+			line = stream.readLine();
+		}
+		stream.close();
+		
+		return res;
 	}
 }

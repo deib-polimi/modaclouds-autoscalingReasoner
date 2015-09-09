@@ -346,9 +346,10 @@ public class ConfigManager {
 		journal.info("objStoreIp={}", OBJECT_STORE_IP);
 		journal.info("objStorePort={}", OBJECT_STORE_PORT);
 		journal.info("objSotreModelPath={}", OBJECT_STORE_MODEL_PATH);
-
-
-
+	}
+	
+	public static boolean isRunningLocally() {
+		return (SSH_HOST.equals("localhost") || SSH_HOST.equals("127.0.0.1"));
 	}
 	
 }
