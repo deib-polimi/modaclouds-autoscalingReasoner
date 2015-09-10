@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -84,6 +85,12 @@ public class ConfigManager {
 		return LOCAL_TEMPORARY_FOLDER;
 	}
 	
+	public static Path getLocalTmp() {
+		if (LOCAL_TEMPORARY_FOLDER == null)
+			createNewLocalTmp();
+		return LOCAL_TEMPORARY_FOLDER;
+	}
+	
 	public static String getDate() {
 		Calendar c = Calendar.getInstance();
 		
@@ -99,25 +106,27 @@ public class ConfigManager {
 				);
 	}
 	
-	public static final String RUN_FILE = "AMPL.run"; //sets where temp AMPL file AMPL.run will be saved
-	public static final String RUN_MODEL_STANDARD = "model.mod";
-	public static final String RUN_MODEL_STARTING_SOLUTION = "modelstartingsolution.mod";
-	public static final String RUN_DATA = "data.dat"; //sets where temp AMPL file data.dat will be saved
-	public static String RUN_SOLVER = "/usr/optimization/cplex-studio/cplex/bin/x86-64_linux/cplexamp";
-	public static String RUN_AMPL_FOLDER = "/usr/optimization/ampl";
-	public static final String RUN_LOG = "solution.log"; //"log.tmp";//sets where temp AMPL file log.tmp will be saved
-	public static final String RUN_RES = "solution.sol"; //"shortrez.out";//sets where temp AMPL file shortrez.out will be saved
-	public static final String DEFAULTS_BASH = "bashAMPL.run";
+	public static String RUN_AMPL_SOLVER = "/usr/optimization/CPLEX_Studio_Preview126/cplex/bin/x86-64_linux/cplexamp";
+	public static String RUN_AMPL_EXECUTABLE = "/usr/optimization/ILOG/ampl20060626.cplex101/ampl";
+	
+	public static String RUN_CMPL_SOLVER = "cbc"; // glpk, cbc, scip, gurobi, cplex
+	public static String RUN_CMPL_EXECUTABLE = "/usr/share/Cmpl/cmpl";
+	
+//	public static final String RUN_FILE = "AMPL.run"; //sets where temp AMPL file AMPL.run will be saved
+//	public static final String RUN_MODEL_STANDARD = "model.mod";
+//	public static final String RUN_MODEL_STARTING_SOLUTION = "modelstartingsolution.mod";
+//	public static final String RUN_DATA = "data.dat"; //sets where temp AMPL file data.dat will be saved
+//	public static final String RUN_LOG = "solution.log"; //"log.tmp";//sets where temp AMPL file log.tmp will be saved
+//	public static final String RUN_RES = "solution.sol"; //"shortrez.out";//sets where temp AMPL file shortrez.out will be saved
+//	public static final String DEFAULTS_BASH = "bashAMPL.run";
 
-	public static final String RUN_FILE_CMPL = "CMPL.run";
-	public static final String RUN_MODEL_STANDARD_CMPL = "model.cmpl";
-	public static final String RUN_MODEL_STARTING_SOLUTION_CMPL = "modelstartingsolution.cmpl";
-	public static String RUN_SOLVER_CMPL = "cbc"; // glpk, cbc, scip, gurobi, cplex
-	public static final String RUN_DATA_CMPL = "data.cdat";
-	public static String RUN_CMPL_FOLDER = "/usr/share/Cmpl";
-	public static final String RUN_LOG_CMPL = "solution.log";
-	public static final String RUN_RES_CMPL = "solution.sol";
-	public static final String DEFAULTS_BASH_CMPL = "bashCMPL.run";
+//	public static final String RUN_FILE_CMPL = "CMPL.run";
+//	public static final String RUN_MODEL_STANDARD_CMPL = "model.cmpl";
+//	public static final String RUN_MODEL_STARTING_SOLUTION_CMPL = "modelstartingsolution.cmpl";
+//	public static final String RUN_DATA_CMPL = "data.cdat";
+//	public static final String RUN_LOG_CMPL = "solution.log";
+//	public static final String RUN_RES_CMPL = "solution.sol";
+//	public static final String DEFAULTS_BASH_CMPL = "bashCMPL.run";
 	public static int CMPL_THREADS = 4;
 	
 	public static int getCMPLThreads() {
@@ -344,16 +353,29 @@ public class ConfigManager {
 	}
 	
 	public static InputStream getInputStream(String filePath) {
+		Path p = getPathToFile(filePath);
+		if (p != null)
+			try {
+				return new FileInputStream(p.toFile());
+			} catch (Exception e) { }
+		
+		return null;
+	}
+	
+	public static Path getPathToFile(String filePath) {
 		File f = new File(filePath);
 		if (f.exists())
 			try {
-				return new FileInputStream(f);
+				return f.toPath();
 			} catch (Exception e) { }
 		
-		InputStream is = ConfigManager.class.getResourceAsStream(filePath);
-		if (is == null)
-			is = ConfigManager.class.getResourceAsStream("/" + filePath);
-		return is;
+		URL url = ConfigManager.class.getResource(filePath);
+		if (url == null)
+			url = ConfigManager.class.getResource("/" + filePath);
+		if (url == null)
+			return null;
+		else
+			return Paths.get(url.getPath());
 	}
 	
 	private static InputStream findConfigFile() {

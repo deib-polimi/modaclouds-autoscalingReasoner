@@ -1,11 +1,13 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing;
 
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
+
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Scanner;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,25 +17,38 @@ public class OptimizationOutputParser {
 	private static final Logger journal = LoggerFactory
 			.getLogger(OptimizationOutputParser.class);
 
-	private final static Charset ENCODING = StandardCharsets.UTF_8;
+//	private final static Charset ENCODING = StandardCharsets.UTF_8;
+	
+	public static final String OUTPUT_FILE_NAME = "output";
 	
 	public OptimizationOutputParser(){
 		
 	}
 	
-	public int[] parseExecutionOutput(String pathToOutput, int nTier){
+	public int[] parseExecutionOutput(Container container){
+		switch (ConfigManager.MATH_SOLVER) {
+		case AMPL:
+			return parseExecutionOutputAMPL(container);
+		case CMPL:
+//			return parseExecutionOutputCMPL(container);
+			journal.error("CMPL not supported at the moment.");
+		}
+		return new int[] {};
+	}
+	
+	private int[] parseExecutionOutputAMPL(Container container) {
+		Path output = Paths.get(ConfigManager.getLocalTmp().toString(), "executions", "execution_"+container.getId(), "IaaS_1", OUTPUT_FILE_NAME + ".out");
+		int nTier = container.getApplicationTier().size();
 		
 		int[] toReturn=new int[nTier];
-		try (BufferedReader br = new BufferedReader(new FileReader(pathToOutput))) {
-			String line;
-			int cont=0;
-			
+		try (Scanner sc = new Scanner(output)) {
 			for(int i=0; i< nTier;i++){
-				boolean finded=false;
+				boolean found = false;
 				
-				while ((line = br.readLine()) != null && finded==false) {
-					if(line.startsWith(String.valueOf(i+1))){
-						finded=true;
+				while (sc.hasNextLine() && found == false) {
+					String line = sc.nextLine();
+					if (line.startsWith(String.valueOf(i+1))){
+						found = true;
 						String[] splitted= line.split("\\s+");
 						toReturn[i]=Integer.parseInt(splitted[8]);
 					}

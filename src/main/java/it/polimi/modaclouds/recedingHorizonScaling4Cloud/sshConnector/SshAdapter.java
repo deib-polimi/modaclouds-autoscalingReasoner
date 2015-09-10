@@ -18,9 +18,13 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.sshConnector;
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.CreateFileCopy;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +72,65 @@ public class SshAdapter {
 		exec(String.format("cd %1$s && tr -d '\r' < %2$s > %2$s-bak && mv %2$s-bak %2$s",
 						folder,
 						file));
+	}
+	
+	private void sendAllFiles(String pathToFolder, Object... substitutions) throws Exception {
+		Path folder = ConfigManager.getPathToFile(pathToFolder);
+		if (folder == null)
+			throw new RuntimeException(pathToFolder + " folder not found!");
+		
+		List<File> files = getAllFiles(folder.toFile());
+		for (File f : files) {
+			journal.trace("Considering {}...", f);
+			String relativePath = f.toString().substring(folder.toString().length() + 1, f.toString().indexOf(f.getName()));
+			CreateFileCopy.print(f,
+					relativePath,
+					substitutions);
+//			sendFileToWorkingDir(f.toString().substring(folder.toString().length() + 1));
+		}
+		
+		journal.info("All files in the folder {} sent!", pathToFolder);
+	}
+	
+	private void sendAllFilesAMPL() throws Exception {
+		sendAllFiles("AMPL",
+				ConfigManager.RUN_AMPL_SOLVER,
+				ConfigManager.RUN_AMPL_EXECUTABLE);
+	}
+	
+	@SuppressWarnings("unused")
+	private void sendAllFilesCMPL() throws Exception {
+		sendAllFiles("CMPL",
+				ConfigManager.RUN_CMPL_SOLVER,
+				ConfigManager.RUN_CMPL_EXECUTABLE);
+	}
+	
+	private static List<File> getAllFiles(File dir) throws Exception {
+		if (dir == null || !dir.exists() || !dir.isDirectory())
+			throw new RuntimeException("The file argument isn't valid.");
+		
+		List<File> files = new ArrayList<>();
+		
+		List<File> dirs = new ArrayList<>();
+		dirs.add(dir);
+		for (int i = 0; i < dirs.size(); ++i) {
+			File d = dirs.get(i);
+			for (File f : d.listFiles()) {
+				if (f.isDirectory())
+					dirs.add(f);
+				else
+					files.add(f);
+			}
+		}
+		
+		return files;
+	}
+	
+	public static void main(String[] args) throws Exception {
+		ConfigManager.loadConfiguration();
+		
+		SshAdapter adapter = new SshAdapter();
+		adapter.sendAllFilesAMPL();
 	}
 
 	// main execution function

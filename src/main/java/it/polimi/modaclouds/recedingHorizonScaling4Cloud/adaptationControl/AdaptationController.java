@@ -70,21 +70,25 @@ public class AdaptationController extends TimerTask {
 		//parsing the output file
 		journal.info("Parsing the optimization output and getting the result");
 		OptimizationOutputParser outputParser= new OptimizationOutputParser();
-		int[] algorithmResult=outputParser.parseExecutionOutput("executions/execution_"+toAdapt.getId()+"/IaaS_1/output.out", toAdapt.getApplicationTier().size());
+		int[] algorithmResult=outputParser.parseExecutionOutput(toAdapt);
 		
 		//store the current dynamic input file and the output file at the end of the iteration
 		journal.info("Storing the dynamic input files for the current timestep");
 		List<String> toStore=new ArrayList<String>();
-		toStore.add("initialVM.dat");
-		toStore.add("mu.dat");
-		toStore.add("Delay.dat");
-		toStore.add("output.out");
-		toStore.add("Rcross.dat");
-		for(ApplicationTier t: toAdapt.getApplicationTier()){
-			toStore.add("workload_class"+t.getClassIndex()+".dat");
+		toStore.add(OptimizationInputWriter.DYNAMIC_INPUT_FILE_NAME + ".dat");
+		toStore.add(OptimizationOutputParser.OUTPUT_FILE_NAME + ".out");
+		{ // FIXME: previous version
+			
+			toStore.add("initialVM.dat");
+			toStore.add("mu.dat");
+			toStore.add("Delay.dat");
+			toStore.add("Rcross.dat");
+			for(ApplicationTier t: toAdapt.getApplicationTier()){
+				toStore.add("workload_class"+t.getClassIndex()+".dat");
+			}
 		}
 		try {
-			OptimizationInputWriter.storeFile(toStore, toAdapt.getId());
+			OptimizationInputWriter.storeFiles(toStore, toAdapt.getId());
 		} catch (ProjectFileSystemException e) {
 			e.printStackTrace();
 		}
