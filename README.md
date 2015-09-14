@@ -24,16 +24,16 @@ After that AutoscalingReasoner has been installed you can run it using the follo
 
 ```
 export OWN_IP=54.54.54.54
-export LISTENING_PORT=54.54.54.54
-export PATH_TO_DESIGN_TIME_MODEL=54.54.54.54
-export SSH_USER_NAME=54.54.54.54
-export SSH_HOST=54.54.54.54
-export SSH_PASSWORD=54.54.54.54
-export OPTIMIZATION_LAUNCHER=54.54.54.54
-export OPTIMIZATION_INPUT_FOLDER=54.54.54.54
-export OPTIMIZATION_OUTPUT_FILE=54.54.54.54
+export LISTENING_PORT=81790
+export PATH_TO_DESIGN_TIME_MODEL=./SP4OpsInitialModel.xml
+export SSH_USER_NAME=fakeuser
+export SSH_HOST=fakehost
+export SSH_PASSWORD=fakepass
+export OPTIMIZATION_LAUNCHER=./path-to-optimization-start-script
+export OPTIMIZATION_INPUT_FOLDER=./path-to-optimization-input-foler
+export OPTIMIZATION_OUTPUT_FILE=./path-to-optimization-solution-file
 export CLOUDML_WEBSOCKET_IP=54.54.54.54
-export CLOUDML_WEBSOCKET_PORT=54.54.54.54
+export CLOUDML_WEBSOCKET_PORT=9000
 cd target
 java -jar autoscaling-reasoner.jar
 ```
