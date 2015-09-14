@@ -2,7 +2,7 @@ MODAClouds AutoscalingReasoner
 =======================================
 
 #Description
-AutoscalingReasoner is a self-adaptation tool, developed in the context of the [MODAClouds](http://www.modaclouds.eu/) project, for multi-Cloud applications . Currently it is able to manage IaaS-based applications during the runtime, enacting a self-adaptation mechanism by means of a Virtual Machines autoscaling policy. This policy is realized exploiting a receding horizon control, based on the solution of a resource allocation optimization, formulated as a MILP (Mixed Integer Linear Programming) problem. For more information about the autoscaling policy you can refer to the following [link](http://weblab.ing.unimo.it/papers/MICAS2014.pdf).
+AutoscalingReasoner is a self-adaptation tool, developed in the context of the [MODAClouds](http://www.modaclouds.eu/) project, for multi-Cloud applications . Currently it is able to manage IaaS-based applications during the runtime, enacting a self-adaptation mechanism by means of a Virtual Machines autoscaling policy. This policy is realized exploiting a receding horizon control, based on the solution of a resource allocation optimization, formulated as a MILP (Mixed Integer Linear Programming) problem. This problem calculates the optimal number of virtual machines to allocate at each timestep ahead considered within a given optimization window based on a workload prediction, with the aim of minimizing the overall allocation cost while respecting the QoS requirements specified as thresholds over the average service response time. For more information about the autoscaling policy you can refer to the following [link](http://weblab.ing.unimo.it/papers/MICAS2014.pdf).
 
 
 
@@ -23,13 +23,28 @@ mvn clean install
 After that AutoscalingReasoner has been installed you can run it using the following commands, that also configure the required environmental variables, from the root of your local repository:
 
 ```
+export OWN_IP=54.54.54.54
+export OWN_IP=54.54.54.54
+export OWN_IP=54.54.54.54
+export OWN_IP=54.54.54.54
+export OWN_IP=54.54.54.54
+export OWN_IP=54.54.54.54
+export OWN_IP=54.54.54.54
+export OWN_IP=54.54.54.54
+export OWN_IP=54.54.54.54
+export OWN_IP=54.54.54.54
+export OWN_IP=54.54.54.54
 cd target
-java -jar autoscaling-reasoner.jar <ARGS>
+java -jar autoscaling-reasoner.jar
 ```
 
-The meaning of the required environmental variable is the following
+The required environmental variables can be also be specified with standard parameters. If you want to have a look at the variables meaning you can type:
 
-AutoscalingReasoner is also able to retrieve his configuration from system properties or from a configuration file. The look up order if the following: environmental variables 2) system properties 3) config file.
+```
+java -jar autoscaling-reasoner.jar -help
+```
+
+AutoscalingReasoner is also able to retrieve his configuration from system properties or from a configuration file. The look up order if the following: 2) environmental variables 3) system properties 1) config file 4) executable parameters.
 
 The initial adapation model file, whose path is specified using the PATH_TO_INITIAL_ADAPTATION_MODEL argument, is an xml file compliant with the XSD schema which can be found at https://github.com/deib-polimi/modaclouds-autoscalingReasoner/blob/master/src/main/resources/schemas/sarRuntimeMetamodel.xsd . An instance of this model is the following:
 
@@ -70,4 +85,4 @@ The initial adapation model file, whose path is specified using the PATH_TO_INIT
 </containers>
 ```
 
-In this example AutoscalingReasoner will manage a signle <applicationTier> composed of multiple <functionality>, which are basically web services, and of a set of 24 <responseTimeThreshold>, one for each hour of the day, that have to be respected. Application tiers are grouped by the capacity of the VM type on which they are hosted at runtime into multiple <containers>. Each <container> is characterized with some attributes concerning a specific VM type. For each container AutoscalingReasoner builds and solves an optimization model, currently calling a CPLEX server, and enacts some scaling actions derived from the solution.
+In this example AutoscalingReasoner will manage a signle ```<applicationTier>``` composed of multiple ```<functionality>```, which are basically web services, and of a set of 24 ```<responseTimeThreshold>```, one for each hour of the day, that have to be respected. Application tiers are grouped by the capacity of the VM type on which they are hosted at runtime into multiple ```<containers>```. Each ```<container>``` is characterized with some attributes concerning a specific VM type. For each container AutoscalingReasoner builds and solves an optimization model, currently calling a CPLEX server, and enacts the scaling actions derived from the solution. The initial model is also globally characterized by a timestepDuration, which indicate how often (in minutes) the adaptation process has to be performed, and and optimizationWindowLenght, which indicate the nuber of timesteps ahead to consider in the receding horizon control.
