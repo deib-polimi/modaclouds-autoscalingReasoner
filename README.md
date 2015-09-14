@@ -31,7 +31,7 @@ The meaning of the required environmental variable is the following
 
 AutoscalingReasoner is also able to retrieve his configuration from system properties or from a configuration file. The look up order if the following: environmental variables 2) system properties 3) config file.
 
-The initial adapation model file, whose path is specified using the [PATH_TO_INITIAL_ADAPTATION_MODEL] argument, is an xml file compliant with the XSD schema which can be found at https://github.com/deib-polimi/modaclouds-autoscalingReasoner/blob/master/src/main/resources/schemas/sarRuntimeMetamodel.xsd . An instance of this model is the following:
+The initial adapation model file, whose path is specified using the PATH_TO_INITIAL_ADAPTATION_MODEL argument, is an xml file compliant with the XSD schema which can be found at https://github.com/deib-polimi/modaclouds-autoscalingReasoner/blob/master/src/main/resources/schemas/sarRuntimeMetamodel.xsd . An instance of this model is the following:
 
 ```
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -70,4 +70,4 @@ The initial adapation model file, whose path is specified using the [PATH_TO_INI
 </containers>
 ```
 
-In this example AutoscalingReasoner will manage a signle [<applicationTier>] composed of multiple [<functionality>], which are basically web services, and of a set of 24 [<responseTimeThreshold>], one for each hour of the day, that have to be respected. Application tiers are grouped by the capacity of the VM type on which they are hosted at runtime into multiple [containers]. Each [container] is characterized with some attributes concerning a specific VM type. For each container AutoscalingReasoner builds and solves an optimization model, currently calling a CPLEX server, and enacts some scaling actions derived from the solution.
+In this example AutoscalingReasoner will manage a signle <applicationTier> composed of multiple <functionality>, which are basically web services, and of a set of 24 <responseTimeThreshold>, one for each hour of the day, that have to be respected. Application tiers are grouped by the capacity of the VM type on which they are hosted at runtime into multiple <containers>. Each <container> is characterized with some attributes concerning a specific VM type. For each container AutoscalingReasoner builds and solves an optimization model, currently calling a CPLEX server, and enacts some scaling actions derived from the solution.
