@@ -17,8 +17,10 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.sshConnector;
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing.OptimizationInputWriter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.CreateFileCopy;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ModelManager;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -57,7 +59,15 @@ public class SshAdapter {
 	}
 	
 	public void exec() throws Exception {
-		shell.exec();
+		switch (ConfigManager.MATH_SOLVER) {
+		case AMPL:
+			shell.exec(String.format("bash %s/%s %d", ConfigManager.RUN_WORKING_DIRECTORY, "run_Short.sh", 1));
+			break;
+		case CMPL:
+			journal.error("CMPL not supported at the moment.");
+//			shell.exec();
+			break;
+		}
 	}
 	
 	private void receiveFile(String localFile, String remoteFile) throws Exception {
@@ -74,10 +84,39 @@ public class SshAdapter {
 						file));
 	}
 	
-	private void sendAllFiles(String pathToFolder, Object... substitutions) throws Exception {
+	public void sendAllFiles() throws Exception {
+		switch (ConfigManager.MATH_SOLVER) {
+		case AMPL:
+			sendAllFilesAMPL();
+			break;
+		case CMPL:
+			journal.error("CMPL not supported at the moment.");
+//			sendAllFilesCMPL();
+			break;
+		}
+	}
+	
+	private void sendAllFilesAMPL() throws Exception {
+		sendAllFilesInFolder("AMPL",
+				ConfigManager.RUN_AMPL_EXECUTABLE,
+				ConfigManager.RUN_AMPL_SOLVER,
+				ConfigManager.RUN_WORKING_DIRECTORY,
+				"log.out");
+	}
+	
+	@SuppressWarnings("unused")
+	private void sendAllFilesCMPL() throws Exception {
+		sendAllFilesInFolder("CMPL",
+				ConfigManager.RUN_CMPL_EXECUTABLE,
+				ConfigManager.RUN_CMPL_SOLVER);
+	}
+	
+	private void sendAllFilesInFolder(String pathToFolder, Object... substitutions) throws Exception {
 		Path folder = ConfigManager.getPathToFile(pathToFolder);
 		if (folder == null)
 			throw new RuntimeException(pathToFolder + " folder not found!");
+		
+		exec(String.format("mkdir -p %s", ConfigManager.RUN_WORKING_DIRECTORY));
 		
 		List<File> files = getAllFiles(folder.toFile());
 		for (File f : files) {
@@ -86,23 +125,14 @@ public class SshAdapter {
 			CreateFileCopy.print(f,
 					relativePath,
 					substitutions);
-//			sendFileToWorkingDir(f.toString().substring(folder.toString().length() + 1));
+			
+			if (relativePath != null && relativePath.length() > 0)
+				exec(String.format("mkdir -p %s", ConfigManager.RUN_WORKING_DIRECTORY + "/" + relativePath));
+			
+			sendFileToWorkingDir(f.toString().substring(folder.toString().length() + 1));
 		}
 		
 		journal.info("All files in the folder {} sent!", pathToFolder);
-	}
-	
-	private void sendAllFilesAMPL() throws Exception {
-		sendAllFiles("AMPL",
-				ConfigManager.RUN_AMPL_SOLVER,
-				ConfigManager.RUN_AMPL_EXECUTABLE);
-	}
-	
-	@SuppressWarnings("unused")
-	private void sendAllFilesCMPL() throws Exception {
-		sendAllFiles("CMPL",
-				ConfigManager.RUN_CMPL_SOLVER,
-				ConfigManager.RUN_CMPL_EXECUTABLE);
 	}
 	
 	private static List<File> getAllFiles(File dir) throws Exception {
@@ -128,60 +158,63 @@ public class SshAdapter {
 	
 	public static void main(String[] args) throws Exception {
 		ConfigManager.loadConfiguration();
+				
+		List<Container> containers = ModelManager.getModel().getContainer();
+		for (Container toAdapt : containers) {
+			journal.info("Writing the dynamic input files for the current timestep");
+			OptimizationInputWriter siw= new OptimizationInputWriter();
+			siw.writeDynamicInput(toAdapt);
+		}
 		
-		SshAdapter adapter = new SshAdapter();
-		adapter.sendAllFilesAMPL();
+//		SshAdapter adapter = new SshAdapter();
+//		adapter.sendAllFiles();
+		
+		List<File> files = getAllFiles(Paths.get(ConfigManager.LOCAL_TEMPORARY_FOLDER.toString(), "executions").toFile());
+		for (File f : files) {
+			String fileName = f.toString();
+			journal.info("{}, second/data/{}", fileName, fileName.substring(fileName.lastIndexOf("IaaS_")));
+		}
 	}
 
 	// main execution function
 	public static void executeOptimization(Container c) {
-		switch (ConfigManager.MATH_SOLVER) {
-		case AMPL:
-			executeOptimizationAMPL(c);
-			break;
-		case CMPL:
-			executeOptimizationCMPL(c);
-			break;
-		}
-	}
-	
-	private static void executeOptimizationAMPL(Container c) {
 		SshAdapter adapter = new SshAdapter();
 		
 		try {
-			// this block uploads files data.dat and AMPL.run on AMPL server
-			File dir = new File("executions/execution_" + c.getId() + "/IaaS_1");
-			File[] directoryListing = dir.listFiles();
-
-			journal.info("Start sending all the optimization input files");
-
-			if (directoryListing != null) {
-				for (File child : directoryListing) {
-
-					if (!child.getAbsolutePath().contains("output")) {
-						journal.info("Sending file: " + child.toString());
-						adapter.sendFile(child.getAbsolutePath(),
-								ConfigManager.OPTIMIZATION_INPUT_FOLDER);
-
-						try {
-							Thread.sleep(10000); // 1000 milliseconds is one
-													// second.
-						} catch (InterruptedException e) {
-							Thread.currentThread().interrupt();
-						}
-					}
-				}
-			} else {
-				journal.info("Some error occurred: no files finded in the INPUT directory of the project file system");
-			}
+			journal.info("Sending all the files for solving the problem...");
+			adapter.sendAllFiles();
+			
+//			File dir = new File("executions/execution_" + c.getId() + "/IaaS_1");
+//			File[] directoryListing = dir.listFiles();
+//
+//			journal.info("Start sending all the optimization input files");
+//
+//			if (directoryListing != null) {
+//				for (File child : directoryListing) {
+//
+//					if (!child.getAbsolutePath().contains("output")) {
+//						journal.info("Sending file: " + child.toString());
+//						adapter.sendFile(child.getAbsolutePath(),
+//								ConfigManager.OPTIMIZATION_INPUT_FOLDER);
+//
+//						try {
+//							Thread.sleep(10000); // 1000 milliseconds is one
+//													// second.
+//						} catch (InterruptedException e) {
+//							Thread.currentThread().interrupt();
+//						}
+//					}
+//				}
+//			} else {
+//				journal.info("Some error occurred: no files finded in the INPUT directory of the project file system");
+//			}
 
 			// this block runs bash-script on AMPL server
-			journal.info("Solving the optimization problem");
+			journal.info("Solving the optimization problem...");
 			adapter.exec();
 
 			// this block downloads logs and results of AMPL
-			journal.info("Retrieving the optimization output file");
-			journal.info(ConfigManager.OPTIMIZATION_OUTPUT_FILE);
+			journal.info("Retrieving the optimization output file {}...", ConfigManager.OPTIMIZATION_OUTPUT_FILE);
 			adapter.receiveFile("executions/execution_" + c.getId()
 					+ "/IaaS_1/output.out",
 					ConfigManager.OPTIMIZATION_OUTPUT_FILE);
@@ -189,10 +222,6 @@ public class SshAdapter {
 			journal.error("Error while performing the optimization.", e);
 		}
 
-	}
-	
-	private static void executeOptimizationCMPL(Container c) {
-		journal.error("Solver not supported at the moment.");
 	}
 
 }

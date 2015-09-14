@@ -1,0 +1,37 @@
+param folder symbolic;
+
+for {j in 1..1}{
+	for {k in K}{
+		for {w in 1..Tw}{
+			#Assegnemento ai parametri locali dei valoti globali.
+			include noise.run;
+			let lpred[k,w]:=Lambda[k,j+w-1] * (1 + ns[w]);
+			let r_bar[k,w]:=Nres[k,j+w];
+			let d_bar[k,w]:=Nond[k,j+w];
+		}
+		let pred[k,j]:=lpred[k,1];
+		let iter[k]:=iter[k] + 1;
+	}
+	#Ottimizzazione del problema.
+	solve Global;
+	include check_infeasible.run;
+	let tot:= tot + (delta*sum{k in K}d[k,1] + rho*sum{k in K}r[k,1]);
+	printf "%%4.6f\n", cost > ('output/rawGlobal/cost.txt'); #debug
+	display cost;
+	for {k in K}{
+		#Salvataggio del parametri locale in quello locale.
+		let folder:= ('output/rawData/rawData'&k&'/');
+	}
+	for {k in K}{
+		let folder:= ('output/rawData/rawData'&k&'/');
+		#Aggiornamento dei parametri globali.
+		let Mres[k,j]:= r[k,1];
+		let Mond[k,j]:= d[k,1];
+		for {t in 1..nTon}{
+			let Nres[k,j+t]:=Nres[k,j+t] + Mres[k,j];
+			let Nond[k,j+t]:=Nond[k,j+t] + Mond[k,j];
+		}
+	}
+	include display_iteration.run; #debug
+}
+

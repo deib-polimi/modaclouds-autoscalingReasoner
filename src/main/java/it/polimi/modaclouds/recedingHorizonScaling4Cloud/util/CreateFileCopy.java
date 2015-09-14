@@ -23,7 +23,7 @@ public class CreateFileCopy {
 			ConfigManager.createNewLocalTmp();
 		
 		Path newFile;
-		if (relativePath != null && relativePath != "")
+		if (relativePath != null && relativePath.length() > 0)
 			newFile = Paths.get(ConfigManager.LOCAL_TEMPORARY_FOLDER.toString(), relativePath, orig.getName());
 		else
 			newFile = Paths.get(ConfigManager.LOCAL_TEMPORARY_FOLDER.toString(), orig.getName());

@@ -4,7 +4,7 @@
 
 	<groupId>it.polimi.modaclouds</groupId>
 	<artifactId>recedingHorizonScaling4Cloud</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<packaging>jar</packaging>
 
 	<name>recedingHorizonScaling4Cloud</name>
@@ -45,18 +45,18 @@
 			<artifactId>jcommander</artifactId>
 			<version>1.47</version>
 		</dependency>
-
+		
 		<dependency>
-			<groupId>org.eclipse.core</groupId>
-			<artifactId>org.eclipse.core.runtime</artifactId>
-			<version>3.7.0</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.eclipse.jetty.websocket</groupId>
-			<artifactId>websocket-client</artifactId>
-			<version>9.3.0.M1</version>
-		</dependency>
+            <groupId>javax.websocket</groupId>
+            <artifactId>javax.websocket-api</artifactId>
+            <version>1.1</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-container-jdk-client</artifactId>
+            <version>1.11</version>
+        </dependency>
 
 		<dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
@@ -72,7 +72,7 @@
 		<dependency>
 			<groupId>it.polimi.tower4clouds</groupId>
 			<artifactId>manager-api</artifactId>
-			<version>0.2.3</version>
+			<version>0.3</version>
 		</dependency>
 
 		<dependency>

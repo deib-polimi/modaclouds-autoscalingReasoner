@@ -1,0 +1,33 @@
+#Inizializzazione dei parametri relativi alle metriche analizzate
+
+param util{k in K, t in 1..(nTslot+nTon+1)}; #Average utilization with predicted workload.
+param pred{k in K, t in 1..(nTslot+nTon+1)}; #Global paramter of the predicted workload.
+param brokenSla{k in K}; #Number of time in which SLA is not followed.
+param brokenEquil{k in K};
+param satlevel{k in K}; #Saturation level of each class of request.
+param sat{k in K}; #Number of saturation for predicted workload.
+param Sat{k in K}; #Number of saturation for real workload.
+param resptime;
+param equil;
+param tot;
+param iter{k in K};
+
+
+let equil:=0;
+let resptime:=0;
+let tot:=0;
+for {k in K}{
+	let brokenSla[k]:=0;
+	let brokenEquil[k]:=0;
+	let sat[k]:=0;
+	let Sat[k]:=0;
+	let satlevel[k]:=0;
+	let iter[k]:=0;
+	for {j in 1..(nTslot+nTon+1)}{
+		let Nres[k,j]:=0;
+		let Nond[k,j]:=0;
+		let pred[k,j]:=0;
+		let util[k,j]:=0;
+		}
+	}
+

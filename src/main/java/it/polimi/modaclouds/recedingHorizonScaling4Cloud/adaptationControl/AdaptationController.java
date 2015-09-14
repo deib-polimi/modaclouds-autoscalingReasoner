@@ -42,7 +42,7 @@ public class AdaptationController extends TimerTask {
 		try {
 			Thread.sleep(5000);
 		} catch (InterruptedException e1) {
-			e1.printStackTrace();
+			journal.error("Error while waiting.", e1);
 		}
 		
 		//checking if a new tier has been deployed during the last timestep and need to have the instanceToScale set;
@@ -77,20 +77,10 @@ public class AdaptationController extends TimerTask {
 		List<String> toStore=new ArrayList<String>();
 		toStore.add(OptimizationInputWriter.DYNAMIC_INPUT_FILE_NAME + ".dat");
 		toStore.add(OptimizationOutputParser.OUTPUT_FILE_NAME + ".out");
-		{ // FIXME: previous version
-			
-			toStore.add("initialVM.dat");
-			toStore.add("mu.dat");
-			toStore.add("Delay.dat");
-			toStore.add("Rcross.dat");
-			for(ApplicationTier t: toAdapt.getApplicationTier()){
-				toStore.add("workload_class"+t.getClassIndex()+".dat");
-			}
-		}
 		try {
 			OptimizationInputWriter.storeFiles(toStore, toAdapt.getId());
 		} catch (ProjectFileSystemException e) {
-			e.printStackTrace();
+			journal.error("Error while storing the files.", e);
 		}
 		
 		//analyse the optimization output and enact adaptation actions
@@ -245,7 +235,7 @@ public class AdaptationController extends TimerTask {
 
 
 		} catch (TierNotFoudException e) {
-			e.printStackTrace();
+			journal.error("Tier not found.", e);
 		}
 		
 	}

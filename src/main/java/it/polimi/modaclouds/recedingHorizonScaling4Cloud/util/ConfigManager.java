@@ -139,7 +139,7 @@ public class ConfigManager {
 		return threads;
 	}
 
-	public static Solver MATH_SOLVER = Solver.CMPL;
+	public static Solver MATH_SOLVER = Solver.AMPL;
 	
 	public static enum Solver {
 		AMPL("AMPL"), CMPL("CMPL");

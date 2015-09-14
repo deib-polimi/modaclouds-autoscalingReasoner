@@ -52,7 +52,7 @@ public class AdaptationInitializer {
 		journal.info("Initializing the instances used for scale (the newest one) for each application tier");
 		ModelManager.initializeUsedForScale();
 		journal.info("Initial model:");
-		journal.info( ModelManager.printCurrentModel());
+		journal.info(ModelManager.printCurrentModel());
 
 		
 		//initialize the local file system

@@ -10,10 +10,12 @@ import java.util.TimerTask;
 
 public class HourClock {
 	Timer timer;
+	
+	public static final int HOUR_MILLIS = 3600*1000;
 
     public HourClock() {
         timer = new Timer();
-        timer.scheduleAtFixedRate(new HourUpdater(), 0, 3600*1000);
+        timer.scheduleAtFixedRate(new HourUpdater(), 0, HOUR_MILLIS);
 
     }
 

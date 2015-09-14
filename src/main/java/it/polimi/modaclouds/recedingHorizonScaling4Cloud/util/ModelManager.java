@@ -75,7 +75,7 @@ public class ModelManager {
 
 				jc = JAXBContext.newInstance(Containers.class);
 				Unmarshaller unmarshaller = jc.createUnmarshaller();
-				File xml = new File(ConfigManager.PATH_TO_DESIGN_TIME_MODEL);
+				File xml = ConfigManager.getPathToFile(ConfigManager.PATH_TO_DESIGN_TIME_MODEL).toFile();
 				model = (Containers) unmarshaller.unmarshal(xml);
 			} catch (JAXBException e) {
 				journal.error("Error while loading the model.", e);
@@ -150,12 +150,13 @@ public class ModelManager {
 		defaultDemand = Double.parseDouble(ConfigManager.DEFAULT_DEMAND);
 
 		// add runtime deployment model information
-		journal.info("Initializing cloudml connection.");
-		CloudMLAdapter cloudml = new CloudMLAdapter();
-
-		journal.info("Asking CloudML for the current deployment model");
-		cloudml.getDeploymentModel();
-
+		{ // TODO: Enable me!
+//		journal.info("Initializing cloudml connection.");
+//		CloudMLAdapter cloudml = new CloudMLAdapter();
+//
+//		journal.info("Asking CloudML for the current deployment model");
+//		cloudml.getDeploymentModel();
+		}
 	}
 
 	public static String printCurrentModel() {

@@ -15,7 +15,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.List;
+import java.util.Locale;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +33,15 @@ public class OptimizationInputWriter {
 	
 	public static final String STATIC_INPUT_FILE_NAME = "staticInput";
 	public static final String DYNAMIC_INPUT_FILE_NAME = "dynamicInput";
+	
+	private static DecimalFormat doubleFormatter() {
+		DecimalFormatSymbols otherSymbols = new DecimalFormatSymbols(Locale.getDefault());
+		otherSymbols.setDecimalSeparator('.');
+//		DecimalFormat myFormatter = new DecimalFormat("0.000#######", otherSymbols);
+		DecimalFormat myFormatter = new DecimalFormat("0.000", otherSymbols);
+		return myFormatter;
+	}
+	private static DecimalFormat doubleFormatter = doubleFormatter();
 	
 	public void writeDynamicInput(Container toAdapt){
 		switch (ConfigManager.MATH_SOLVER) {
@@ -52,64 +64,53 @@ public class OptimizationInputWriter {
 			
 			double tierDemand=ModelManager.getDemand(t.getId());
 			
+			//write service rate file
 			sb.append(String.format(
-					"let mu[%d]:=\n%f\n;",
+					"let mu[%d]:=\n%s\n;\n\n",
 					index,
-					tierDemand == 0 ? 0 : (1/tierDemand)));
+					doubleFormatter.format(tierDemand == 0 ? 0 : (1/tierDemand))));
 			
+			//write delay file
 			sb.append(String.format(
-					"let D[%d]:=\n%f\n;",
+					"let D[%d]:=\n%s\n;\n\n",
 					index,
-					t.getDelay()));
+					doubleFormatter.format(t.getDelay())));
 			
+			//write workload predictions file
 			for (int i=1; i<=ModelManager.getOptimizationWindow(); i++) {
 				sb.append(String.format(
-						"let Lambda[%d,%d]:=\n%f\n;",
+						"let Lambda[%d,%d]:=\n%s\n;\n",
 						index,
 						i,
-						ModelManager.getWorkloadPrediction(t.getId(), i)));
+						doubleFormatter.format(ModelManager.getWorkloadPrediction(t.getId(), i))));
 			}
 			
-			sb.append(String.format(
-					"let Rcross[%d]:=\n%s\n;",
-					index,
-					Double.toString(t.getResponseTimeThreshold().get(ModelManager.getCurrentHour()-1).getValue())));
+			sb.append("\n");
 			
+			int currentHour = ModelManager.getCurrentHour();
+			if (currentHour <= 0) {
+				// TODO: check this with Michele
+				journal.warn("This will cause a problem, increased the hour to 1.");
+				currentHour = 1;
+			}
+			
+			//write response time threshold file
+			sb.append(String.format(
+					"let Rcross[%d]:=\n%s\n;\n\n",
+					index,
+					doubleFormatter.format(t.getResponseTimeThreshold().get(currentHour-1).getValue())));
+			
+			//write file with number of intial VM
 			for (int j = 1; j <= ModelManager.getOptimizationWindow(); j++)
 				sb.append(String.format(
-						"let Nond[%d,%d]:=\n%d\n;",
+						"let Nond[%d,%d]:=\n%d\n;\n",
 						index,
 						(1+j),
 						ModelManager.getAvailableInstances(t.getId(), j).size()));
+			
+			sb.append("\n");
 
 			writeFile(DYNAMIC_INPUT_FILE_NAME + ".dat", toAdapt.getId(), sb.toString());
-			
-			{ // FIXME: previous version
-				
-				//write service rate file
-				writeFile("mu.dat", toAdapt.getId(),
-						String.format("let mu[%d]:=\n%f\n;", index, tierDemand == 0 ? 0 : (1/tierDemand)));
-				
-				//write delay file 
-				writeFile("Delay.dat", toAdapt.getId(),
-						String.format("let D[%d]:=\n%f\n;", index, t.getDelay()));
-	
-				//write workload predictions file
-				for(int i=1; i<=ModelManager.getOptimizationWindow(); i++){
-					writeFile("workload_class"+index+".dat", toAdapt.getId(),
-							String.format("let Lambda[%d,%d]:=\n%f\n;", index, i, ModelManager.getWorkloadPrediction(t.getId(), i)));
-				}
-				
-				//write response time threshold file
-				writeFile("Rcross.dat", toAdapt.getId(),
-						String.format("let Rcross[%d]:=\n%s\n;", index, Double.toString(t.getResponseTimeThreshold().get(ModelManager.getCurrentHour()-1).getValue())));
-	
-				
-				//write file with number of intial VM
-				for(int j=1; j<=ModelManager.getOptimizationWindow();j++)
-					writeFile("initialVM.dat", toAdapt.getId(),
-							String.format("let Nond[%d,%d]:=\n%d\n;", index, (1+j), ModelManager.getAvailableInstances(t.getId(), j).size()));
-			}
 		}	
 		
 	}
@@ -131,41 +132,29 @@ public class OptimizationInputWriter {
 			StringBuilder sb = new StringBuilder();
 			
 			sb.append(String.format(
-					"let C:=\n%f\n;",
-					c.getCapacity()));
+					"let C:=\n%s\n;\n\n",
+					doubleFormatter.format(c.getCapacity())));
 			
 			sb.append(String.format(
-					"let W:=\n%d\n;",
+					"let W:=\n%d\n;\n\n",
 					c.getMaxReserved()));
 			
 			sb.append(String.format(
-					"let delta:=\n%f\n;",
-					c.getOnDemandCost()));
+					"let delta:=\n%s\n;\n\n",
+					doubleFormatter.format(c.getOnDemandCost())));
 			
 			sb.append(String.format(
-					"let rho:=\n%f\n;",
-					c.getReservedCost()));
+					"let rho:=\n%s\n;\n\n",
+					doubleFormatter.format(c.getReservedCost())));
 			
 			writeFile(STATIC_INPUT_FILE_NAME + ".dat", c.getId(), sb.toString());
-			
-			{ // FIXME: previous version
-				
-				writeFile("C.dat", c.getId(),
-						String.format("let C:=\n%f\n;", c.getCapacity()));
-				writeFile("W.dat", c.getId(),
-						String.format("let W:=\n%d\n;", c.getMaxReserved()));
-				writeFile("delta.dat", c.getId(),
-						String.format("let delta:=\n%f\n;", c.getOnDemandCost()));
-				writeFile("rho.dat", c.getId(),
-						String.format("let rho:=\n%f\n;", c.getReservedCost()));
-			}
 		}
 	}
 
 	private void writeFile(String fileName, String execution,
 			String fileContent) {
 		File file = Paths.get(ConfigManager.getLocalTmp().toString(), "executions", "execution_"+execution, "IaaS_1", fileName).toFile();
-		file.mkdirs();
+		file.getParentFile().mkdirs();
 
 		try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file, true)))) {
 		    out.println(fileContent);
