@@ -64,6 +64,18 @@ public class Main {
 	@Parameter(names = "-defaultDemand")
 	public String defaultDemand = Float.toString(ConfigManager.DEFAULT_DEFAULT_DEMAND);
 	
+	@Parameter(names = "-solverName", description = "The name of the math solver that will be used (either AMPL or CMPL)")
+	public String solverName = ConfigManager.Solver.DEFAULT.getName();
+	
+	@Parameter(names = "-solverSolver", description = "The solver for the math solver used")
+	public String solverSolver = ConfigManager.Solver.DEFAULT == ConfigManager.Solver.AMPL ? ConfigManager.DEFAULT_RUN_AMPL_SOLVER : ConfigManager.DEFAULT_RUN_CMPL_SOLVER;
+	
+	@Parameter(names = "-solverExecutable", description = "The executable for the math solver used")
+	public String solverExecutable = ConfigManager.Solver.DEFAULT == ConfigManager.Solver.AMPL ? ConfigManager.DEFAULT_RUN_AMPL_EXECUTABLE : ConfigManager.DEFAULT_RUN_CMPL_EXECUTABLE;
+	
+	@Parameter(names = "-solverThreads", description = "The threads used by the math solver (it only make sense when running CMPL remotely)")
+	public String solverThreads = Integer.toString(ConfigManager.DEFAULT_CMPL_THREADS);
+	
 	public static String APP_NAME;
 	public static String APP_FILE_NAME;
 	public static String APP_VERSION;
@@ -122,10 +134,12 @@ public class Main {
 			System.exit(-1);
 		}
 		
-		journal.info("Autoscaling Reasoner started");
-		journal.info("Starting the initialization phase");
-		AdaptationInitializer initializer=new AdaptationInitializer();
-		initializer.initialize();
+		ConfigManager.printConfig();
+		
+//		journal.info("Autoscaling Reasoner started");
+//		journal.info("Starting the initialization phase");
+//		AdaptationInitializer initializer=new AdaptationInitializer();
+//		initializer.initialize();
 		
 	}
 
