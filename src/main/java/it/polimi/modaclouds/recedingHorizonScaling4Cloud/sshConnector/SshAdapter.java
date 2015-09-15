@@ -208,7 +208,7 @@ public class SshAdapter {
 				exec(String.format("mkdir -p %s/second/data/%s", ConfigManager.RUN_WORKING_DIRECTORY, relativePath.substring(0, relativePath.lastIndexOf('/'))));
 			
 			sendFile(fileName, ConfigManager.RUN_WORKING_DIRECTORY + "/second/data/" + relativePath);
-			fixFile(ConfigManager.RUN_WORKING_DIRECTORY, relativePath);
+			fixFile(ConfigManager.RUN_WORKING_DIRECTORY, "/second/data/" + relativePath);
 		}
 	}
 	
