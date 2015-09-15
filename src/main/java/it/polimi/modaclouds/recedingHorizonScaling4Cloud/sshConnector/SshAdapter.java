@@ -128,17 +128,20 @@ public class SshAdapter {
 		if (folder == null)
 			throw new RuntimeException(pathToFolder + " folder not found!");
 		
-		exec(String.format("mkdir -p %s", ConfigManager.RUN_WORKING_DIRECTORY));
-		
 		List<File> files = getAllFiles(folder.toFile());
+		
+		List<File> folders = getAllUniqueFolders(files);
+		for (File f : folders) {
+			String relativePath = f.toString().substring(folder.toString().length() + 1);
+			if (relativePath != null && relativePath.length() > 0)
+				exec(String.format("mkdir -p %s/%s", ConfigManager.RUN_WORKING_DIRECTORY, relativePath));
+		}
+		
 		for (File f : files) {
 			String relativePath = f.toString().substring(folder.toString().length() + 1, f.toString().indexOf(f.getName()));
 			CreateFileCopy.print(f,
 					relativePath,
 					substitutions);
-			
-			if (relativePath != null && relativePath.length() > 0)
-				exec(String.format("mkdir -p %s/%s", ConfigManager.RUN_WORKING_DIRECTORY, relativePath));
 			
 			sendFileToWorkingDir(f.toString().substring(folder.toString().length() + 1));
 		}
@@ -165,6 +168,31 @@ public class SshAdapter {
 		}
 		
 		return files;
+	}
+	
+	private static List<File> getAllUniqueFolders(List<File> files) throws Exception {
+		List<File> res = new ArrayList<>();
+		
+		for (File f : files) {
+			File folder = f.getParentFile();
+			if (!res.contains(folder))
+				res.add(folder);
+		}
+		
+		for (int i = 0; i < res.size(); ++i) {
+			File folder = res.get(i);
+			boolean goOn = true;
+			for (int j = i+1; j < res.size() && goOn; ++j) {
+				File otherFolder = res.get(j);
+				if (otherFolder.toString().contains(folder.toString())) {
+					res.remove(i);
+					i--;
+					goOn = false;
+				}
+			}
+		}
+		
+		return res;
 	}
 	
 	public static void main(String[] args) throws Exception {
@@ -197,6 +225,15 @@ public class SshAdapter {
 	
 	private void sendAllDataFiles(String type) throws Exception {
 		List<File> files = getAllFiles(Paths.get(ConfigManager.getLocalTmp().toString(), "executions").toFile());
+		
+		List<File> folders = getAllUniqueFolders(files);
+		for (File f : folders) {
+			String fileName = f.toString();
+			String relativePath = fileName.substring(fileName.lastIndexOf("IaaS_"));
+			if (relativePath != null && relativePath.length() > 0)
+				exec(String.format("mkdir -p %s/second/data/%s", ConfigManager.RUN_WORKING_DIRECTORY, relativePath));
+		}
+		
 		for (File f : files) {
 			String fileName = f.toString();
 			if (!fileName.contains(type))
@@ -204,11 +241,8 @@ public class SshAdapter {
 			
 			String relativePath = fileName.substring(fileName.lastIndexOf("IaaS_"));
 			
-			if (relativePath != null && relativePath.length() > 0)
-				exec(String.format("mkdir -p %s/second/data/%s", ConfigManager.RUN_WORKING_DIRECTORY, relativePath.substring(0, relativePath.lastIndexOf('/'))));
-			
 			sendFile(fileName, ConfigManager.RUN_WORKING_DIRECTORY + "/second/data/" + relativePath);
-			fixFile(ConfigManager.RUN_WORKING_DIRECTORY, "/second/data/" + relativePath);
+			fixFile(ConfigManager.RUN_WORKING_DIRECTORY, "second/data/" + relativePath);
 		}
 	}
 	
