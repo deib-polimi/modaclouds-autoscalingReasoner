@@ -1,10 +1,10 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl;
 
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector.MainObserver;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConnector.MonitoringConnector;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing.OptimizationInputWriter;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.sshConnector.SshAdapter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ModelManager;
 import it.polimi.tower4clouds.rules.MonitoringRules;
@@ -28,14 +28,8 @@ public class AdaptationInitializer {
 	
 	public void initialize() {
 						
-		//loading the config.xml file
-		try {
-			ConfigManager.loadConfiguration();
-			ConfigManager.printConfig();
-		} catch (ConfigurationFileException e) {
-			journal.error("Error while considering the config.xml file.", e);
-		}
-
+		//printing the configuration
+		ConfigManager.printConfig();
 		
 		//loading the internal model
 		journal.info("Loading the model");
@@ -52,7 +46,7 @@ public class AdaptationInitializer {
 		journal.info("Initializing the instances used for scale (the newest one) for each application tier");
 		ModelManager.initializeUsedForScale();
 		journal.info("Initial model:");
-		journal.info( ModelManager.printCurrentModel());
+		journal.info(ModelManager.printCurrentModel());
 
 		
 		//initialize the local file system
@@ -106,6 +100,13 @@ public class AdaptationInitializer {
 		OptimizationInputWriter siw= new OptimizationInputWriter();
 		siw.writeStaticInput(ModelManager.getModel());
 		journal.info("Static input files wrote");
+		
+		try {
+			SshAdapter.sendFixedFiles();
+			journal.info("Models and static files sent");
+		} catch (Exception e) {
+			journal.error("Error while generating and sending the fixed files.", e);
+		}
 		
 		//starting a clock changing the response time thresholds for each application tier every hour
 		journal.info("Starting a clock changing the threshold in the model every hour for each managed application tier");

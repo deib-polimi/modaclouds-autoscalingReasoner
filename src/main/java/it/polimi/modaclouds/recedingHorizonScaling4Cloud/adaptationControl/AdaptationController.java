@@ -42,7 +42,7 @@ public class AdaptationController extends TimerTask {
 		try {
 			Thread.sleep(5000);
 		} catch (InterruptedException e1) {
-			e1.printStackTrace();
+			journal.error("Error while waiting.", e1);
 		}
 		
 		//checking if a new tier has been deployed during the last timestep and need to have the instanceToScale set;
@@ -70,23 +70,17 @@ public class AdaptationController extends TimerTask {
 		//parsing the output file
 		journal.info("Parsing the optimization output and getting the result");
 		OptimizationOutputParser outputParser= new OptimizationOutputParser();
-		int[] algorithmResult=outputParser.parseExecutionOutput("executions/execution_"+toAdapt.getId()+"/IaaS_1/output.out", toAdapt.getApplicationTier().size());
+		int[] algorithmResult=outputParser.parseExecutionOutput(toAdapt);
 		
 		//store the current dynamic input file and the output file at the end of the iteration
 		journal.info("Storing the dynamic input files for the current timestep");
 		List<String> toStore=new ArrayList<String>();
-		toStore.add("initialVM.dat");
-		toStore.add("mu.dat");
-		toStore.add("Delay.dat");
-		toStore.add("output.out");
-		toStore.add("Rcross.dat");
-		for(ApplicationTier t: toAdapt.getApplicationTier()){
-			toStore.add("workload_class"+t.getClassIndex()+".dat");
-		}
+		toStore.add(OptimizationInputWriter.DYNAMIC_INPUT_FILE_NAME + ".dat");
+		toStore.add(OptimizationOutputParser.OUTPUT_FILE_NAME + ".out");
 		try {
-			OptimizationInputWriter.storeFile(toStore, toAdapt.getId());
+			OptimizationInputWriter.storeFiles(toStore, toAdapt.getId());
 		} catch (ProjectFileSystemException e) {
-			e.printStackTrace();
+			journal.error("Error while storing the files.", e);
 		}
 		
 		//analyse the optimization output and enact adaptation actions
@@ -241,7 +235,7 @@ public class AdaptationController extends TimerTask {
 
 
 		} catch (TierNotFoudException e) {
-			e.printStackTrace();
+			journal.error("Tier not found.", e);
 		}
 		
 	}

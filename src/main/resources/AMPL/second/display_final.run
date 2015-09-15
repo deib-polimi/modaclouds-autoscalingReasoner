@@ -1,0 +1,19 @@
+#Scrittura nel file logs.txt di tutti i dati
+
+#Parametri locali.
+display d,r,d_bar,r_bar > ('output/rawGlobal/logs.txt');
+
+#Rumore.
+#display ns > ('output/rawGlobal/logs.txt');
+
+#Service rate, Delay e Response Time limite.
+display {k in K} (1/mu[k], mu[k], D[k], Rcross[k], brokenSla[k]) > ('output/rawGlobal/logs.txt');
+
+#Livello di saturazione e conteggio degli sforamenti.
+display {k in K} (satlevel[k], Sat[k], sat[k]) > ('output/rawGlobal/logs.txt');
+
+#Pararmetri globali e utilizzo rispetto all'oracolo e alla predizione.
+display Mond, Mres, Nond, Nres, Lambda, pred, util > ('output/rawGlobal/logs.txt');
+
+display tot, sum{k in K}brokenEquil[k], sum{k in K}brokenSla[k], sum{k in K}sat[k] > ('output/rawGlobal/total.txt');
+

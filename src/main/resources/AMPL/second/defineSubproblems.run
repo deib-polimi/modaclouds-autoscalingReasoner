@@ -1,0 +1,20 @@
+
+#Separable problem
+problem Separable:
+r,d,
+
+equilibrium,
+Rthreshold,
+
+cost;
+
+
+#Global problem
+problem Global:
+r,d,
+
+equilibrium,
+Rthreshold,
+maxVm,
+
+cost;

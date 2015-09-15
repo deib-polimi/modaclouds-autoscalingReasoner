@@ -29,49 +29,40 @@ public class Main {
 	public String sshPass = null;
 	
 	@Parameter(names = "-sshHost", description = "The IP of the machine with the AMPL/CMPL binaries")
-	public String sshHost = null;
-	
-	@Parameter(names = "-pathToOptInputFolder")
-	public String pathToOptInputFolder = null;
-	
-	@Parameter(names = "-pathToOptLauncher")
-	public String pathToOptLauncher = null;
-	
-	@Parameter(names = "-pathToOptOutputFile")
-	public String pathToOptOutputFile = null;
+	public String sshHost = ConfigManager.DEFAULT_IP;
 	
 	@Parameter(names = "-objStorIp", description = "The IP of the object store")
-	public String objStorIp = "127.0.0.1";
+	public String objStorIp = ConfigManager.DEFAULT_IP;
 	
 	@Parameter(names = "-objStorePort", description = "The port of the object store")
-	public String objStorePort = "20622";
+	public String objStorePort = Integer.toString(ConfigManager.DEFAULT_OBJECT_STORE_PORT);
 	
 	@Parameter(names = "-objStorePathToModel", description = "The path in the object store where the data will be saved")
-	public String objStorePathToModel = "/v1/collections/S4C/objects/OpsConfig/data";
+	public String objStorePathToModel = ConfigManager.DEFAULT_OBJECT_STORE_MODEL_PATH;
 	
 	@Parameter(names = "-ownIp", description = "The IP of this machine")
-	public String ownIp = "127.0.0.1";
+	public String ownIp = ConfigManager.DEFAULT_IP;
 	
 	@Parameter(names = "-t4cIp", description = "The IP of the monitoring platform")
-	public String t4cIp = "127.0.0.1";
+	public String t4cIp = ConfigManager.DEFAULT_IP;
 	
 	@Parameter(names = "-cloudMLIp", description = "The IP of the CloudML daemon")
-	public String cloudMLIp = "127.0.0.1";
+	public String cloudMLIp = ConfigManager.DEFAULT_IP;
 	
 	@Parameter(names = "-listeningPort", description = "The port to which this program is going to listen")
-	public String listeningPort = "8179";
+	public String listeningPort = Integer.toString(ConfigManager.DEFAULT_LISTENING_PORT);
 	
 	@Parameter(names = "-t4cPort", description = "The port of the monitoring platform")
-	public String t4cPort = "8170";
+	public String t4cPort = Integer.toString(ConfigManager.DEFAULT_MONITORING_PLATFORM_PORT);
 	
 	@Parameter(names = "-cloudMLPort", description = "The port of the CloudML daemon")
-	public String cloudMLPort = "9000";
+	public String cloudMLPort = Integer.toString(ConfigManager.DEFAULT_CLOUDML_WEBSOCKET_PORT);
 	
 	@Parameter(names = "-pathToDesignAdaptationModel")
 	public String pathToDesignAdaptationModel = null;
 	
 	@Parameter(names = "-defaultDemand")
-	public String defaultDemand = "0";
+	public String defaultDemand = Float.toString(ConfigManager.DEFAULT_DEFAULT_DEMAND);
 	
 	public static String APP_NAME;
 	public static String APP_FILE_NAME;

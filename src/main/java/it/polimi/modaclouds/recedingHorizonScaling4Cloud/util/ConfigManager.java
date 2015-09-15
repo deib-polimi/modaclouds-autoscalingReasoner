@@ -8,6 +8,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -34,23 +37,39 @@ public class ConfigManager {
 	private static final Logger journal = LoggerFactory
 			.getLogger(ConfigManager.class);
 
-	public static String OWN_IP;
-	public static String LISTENING_PORT;
+	public static final String DEFAULT_IP = "127.0.0.1";
+	
+	public static String OWN_IP = DEFAULT_IP;
+	
+	public static final int DEFAULT_LISTENING_PORT = 81790;
+	public static String LISTENING_PORT = Integer.toString(DEFAULT_LISTENING_PORT);
+	
 	public static String PATH_TO_DESIGN_TIME_MODEL;
+	
 	public static String SSH_USER_NAME;
 	public static String SSH_HOST;
 	public static String SSH_PASSWORD;
-	public static String OPTIMIZATION_LAUNCHER;
-	public static String OPTIMIZATION_INPUT_FOLDER;
-	public static String OPTIMIZATION_OUTPUT_FILE;
-	public static String CLOUDML_WEBSOCKET_IP;
-	public static String CLOUDML_WEBSOCKET_PORT;
-	public static String MONITORING_PLATFORM_IP;
-	public static String MONITORING_PLATFORM_PORT;
-	public static String DEFAULT_DEMAND;
-	public static String OBJECT_STORE_IP;
-	public static String OBJECT_STORE_PORT;
-	public static String OBJECT_STORE_MODEL_PATH;
+	
+	public static String CLOUDML_WEBSOCKET_IP = DEFAULT_IP;
+	
+	public static final int DEFAULT_CLOUDML_WEBSOCKET_PORT = 9030;
+	public static String CLOUDML_WEBSOCKET_PORT = Integer.toString(DEFAULT_CLOUDML_WEBSOCKET_PORT);
+	
+	public static String MONITORING_PLATFORM_IP = DEFAULT_IP;
+	
+	public static final int DEFAULT_MONITORING_PLATFORM_PORT = 8170;
+	public static String MONITORING_PLATFORM_PORT = Integer.toString(DEFAULT_MONITORING_PLATFORM_PORT);
+	
+	public static final float DEFAULT_DEFAULT_DEMAND = 0f;
+	public static String DEFAULT_DEMAND = Float.toString(DEFAULT_DEFAULT_DEMAND);
+	
+	public static String OBJECT_STORE_IP = DEFAULT_IP;
+	
+	public static final int DEFAULT_OBJECT_STORE_PORT = 20622;
+	public static String OBJECT_STORE_PORT = Integer.toString(DEFAULT_OBJECT_STORE_PORT);
+	
+	public static final String DEFAULT_OBJECT_STORE_MODEL_PATH = "/v1/collections/S4C/objects/OpsConfig/data";
+	public static String OBJECT_STORE_MODEL_PATH = DEFAULT_OBJECT_STORE_MODEL_PATH;
 	
 	private static boolean isAlreadySet=false;
 
@@ -69,7 +88,7 @@ public class ConfigManager {
 
 	public static void setWorkingSubDirectory() {
 		if (isRunningLocally())
-			RUN_WORKING_DIRECTORY = LOCAL_TEMPORARY_FOLDER.toString();
+			RUN_WORKING_DIRECTORY = getLocalTmp().toString();
 		else
 			RUN_WORKING_DIRECTORY = DEFAULTS_WORKING_DIRECTORY + "/" + DEFAULTS_WORKING_DIRECTORY_PREFIX + "/" + getDate();
 	}
@@ -81,6 +100,12 @@ public class ConfigManager {
 			journal.error("Error while creating the temporary folder. Reverting to /tmp/" + DEFAULTS_WORKING_DIRECTORY_PREFIX + ".", e);
 			LOCAL_TEMPORARY_FOLDER = Paths.get("/tmp", DEFAULTS_WORKING_DIRECTORY_PREFIX);
 		}
+		return LOCAL_TEMPORARY_FOLDER;
+	}
+	
+	public static Path getLocalTmp() {
+		if (LOCAL_TEMPORARY_FOLDER == null)
+			createNewLocalTmp();
 		return LOCAL_TEMPORARY_FOLDER;
 	}
 	
@@ -99,25 +124,11 @@ public class ConfigManager {
 				);
 	}
 	
-	public static final String RUN_FILE = "AMPL.run"; //sets where temp AMPL file AMPL.run will be saved
-	public static final String RUN_MODEL_STANDARD = "model.mod";
-	public static final String RUN_MODEL_STARTING_SOLUTION = "modelstartingsolution.mod";
-	public static final String RUN_DATA = "data.dat"; //sets where temp AMPL file data.dat will be saved
-	public static String RUN_SOLVER = "/usr/optimization/cplex-studio/cplex/bin/x86-64_linux/cplexamp";
-	public static String RUN_AMPL_FOLDER = "/usr/optimization/ampl";
-	public static final String RUN_LOG = "solution.log"; //"log.tmp";//sets where temp AMPL file log.tmp will be saved
-	public static final String RUN_RES = "solution.sol"; //"shortrez.out";//sets where temp AMPL file shortrez.out will be saved
-	public static final String DEFAULTS_BASH = "bashAMPL.run";
-
-	public static final String RUN_FILE_CMPL = "CMPL.run";
-	public static final String RUN_MODEL_STANDARD_CMPL = "model.cmpl";
-	public static final String RUN_MODEL_STARTING_SOLUTION_CMPL = "modelstartingsolution.cmpl";
-	public static String RUN_SOLVER_CMPL = "cbc"; // glpk, cbc, scip, gurobi, cplex
-	public static final String RUN_DATA_CMPL = "data.cdat";
-	public static String RUN_CMPL_FOLDER = "/usr/share/Cmpl";
-	public static final String RUN_LOG_CMPL = "solution.log";
-	public static final String RUN_RES_CMPL = "solution.sol";
-	public static final String DEFAULTS_BASH_CMPL = "bashCMPL.run";
+	public static String RUN_AMPL_SOLVER = "/usr/optimization/CPLEX_Studio_Preview126/cplex/bin/x86-64_linux/cplexamp";
+	public static String RUN_AMPL_EXECUTABLE = "/usr/optimization/ILOG/ampl20060626.cplex101/ampl";
+	
+	public static String RUN_CMPL_SOLVER = "cbc"; // glpk, cbc, scip, gurobi, cplex
+	public static String RUN_CMPL_EXECUTABLE = "/usr/share/Cmpl/cmpl";
 	public static int CMPL_THREADS = 4;
 	
 	public static int getCMPLThreads() {
@@ -130,7 +141,7 @@ public class ConfigManager {
 		return threads;
 	}
 
-	public static Solver MATH_SOLVER = Solver.CMPL;
+	public static Solver MATH_SOLVER = Solver.AMPL;
 	
 	public static enum Solver {
 		AMPL("AMPL"), CMPL("CMPL");
@@ -212,7 +223,7 @@ public class ConfigManager {
 								
 								String key=map.getNamedItem("name").getNodeValue();
 								String value=map.getNamedItem("value").getNodeValue();
-								setProperty(key, value);
+								setPropertyIfNotNull(key, value);
 							}		
 		}
 	}
@@ -223,9 +234,6 @@ public class ConfigManager {
 	public static final String PROPERTY_NAME_SSH_USER_NAME = "MODACLOUDS_AR_SSH_USER";
 	public static final String PROPERTY_NAME_SSH_HOST = "MODACLOUDS_AR_SSH_HOST";
 	public static final String PROPERTY_NAME_SSH_PASSWORD = "MODACLOUDS_AR_SSH_PASS";
-	public static final String PROPERTY_NAME_OPTIMIZATION_LAUNCHER = "MODACLOUDS_AR_OPT_LAUNCHER";
-	public static final String PROPERTY_NAME_OPTIMIZATION_INPUT_FOLDER = "MODACLOUDS_AR_OPT_IN_FOLDER";
-	public static final String PROPERTY_NAME_OPTIMIZATION_OUTPUT_FILE = "MODACLOUDS_AR_OPT_OUT_FOLDER";
 	public static final String PROPERTY_NAME_CLOUDML_WEBSOCKET_IP = "MODACLOUDS_AR_CLOUDML_IP";
 	public static final String PROPERTY_NAME_CLOUDML_WEBSOCKET_PORT = "MODACLOUDS_AR_CLOUDML_PORT";
 	public static final String PROPERTY_NAME_MONITORING_PLATFORM_IP = "MODACLOUDS_TOWER4CLOUDS_MANAGER_IP";
@@ -242,9 +250,6 @@ public class ConfigManager {
 		setPropertyIfNotNull("SSH_USER_NAME", System.getenv(PROPERTY_NAME_SSH_USER_NAME));
 		setPropertyIfNotNull("SSH_HOST", System.getenv(PROPERTY_NAME_SSH_HOST));
 		setPropertyIfNotNull("SSH_PASSWORD", System.getenv(PROPERTY_NAME_SSH_PASSWORD));
-		setPropertyIfNotNull("OPTIMIZATION_LAUNCHER", System.getenv(PROPERTY_NAME_OPTIMIZATION_LAUNCHER));
-		setPropertyIfNotNull("OPTIMIZATION_INPUT_FOLDER", System.getenv(PROPERTY_NAME_OPTIMIZATION_INPUT_FOLDER));
-		setPropertyIfNotNull("OPTIMIZATION_OUTPUT_FILE", System.getenv(PROPERTY_NAME_OPTIMIZATION_OUTPUT_FILE));
 		setPropertyIfNotNull("CLOUDML_WEBSOCKET_IP", System.getenv(PROPERTY_NAME_CLOUDML_WEBSOCKET_IP));
 		setPropertyIfNotNull("CLOUDML_WEBSOCKET_PORT", System.getenv(PROPERTY_NAME_CLOUDML_WEBSOCKET_PORT));
 		setPropertyIfNotNull("MONITORING_PLATFORM_IP", System.getenv(PROPERTY_NAME_MONITORING_PLATFORM_IP));
@@ -262,9 +267,6 @@ public class ConfigManager {
 		setPropertyIfNotNull("SSH_USER_NAME", System.getProperty(PROPERTY_NAME_SSH_USER_NAME));
 		setPropertyIfNotNull("SSH_HOST", System.getProperty(PROPERTY_NAME_SSH_HOST));
 		setPropertyIfNotNull("SSH_PASSWORD", System.getProperty(PROPERTY_NAME_SSH_PASSWORD));
-		setPropertyIfNotNull("OPTIMIZATION_LAUNCHER", System.getProperty(PROPERTY_NAME_OPTIMIZATION_LAUNCHER));
-		setPropertyIfNotNull("OPTIMIZATION_INPUT_FOLDER", System.getProperty(PROPERTY_NAME_OPTIMIZATION_INPUT_FOLDER));
-		setPropertyIfNotNull("OPTIMIZATION_OUTPUT_FILE", System.getProperty(PROPERTY_NAME_OPTIMIZATION_OUTPUT_FILE));
 		setPropertyIfNotNull("CLOUDML_WEBSOCKET_IP", System.getProperty(PROPERTY_NAME_CLOUDML_WEBSOCKET_IP));
 		setPropertyIfNotNull("CLOUDML_WEBSOCKET_PORT", System.getProperty(PROPERTY_NAME_CLOUDML_WEBSOCKET_PORT));
 		setPropertyIfNotNull("MONITORING_PLATFORM_IP", System.getProperty(PROPERTY_NAME_MONITORING_PLATFORM_IP));
@@ -282,9 +284,6 @@ public class ConfigManager {
 		setPropertyIfNotNull("SSH_USER_NAME", paramsMap.get("sshUser"));
 		setPropertyIfNotNull("SSH_HOST", paramsMap.get("sshHost"));
 		setPropertyIfNotNull("SSH_PASSWORD", paramsMap.get("sshPass"));
-		setPropertyIfNotNull("OPTIMIZATION_LAUNCHER", paramsMap.get("pathToOptLauncher"));
-		setPropertyIfNotNull("OPTIMIZATION_INPUT_FOLDER", paramsMap.get("pathToOptInputFolder"));
-		setPropertyIfNotNull("OPTIMIZATION_OUTPUT_FILE", paramsMap.get("pathToOptOutputFile"));
 		setPropertyIfNotNull("CLOUDML_WEBSOCKET_IP", paramsMap.get("cloudMLIp"));
 		setPropertyIfNotNull("CLOUDML_WEBSOCKET_PORT", paramsMap.get("cloudMLPort"));
 		setPropertyIfNotNull("MONITORING_PLATFORM_IP", paramsMap.get("t4cIp"));
@@ -303,7 +302,7 @@ public class ConfigManager {
 		clearFileSystem();
 		
 		for(Container c: ModelManager.getModel().getContainer()){
-			file = new File("executions/execution_"+c.getId()+"/IaaS_1");
+			file = Paths.get(getLocalTmp().toString(), "executions", "execution_"+c.getId(), "IaaS_1").toFile();
 			boolean success=file.mkdirs();
 			
 			if(!success)
@@ -316,7 +315,7 @@ public class ConfigManager {
 	}
 	
 	private static void clearFileSystem(){
-		File file = new File("executions/");
+		File file = Paths.get(getLocalTmp().toString(), "executions").toFile();
 		
 		if(file.exists() & file.isDirectory()){
 			try {
@@ -340,20 +339,35 @@ public class ConfigManager {
 				setFromArguments(paramsMap);
 			}
 			isAlreadySet = true;
+			
+			initFolders();
 		}
 	}
 	
 	public static InputStream getInputStream(String filePath) {
+		Path p = getPathToFile(filePath);
+		if (p != null)
+			try {
+				return new FileInputStream(p.toFile());
+			} catch (Exception e) { }
+		
+		return null;
+	}
+	
+	public static Path getPathToFile(String filePath) {
 		File f = new File(filePath);
 		if (f.exists())
 			try {
-				return new FileInputStream(f);
+				return f.toPath();
 			} catch (Exception e) { }
 		
-		InputStream is = ConfigManager.class.getResourceAsStream(filePath);
-		if (is == null)
-			is = ConfigManager.class.getResourceAsStream("/" + filePath);
-		return is;
+		URL url = ConfigManager.class.getResource(filePath);
+		if (url == null)
+			url = ConfigManager.class.getResource("/" + filePath);
+		if (url == null)
+			return null;
+		else
+			return Paths.get(url.getPath());
 	}
 	
 	private static InputStream findConfigFile() {
@@ -367,104 +381,30 @@ public class ConfigManager {
 	}
 	
 	private static void setPropertyIfNotNull(String key, String value){
-		if (key != null && value != null)
+		if (key != null && key.length() > 0 && value != null && value.length() > 0)
 			setProperty(key, value);
 	}
 	
 	private static void setProperty(String key, String value){
-		switch (key) {
-		case "OWN_IP":
-			OWN_IP=value;
-			break;
-			
-		case "LISTENING_PORT":
-			LISTENING_PORT=value;
-			break;
-			
-		case "PATH_TO_DESIGN_TIME_MODEL":
-			PATH_TO_DESIGN_TIME_MODEL=value;
-			break;
-
-		case "SSH_USER_NAME":
-			SSH_USER_NAME=value;
-			break;
-
-		case "SSH_HOST":
-			SSH_HOST=value;
-			break;
-
-		case "SSH_PASSWORD":
-			SSH_PASSWORD=value;
-			break;
-
-		case "OPTIMIZATION_LAUNCHER":
-			OPTIMIZATION_LAUNCHER=value;
-			break;
-
-		case "OPTIMIZATION_INPUT_FOLDER":
-			OPTIMIZATION_INPUT_FOLDER=value;
-			break;
-
-		case "OPTIMIZATION_OUTPUT_FILE":
-			OPTIMIZATION_OUTPUT_FILE=value;
-			break;
-			
-		case "CLOUDML_WEBSOCKET_IP":
-			CLOUDML_WEBSOCKET_IP=value;
-			break;
-
-		case "CLOUDML_WEBSOCKET_PORT":
-			CLOUDML_WEBSOCKET_PORT=value;
-			break;
-
-		case "MONITORING_PLATFORM_IP":
-			MONITORING_PLATFORM_IP=value;
-			break;
-
-		case "MONITORING_PLATFORM_PORT":
-			MONITORING_PLATFORM_PORT=value;
-			break;
-
-		case "DEFAULT_DEMAND":
-			DEFAULT_DEMAND=value;
-			break;
-			
-		case "OBJECT_STORE_IP":
-				OBJECT_STORE_IP=value;
-			break;
-			
-		case "OBJECT_STORE_PORT":
-			OBJECT_STORE_PORT=value;
-			break;
-		
-		case "OBJECT_STORE_MODEL_PATH":
-			OBJECT_STORE_MODEL_PATH=value;
-			break;
-
-		default:
-			break;
+		try {
+			Field f = ConfigManager.class.getField(key);
+			f.set(null, value);
+		} catch (Exception e) {
+			journal.error("Error while setting the value of the property.", e);
 		}
 	}
 	
 	public static void printConfig(){
-		
-		journal.info("ownIp={}", OWN_IP);
-		journal.info("t4cIp={}", MONITORING_PLATFORM_IP);
-		journal.info("cloudMLIp={}", CLOUDML_WEBSOCKET_IP);
-		journal.info("listeningPort={}", LISTENING_PORT);
-		journal.info("t4cPort={}", MONITORING_PLATFORM_PORT);
-		journal.info("cloudMLPort={}", CLOUDML_WEBSOCKET_PORT);
-		journal.info("pathToDesignAdapatationModel={}", PATH_TO_DESIGN_TIME_MODEL);
-		journal.info("sshUser={}", SSH_USER_NAME);
-		journal.info("sshPass={}", SSH_PASSWORD);
-		journal.info("sshHost={}", SSH_HOST);
-		journal.info("pathToOptInputFolder={}", OPTIMIZATION_INPUT_FOLDER);
-		journal.info("pathToOptLauncher={}", OPTIMIZATION_LAUNCHER);
-		journal.info("pathToOptOutputFile={}", OPTIMIZATION_OUTPUT_FILE);
-		journal.info("defaultDemand={}", DEFAULT_DEMAND);
-		journal.info("objStoreIp={}", OBJECT_STORE_IP);
-		journal.info("objStorePort={}", OBJECT_STORE_PORT);
-		journal.info("objSotreModelPath={}", OBJECT_STORE_MODEL_PATH);
+		try {
+			Field[] fs = ConfigManager.class.getFields();
+			for (Field f : fs) {
+				if (Modifier.isFinal(f.getModifiers()))
+					continue;
+				journal.info("{} = {}", f.getName(), f.get(null));
+			}
+		} catch (Exception e) {
+			journal.error("Error while getting the value of the properties.", e);
+		}
 	}
 	
 	public static boolean isRunningLocally() {

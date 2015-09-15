@@ -1,0 +1,21 @@
+#Assegnamento dei parametri.
+
+
+param nClasses:=%6$d; #number of classes
+
+param epsilon:=0.001; #precision
+
+#param Tlong; #extended numeber of interval of time
+let Tlong:=24;
+
+#param Tslot; #duration of one timeslot, measure in minutes
+let Tslot:=5;
+
+#param nTon; #number of the discrete time interval for the analysis
+let nTon:=60/Tslot;
+
+#param nTslot; #number of samples in one hour
+let nTslot:=(Tlong*60)/Tslot;
+
+#param lpred{k in K, t in 1..nTon}; #prediction of workload
+let {k in K, t in 1..nTon} lpred[k,t]:=0;

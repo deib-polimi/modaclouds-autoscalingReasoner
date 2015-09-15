@@ -1,0 +1,26 @@
+cd %3$s/second;
+reset;
+option log_file '../%4$s';
+
+#CPLEX SOLVER
+option solver '%2$s';
+option cplex_options 'lpdisplay=0';
+option cplex_options 'concurrentopt';
+option cplex_options 'threads=0';
+option randseed 3;
+
+#load models
+commands loadModels.run;
+
+#sub problems definition
+commands defineSubproblems.run;
+
+data input/staticInput.dat;
+data input/dynamicInput.dat;
+
+#solution
+include engine.run;
+include display_final.run;
+
+
+close ../%4$s;

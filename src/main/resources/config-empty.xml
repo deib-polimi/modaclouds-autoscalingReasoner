@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<properties>
+	<property name="OWN_IP" value="" />
+	<property name="LISTENING_PORT" value="" />
+	<property name="PATH_TO_DESIGN_TIME_MODEL" value="" />
+	<property name="SSH_HOST" value="" />
+	<property name="SSH_USER_NAME" value="" />
+	<property name="SSH_PASSWORD" value="" />
+	<property name="CLOUDML_WEBSOCKET_IP" value="" />
+	<property name="CLOUDML_WEBSOCKET_PORT" value="" />
+	<property name="MONITORING_PLATFORM_IP" value="" />
+	<property name="MONITORING_PLATFORM_PORT" value="" />
+	<property name="DEFAULT_DEMAND" value="" />
+</properties>

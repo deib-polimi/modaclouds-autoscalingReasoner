@@ -1,0 +1,8 @@
+#Caricamento del modello e dei dati.
+
+model model.mod;
+
+data modelRand.dat;
+data model.dat;
+
+include initParam.run;

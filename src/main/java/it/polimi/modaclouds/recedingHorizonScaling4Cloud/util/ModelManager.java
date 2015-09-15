@@ -23,8 +23,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -43,10 +41,11 @@ import org.apache.http.impl.client.HttpClients;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ModelManager {
-	private static final Logger journal = Logger.getLogger(ModelManager.class
-			.getName());
+	private static final Logger journal = LoggerFactory.getLogger(ModelManager.class);
 	private static Containers model;
 	private static double defaultDemand;
 	private static int currentHour = 0;
@@ -57,37 +56,36 @@ public class ModelManager {
 	}
 
 	public static Containers getModel() {
-		if (model != null) {
-			return model;
-		}
-
-		return null;
+		if (model == null)
+			loadModel();
+		
+		return model;
 	}
 
 	public static void loadModel() {
 
-		journal.log(Level.INFO, "Getting the design time model.");
+		journal.info("Getting the design time model.");
 
 		//if a path to the initial adaptation model is received as argument this is used as a first choise
 		if (ConfigManager.PATH_TO_DESIGN_TIME_MODEL != null) {
 			
-			journal.log(Level.INFO, "A path to the initial adaptation model has been specified; loading the initial model from it.");
+			journal.info("A path to the initial adaptation model has been specified; loading the initial model from it.");
 			try {
 				JAXBContext jc;
 
 				jc = JAXBContext.newInstance(Containers.class);
 				Unmarshaller unmarshaller = jc.createUnmarshaller();
-				File xml = new File(ConfigManager.PATH_TO_DESIGN_TIME_MODEL);
+				File xml = ConfigManager.getPathToFile(ConfigManager.PATH_TO_DESIGN_TIME_MODEL).toFile();
 				model = (Containers) unmarshaller.unmarshal(xml);
 			} catch (JAXBException e) {
-				e.printStackTrace();
+				journal.error("Error while loading the model.", e);
 			}
 		}
 		// if no path to the initial adaptation model is received as argument the default choice is to retrieve it from the object store
 		//is no object store parameters are provided default one are used
 		else {
 			
-			journal.log(Level.INFO, "No path specified for the initial adaptation model; trying to retrieve the model from the object store.");
+			journal.info("No path specified for the initial adaptation model; trying to retrieve the model from the object store.");
 
 			CloseableHttpResponse response1 = null;
 
@@ -95,14 +93,17 @@ public class ModelManager {
 
 				CloseableHttpClient httpclient = HttpClients.createDefault();
 				HttpGet httpGet = new HttpGet(
-						"http://109.231.121.64:20622/v1/collections/S4C/objects/OpsConfig/data");
+						String.format("http://%s:%s%s",
+								ConfigManager.OBJECT_STORE_IP,
+								ConfigManager.OBJECT_STORE_PORT,
+								ConfigManager.OBJECT_STORE_MODEL_PATH));
 				httpGet.setHeader("accept", "*/*");
 				response1 = httpclient.execute(httpGet);
 
-				System.out.println(response1.getStatusLine());
+				journal.info("{}", response1.getStatusLine());
 				HttpEntity entity1 = response1.getEntity();
 
-				File targetFile = new File("s4cOpsInitialModel.xml");
+				File targetFile = Paths.get(ConfigManager.getLocalTmp().toString(), "s4cOpsInitialModel.xml").toFile();
 				OutputStream outStream = new FileOutputStream(targetFile);
 
 				byte[] buffer = new byte[8 * 1024];
@@ -116,28 +117,26 @@ public class ModelManager {
 
 				jc = JAXBContext.newInstance(Containers.class);
 				Unmarshaller unmarshaller = jc.createUnmarshaller();
-				File xml = new File(targetFile.getAbsolutePath());
-				model = (Containers) unmarshaller.unmarshal(xml);
+				model = (Containers) unmarshaller.unmarshal(targetFile);
 			} catch (ClientProtocolException e) {
-				e.printStackTrace();
+				journal.error("Error in the client protocol.", e);
 			} catch (IOException e) {
-				e.printStackTrace();
+				journal.error("Error while accessing the file.", e);
 			} catch (JAXBException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				journal.error("Error while parsing the XML file.", e);
 			} finally {
 				try {
 					response1.close();
 				} catch (IOException e) {
-					e.printStackTrace();
+					journal.error("Error while closing the response object.", e);
 				}
 			}
 
 		}
 
 		// setting the class indexes
-		journal.log(Level.INFO,
-				"Setting the class indexes for applucation tiers.");
+		journal.info(
+				"Setting the class indexes for application tiers.");
 
 		for (Container c : model.getContainer()) {
 			int index = 1;
@@ -151,13 +150,13 @@ public class ModelManager {
 		defaultDemand = Double.parseDouble(ConfigManager.DEFAULT_DEMAND);
 
 		// add runtime deployment model information
-		journal.log(Level.INFO, "Initializing cloudml connection.");
-		CloudMLAdapter cloudml = new CloudMLAdapter();
-
-		journal.log(Level.INFO,
-				"Asking CloudML for the current deployment model");
-		cloudml.getDeploymentModel();
-
+		{ // TODO: Enable me!
+//		journal.info("Initializing cloudml connection.");
+//		CloudMLAdapter cloudml = new CloudMLAdapter();
+//
+//		journal.info("Asking CloudML for the current deployment model");
+//		cloudml.getDeploymentModel();
+		}
 	}
 
 	public static String printCurrentModel() {
@@ -169,19 +168,19 @@ public class ModelManager {
 					.newInstance("it.polimi.modaclouds.recedingHorizonScaling4Cloud.model");
 			Marshaller marshaller = context.createMarshaller();
 			marshaller.setProperty("jaxb.formatted.output", Boolean.TRUE);
-			File currentModel = Paths.get("model_" + currentTimeStep + ".xml")
+			File currentModel = Paths.get(ConfigManager.getLocalTmp().toString(), "model_" + currentTimeStep + ".xml")
 					.toFile();
 			OutputStream out = new FileOutputStream(currentModel);
 			StringWriter sw = new StringWriter();
 
 			marshaller.marshal(model, out);
 			marshaller.marshal(model, sw);
-			journal.log(Level.INFO, sw.toString());
+			journal.info(sw.toString());
 			return sw.toString();
 		} catch (JAXBException e) {
-			e.printStackTrace();
+			journal.error("Error while writing the XML file.", e);
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			journal.error("File not found!", e);
 		}
 
 		return null;
@@ -521,8 +520,7 @@ public class ModelManager {
 			stopped.setStatus("STOPPED");
 			stopped.setStartTime(null);
 
-			System.out.println("Instance " + instanceId
-					+ " successfully stopped");
+			journal.info("Instance {} successfully stopped", instanceId);
 
 		}
 	}
@@ -556,10 +554,9 @@ public class ModelManager {
 						.newXMLGregorianCalendar(c);
 				started.setStartTime(date2);
 			} catch (DatatypeConfigurationException e) {
-				e.printStackTrace();
+				journal.error("Error while dealing with the datatype.", e);
 			}
-			System.out.println("Instance " + instanceId
-					+ " successfully restarted");
+			journal.info("Instance {} successfully restarted", instanceId);
 		}
 
 	}
@@ -573,9 +570,9 @@ public class ModelManager {
 			date2 = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
 			instance.setStartTime(date2);
 		} catch (DatatypeConfigurationException e) {
-			e.printStackTrace();
+			journal.error("Error while dealing with the datatype.", e);
 		}
-		System.out.println("Instance " + toRenew + " successfully restarted");
+		journal.info("Instance {} successfully restarted", toRenew);
 	}
 
 	public static void addInstance(String instanceId, String tierId,
@@ -594,7 +591,7 @@ public class ModelManager {
 						.newXMLGregorianCalendar(c);
 				toAdd.setStartTime(date2);
 			} catch (DatatypeConfigurationException e) {
-				e.printStackTrace();
+				journal.error("Error while dealing with the datatype.", e);
 			}
 		} else {
 			toAdd.setStartTime(null);

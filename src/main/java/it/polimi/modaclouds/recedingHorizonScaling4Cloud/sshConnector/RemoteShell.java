@@ -188,7 +188,7 @@ public class RemoteShell {
 
 			session.disconnect();
 		} catch (Exception e) {
-			e.printStackTrace();
+			journal.error("Error while performing the command.", e);
 			try {
 				if (fos != null)
 					fos.close();
@@ -279,7 +279,7 @@ public class RemoteShell {
 			session.disconnect();
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			journal.error("Error while performing the command.", e);
 			try {
 				if (fis != null)
 					fis.close();
