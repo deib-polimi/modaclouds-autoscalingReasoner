@@ -18,24 +18,16 @@ public class Shell {
 	protected String user;
 	protected String password;
 	protected String key;
-	
-	protected String defaultCommand;
 
 	public Shell(String ip, String user, String password, String key) {
 		this.ip = ip;
 		this.user = user;
 		this.password = password;
 		this.key = key;
-		
-		defaultCommand = "bash " + ConfigManager.OPTIMIZATION_LAUNCHER;
 	}
 
 	public Shell() {
 		this(ConfigManager.SSH_HOST, ConfigManager.SSH_USER_NAME, ConfigManager.SSH_PASSWORD, null);
-	}
-	
-	public List<String> exec() throws Exception {
-		return exec(defaultCommand);
 	}
 	
 	public List<String> exec(String command) throws Exception {

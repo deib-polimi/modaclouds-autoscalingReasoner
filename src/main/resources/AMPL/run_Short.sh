@@ -2,7 +2,9 @@
 #!/bin/bash
 #
 
-indexnIaaSMAX=$1
+cd %3$s
+
+indexnIaaSMAX=%5$d
 indexnIaaS=1
 
 base="second"
@@ -19,11 +21,12 @@ do
 	orig="$data/IaaS_"$indexnIaaS
 	outputFileName="amplOut_"$indexnIaaS".out";
 	timeFileName="time_"$indexnIaaS".txt";
+	
+	mkdir -p $dest
 
 	#Copy of the dat file created by the parser in "$input/"
 	cp $orig/staticInput.dat $input/
     cp $orig/dynamicInput.dat $input/
-	cp $orig/initialVM.dat $input/
 
 
 	#Execution of the test

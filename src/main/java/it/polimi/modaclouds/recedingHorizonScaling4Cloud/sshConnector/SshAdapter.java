@@ -40,8 +40,6 @@ public class SshAdapter {
 	private Shell shell;
 	
 	public SshAdapter() {
-		ConfigManager.initFolders();
-		
 		shell = new Shell();
 	}
 	
@@ -50,7 +48,7 @@ public class SshAdapter {
 	}
 	
 	public void sendFileToWorkingDir(String file) throws Exception {
-		sendFile(Paths.get(ConfigManager.LOCAL_TEMPORARY_FOLDER.toString(), file).toString(), ConfigManager.RUN_WORKING_DIRECTORY + "/" + file);
+		sendFile(Paths.get(ConfigManager.getLocalTmp().toString(), file).toString(), ConfigManager.RUN_WORKING_DIRECTORY + "/" + file);
 		fixFile(ConfigManager.RUN_WORKING_DIRECTORY, file);
 	}
 	
@@ -58,10 +56,18 @@ public class SshAdapter {
 		shell.exec(command);
 	}
 	
+	public int getNumberOfProviders() {
+		return 1;
+	}
+	
+	public int getNumberOfClasses() {
+		return 1;
+	}
+	
 	public void exec() throws Exception {
 		switch (ConfigManager.MATH_SOLVER) {
 		case AMPL:
-			shell.exec(String.format("bash %s/%s %d", ConfigManager.RUN_WORKING_DIRECTORY, "run_Short.sh", 1));
+			shell.exec(String.format("bash %s/%s", ConfigManager.RUN_WORKING_DIRECTORY, "run_Short.sh"));
 			break;
 		case CMPL:
 			journal.error("CMPL not supported at the moment.");
@@ -75,7 +81,7 @@ public class SshAdapter {
 	}
 	
 	public void receiveFileFromWorkingDir(String file) throws Exception {
-		receiveFile(Paths.get(ConfigManager.LOCAL_TEMPORARY_FOLDER.toString(), file).toString(), ConfigManager.RUN_WORKING_DIRECTORY + "/" + file);
+		receiveFile(Paths.get(ConfigManager.getLocalTmp().toString(), file).toString(), ConfigManager.RUN_WORKING_DIRECTORY + "/" + file);
 	}
 	
 	private void fixFile(String folder, String file) throws Exception {
@@ -84,10 +90,10 @@ public class SshAdapter {
 						file));
 	}
 	
-	public void sendAllFiles() throws Exception {
+	public void sendAllModelFiles() throws Exception {
 		switch (ConfigManager.MATH_SOLVER) {
 		case AMPL:
-			sendAllFilesAMPL();
+			sendAllModelFilesAMPL();
 			break;
 		case CMPL:
 			journal.error("CMPL not supported at the moment.");
@@ -96,19 +102,25 @@ public class SshAdapter {
 		}
 	}
 	
-	private void sendAllFilesAMPL() throws Exception {
+	private void sendAllModelFilesAMPL() throws Exception {
 		sendAllFilesInFolder("AMPL",
 				ConfigManager.RUN_AMPL_EXECUTABLE,
 				ConfigManager.RUN_AMPL_SOLVER,
 				ConfigManager.RUN_WORKING_DIRECTORY,
-				"log.out");
+				"log.out",
+				getNumberOfProviders(),
+				getNumberOfClasses());
 	}
 	
 	@SuppressWarnings("unused")
-	private void sendAllFilesCMPL() throws Exception {
+	private void sendAllModelFilesCMPL() throws Exception {
 		sendAllFilesInFolder("CMPL",
 				ConfigManager.RUN_CMPL_EXECUTABLE,
-				ConfigManager.RUN_CMPL_SOLVER);
+				ConfigManager.RUN_CMPL_SOLVER,
+				ConfigManager.RUN_WORKING_DIRECTORY,
+				"log.out",
+				getNumberOfProviders(),
+				getNumberOfClasses());
 	}
 	
 	private void sendAllFilesInFolder(String pathToFolder, Object... substitutions) throws Exception {
@@ -120,14 +132,13 @@ public class SshAdapter {
 		
 		List<File> files = getAllFiles(folder.toFile());
 		for (File f : files) {
-			journal.trace("Considering {}...", f);
 			String relativePath = f.toString().substring(folder.toString().length() + 1, f.toString().indexOf(f.getName()));
 			CreateFileCopy.print(f,
 					relativePath,
 					substitutions);
 			
 			if (relativePath != null && relativePath.length() > 0)
-				exec(String.format("mkdir -p %s", ConfigManager.RUN_WORKING_DIRECTORY + "/" + relativePath));
+				exec(String.format("mkdir -p %s/%s", ConfigManager.RUN_WORKING_DIRECTORY, relativePath));
 			
 			sendFileToWorkingDir(f.toString().substring(folder.toString().length() + 1));
 		}
@@ -166,13 +177,68 @@ public class SshAdapter {
 			siw.writeDynamicInput(toAdapt);
 		}
 		
-//		SshAdapter adapter = new SshAdapter();
-//		adapter.sendAllFiles();
+		journal.info("Writing the static input files for the current timestep");
+		OptimizationInputWriter siw= new OptimizationInputWriter();
+		siw.writeStaticInput(ModelManager.getModel());
 		
-		List<File> files = getAllFiles(Paths.get(ConfigManager.LOCAL_TEMPORARY_FOLDER.toString(), "executions").toFile());
+		SshAdapter adapter = new SshAdapter();
+		
+		adapter.sendAllModelFiles();
+		adapter.sendAllDataFiles("static");
+		adapter.sendAllDataFiles("dynamic");
+		
+		adapter.exec();
+		
+		for (Container c : containers)
+			adapter.receiveResults(c);
+		
+		journal.info("End!");
+	}
+	
+	private void sendAllDataFiles(String type) throws Exception {
+		List<File> files = getAllFiles(Paths.get(ConfigManager.getLocalTmp().toString(), "executions").toFile());
 		for (File f : files) {
 			String fileName = f.toString();
-			journal.info("{}, second/data/{}", fileName, fileName.substring(fileName.lastIndexOf("IaaS_")));
+			if (!fileName.contains(type))
+				continue;
+			
+			String relativePath = fileName.substring(fileName.lastIndexOf("IaaS_"));
+			
+			if (relativePath != null && relativePath.length() > 0)
+				exec(String.format("mkdir -p %s/second/data/%s", ConfigManager.RUN_WORKING_DIRECTORY, relativePath.substring(0, relativePath.lastIndexOf('/'))));
+			
+			sendFile(fileName, ConfigManager.RUN_WORKING_DIRECTORY + "/second/data/" + relativePath);
+			fixFile(ConfigManager.RUN_WORKING_DIRECTORY, relativePath);
+		}
+	}
+	
+	public static void sendFixedFiles() throws Exception {
+		SshAdapter adapter = new SshAdapter();
+		adapter.sendAllModelFiles();
+		adapter.sendAllDataFiles("static");
+	}
+	
+	public void receiveResults(Container c) throws Exception {
+		switch (ConfigManager.MATH_SOLVER) {
+		case AMPL:
+			receiveResultsAMPL(c);
+			break;
+		case CMPL:
+			journal.error("CMPL not supported at the moment.");
+//			receiveResultsCMPL(c);
+			break;
+		}
+	}
+	
+	public void receiveResultsAMPL(Container c) throws Exception {
+		for (int i = 1; i <= getNumberOfProviders(); ++i) {
+			try {
+				receiveFile(
+						Paths.get(ConfigManager.getLocalTmp().toString(), "executions", "execution_" + c.getId(), "IaaS_" + i, "output.out").toString(),
+						ConfigManager.RUN_WORKING_DIRECTORY + "/second/data/IaaS_" + i + "/rawGlobal/dati.txt");
+			} catch (Exception e) {
+				journal.error("Error while retrieving the results.", e);
+			}
 		}
 	}
 
@@ -181,43 +247,16 @@ public class SshAdapter {
 		SshAdapter adapter = new SshAdapter();
 		
 		try {
-			journal.info("Sending all the files for solving the problem...");
-			adapter.sendAllFiles();
-			
-//			File dir = new File("executions/execution_" + c.getId() + "/IaaS_1");
-//			File[] directoryListing = dir.listFiles();
-//
-//			journal.info("Start sending all the optimization input files");
-//
-//			if (directoryListing != null) {
-//				for (File child : directoryListing) {
-//
-//					if (!child.getAbsolutePath().contains("output")) {
-//						journal.info("Sending file: " + child.toString());
-//						adapter.sendFile(child.getAbsolutePath(),
-//								ConfigManager.OPTIMIZATION_INPUT_FOLDER);
-//
-//						try {
-//							Thread.sleep(10000); // 1000 milliseconds is one
-//													// second.
-//						} catch (InterruptedException e) {
-//							Thread.currentThread().interrupt();
-//						}
-//					}
-//				}
-//			} else {
-//				journal.info("Some error occurred: no files finded in the INPUT directory of the project file system");
-//			}
+			journal.info("Sending all the optimization dynamic input files...");
+			adapter.sendAllDataFiles("dynamic");
 
 			// this block runs bash-script on AMPL server
 			journal.info("Solving the optimization problem...");
 			adapter.exec();
 
 			// this block downloads logs and results of AMPL
-			journal.info("Retrieving the optimization output file {}...", ConfigManager.OPTIMIZATION_OUTPUT_FILE);
-			adapter.receiveFile("executions/execution_" + c.getId()
-					+ "/IaaS_1/output.out",
-					ConfigManager.OPTIMIZATION_OUTPUT_FILE);
+			journal.info("Retrieving the optimization output files...");
+			adapter.receiveResults(c);
 		} catch (Exception e) {
 			journal.error("Error while performing the optimization.", e);
 		}

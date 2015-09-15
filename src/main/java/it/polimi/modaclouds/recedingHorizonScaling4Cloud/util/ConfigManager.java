@@ -70,7 +70,7 @@ public class ConfigManager {
 
 	public static void setWorkingSubDirectory() {
 		if (isRunningLocally())
-			RUN_WORKING_DIRECTORY = LOCAL_TEMPORARY_FOLDER.toString();
+			RUN_WORKING_DIRECTORY = getLocalTmp().toString();
 		else
 			RUN_WORKING_DIRECTORY = DEFAULTS_WORKING_DIRECTORY + "/" + DEFAULTS_WORKING_DIRECTORY_PREFIX + "/" + getDate();
 	}
@@ -349,6 +349,8 @@ public class ConfigManager {
 				setFromArguments(paramsMap);
 			}
 			isAlreadySet = true;
+			
+			initFolders();
 		}
 	}
 	

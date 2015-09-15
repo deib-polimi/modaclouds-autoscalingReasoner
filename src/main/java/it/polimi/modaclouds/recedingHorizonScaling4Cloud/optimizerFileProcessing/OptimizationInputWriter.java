@@ -110,7 +110,7 @@ public class OptimizationInputWriter {
 			
 			sb.append("\n");
 
-			writeFile(DYNAMIC_INPUT_FILE_NAME + ".dat", toAdapt.getId(), sb.toString());
+			writeFile(DYNAMIC_INPUT_FILE_NAME + ".dat", toAdapt.getId() + File.separator + "dynamic", sb.toString());
 		}	
 		
 	}
@@ -147,7 +147,7 @@ public class OptimizationInputWriter {
 					"let rho:=\n%s\n;\n\n",
 					doubleFormatter.format(c.getReservedCost())));
 			
-			writeFile(STATIC_INPUT_FILE_NAME + ".dat", c.getId(), sb.toString());
+			writeFile(STATIC_INPUT_FILE_NAME + ".dat", c.getId() + File.separator + "static", sb.toString());
 		}
 	}
 

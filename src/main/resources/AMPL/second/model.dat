@@ -1,7 +1,7 @@
 #Assegnamento dei parametri.
 
 
-param nClasses:=1; #number of classes
+param nClasses:=%6$d; #number of classes
 
 param epsilon:=0.001; #precision
 

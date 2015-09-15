@@ -19,14 +19,11 @@ public class CreateFileCopy {
 		if (orig == null || !orig.exists() || orig.isDirectory())
 			throw new RuntimeException("Your file doesn't exist or is not a file at all!");
 		
-		if (ConfigManager.LOCAL_TEMPORARY_FOLDER == null)
-			ConfigManager.createNewLocalTmp();
-		
 		Path newFile;
 		if (relativePath != null && relativePath.length() > 0)
-			newFile = Paths.get(ConfigManager.LOCAL_TEMPORARY_FOLDER.toString(), relativePath, orig.getName());
+			newFile = Paths.get(ConfigManager.getLocalTmp().toString(), relativePath, orig.getName());
 		else
-			newFile = Paths.get(ConfigManager.LOCAL_TEMPORARY_FOLDER.toString(), orig.getName());
+			newFile = Paths.get(ConfigManager.getLocalTmp().toString(), orig.getName());
 		newFile.toFile().getParentFile().mkdirs();
 		
 		try (PrintWriter out = new PrintWriter(newFile.toFile())) {
