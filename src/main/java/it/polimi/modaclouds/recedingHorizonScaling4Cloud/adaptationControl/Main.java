@@ -136,10 +136,10 @@ public class Main {
 		
 		ConfigManager.printConfig();
 		
-//		journal.info("Autoscaling Reasoner started");
-//		journal.info("Starting the initialization phase");
-//		AdaptationInitializer initializer=new AdaptationInitializer();
-//		initializer.initialize();
+		journal.info("Autoscaling Reasoner started");
+		journal.info("Starting the initialization phase");
+		AdaptationInitializer initializer=new AdaptationInitializer();
+		initializer.initialize();
 		
 	}
 
