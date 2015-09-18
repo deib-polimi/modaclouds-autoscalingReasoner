@@ -78,11 +78,12 @@ public class AdaptationInitializer {
 			
 			//installing required rules
 			journal.info("Installing monitoring rules");
+			monitor.uninstallPreviousRules(toInstall);
 			monitor.installRules(toInstall);
 			
 			//attaching required observers
-			//journal.info("Attaching required observers on port {}", ConfigManager.LISTENING_PORT);
-			//monitor.attachRequiredObservers();
+			journal.info("Attaching required observers on port {}", ConfigManager.LISTENING_PORT);
+			monitor.attachRequiredObservers();
 
 			//starting observer
 			journal.info("Starting the observer");

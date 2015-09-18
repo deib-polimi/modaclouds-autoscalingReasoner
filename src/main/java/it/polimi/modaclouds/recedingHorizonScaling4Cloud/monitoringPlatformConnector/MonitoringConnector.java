@@ -22,6 +22,8 @@ import it.polimi.tower4clouds.rules.ObjectFactory;
 import it.polimi.tower4clouds.rules.Parameter;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +53,34 @@ public class MonitoringConnector {
 			}
 	}
 	
+	public void uninstallPreviousRules(MonitoringRules toInstall){
+		MonitoringRules installedRules;
+		
+		try {
+			installedRules = monitoring.getRules();
+			
+			List<String> rulesIds= new ArrayList<String>();
+			
+			for(MonitoringRule rule: toInstall.getMonitoringRules()){
+				rulesIds.add(rule.getId());
+			}
+			
+			for(MonitoringRule rule: installedRules.getMonitoringRules()){
+				for(String toInstallRuleId: rulesIds){
+					if(rule.getId().equals(toInstallRuleId)){
+						monitoring.uninstallRule(rule.getId());
+					}
+				}
+			}
+		} catch (UnexpectedAnswerFromServerException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (NotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public void attachObserver(String targetMetric, String observerIP, String observerPort) throws NotFoundException, IOException{
 		monitoring.registerHttpObserver(targetMetric, "http://"+observerIP+":"+observerPort+"/v1/results", "TOWER/JSON");
 	}
@@ -76,12 +106,12 @@ public class MonitoringConnector {
 		try {
 			//attaching demand observer is default demand values are not used
 			if(ModelManager.getDefaultDemand()==0){
-				this.attachObserver("EstimatedDemand", ConfigManager.OWN_IP, ConfigManager.LISTENING_PORT);
+				this.attachObserver("EstimatedDemandARGenerated", ConfigManager.OWN_IP, ConfigManager.LISTENING_PORT);
 			}
 			
 			//attaching workload forecasts observers
 			for(int i=1; i<=ModelManager.getOptimizationWindow();i++){
-				this.attachObserver("ForecastedWorkload"+i, ConfigManager.OWN_IP, ConfigManager.LISTENING_PORT);
+				this.attachObserver("ForecastedWorkloadARGenerated"+i, ConfigManager.OWN_IP, ConfigManager.LISTENING_PORT);
 			}
 		} catch (NotFoundException e) {
 			journal.error("File not found.", e);
@@ -126,7 +156,7 @@ public class MonitoringConnector {
 						resourceId=factory.createParameter();
 						
 						//setting rule attribute
-						rule.setId("cpuRule");
+						rule.setId("cpuRuleARGenerated");
 						rule.setTimeStep("10");
 						rule.setTimeWindow("10");
 								
@@ -151,7 +181,7 @@ public class MonitoringConnector {
 						//setting the output action
 						action.setName("OutputMetric");
 						metric.setName("metric");
-						metric.setValue(t.getId()+"CPUUtilization");
+						metric.setValue(t.getId()+"CPUUtilizationARGenerated");
 						value.setName("value");
 						value.setValue("METRIC");
 						resourceId.setName("resourceId");
@@ -203,7 +233,7 @@ public class MonitoringConnector {
 		resourceId=factory.createParameter();
 		
 		//setting rule attribute
-		rule.setId("respTimeRule");
+		rule.setId("respTimeRuleARGenerated");
 		rule.setTimeStep("10");
 		rule.setTimeWindow("10");
 		
@@ -233,7 +263,7 @@ public class MonitoringConnector {
 		//setting the output action
 		action.setName("OutputMetric");
 		metric.setName("metric");
-		metric.setValue("AvarageEffectiveResponseTime");
+		metric.setValue("AvarageEffectiveResponseTimeARGenerated");
 		value.setName("value");
 		value.setValue("METRIC");
 		resourceId.setName("resourceId");
@@ -293,7 +323,7 @@ public class MonitoringConnector {
 				resourceId=factory.createParameter();
 				
 				//setting rule attribute
-				rule.setId("sdaHaproxy");
+				rule.setId("sdaHaproxyARGenerated");
 				rule.setTimeStep("10");
 				rule.setTimeWindow("10");	
 
@@ -306,7 +336,7 @@ public class MonitoringConnector {
 				}
 						
 				//setting the collected metric
-				collectedMetric.setMetricName("EstimationERPS_AvarageEffectiveResponseTime");
+				collectedMetric.setMetricName("EstimationERPS_AvarageEffectiveResponseTimeARGenerated");
 				window.setName("window");
 				window.setValue("60");
 				nCPU.setName("nCPU");
@@ -314,7 +344,7 @@ public class MonitoringConnector {
 				CPUUtilTarget.setName("CPUUtilTarget");
 				CPUUtilTarget.setValue(t.getId());
 				CPUUtilMetric.setName("CPUUtilMetric");
-				CPUUtilMetric.setValue(t.getId()+"CPUUtilization");
+				CPUUtilMetric.setValue(t.getId()+"CPUUtilizationARGenerated");
 				samplingTime.setName("samplingTime");
 				samplingTime.setValue("1");
 				filePath.setName("filePath");
@@ -329,7 +359,7 @@ public class MonitoringConnector {
 				//setting the output action
 				action.setName("OutputMetric");
 				metric.setName("metric");
-				metric.setValue("EstimatedDemand");
+				metric.setValue("EstimatedDemandARGenerated");
 				value.setName("value");
 				value.setValue("METRIC");
 				resourceId.setName("resourceId");
@@ -383,7 +413,7 @@ public class MonitoringConnector {
 		resourceId=factory.createParameter();
 		
 		//setting rule attribute
-		rule.setId("workloadRule");
+		rule.setId("workloadRuleARGenerated");
 		rule.setTimeStep("10");
 		rule.setTimeWindow("10");
 				
@@ -400,7 +430,7 @@ public class MonitoringConnector {
 		//setting the output action
 		action.setName("OutputMetric");
 		metric.setName("metric");
-		metric.setValue("Workload");
+		metric.setValue("WorkloadARGenerated");
 		value.setName("value");
 		value.setValue("METRIC");
 		resourceId.setName("resourceId");
@@ -474,7 +504,7 @@ public class MonitoringConnector {
 			resourceId=factory.createParameter();
 			
 			//setting rule attribute
-			rule.setId("sdaForecast"+timestep);
+			rule.setId("sdaForecastARGenerated"+timestep);
 			rule.setTimeStep("300");
 			rule.setTimeWindow("300");
 			
@@ -491,7 +521,7 @@ public class MonitoringConnector {
 			}
 					
 			//setting the collected metric
-			collectedMetric.setMetricName("ForecastingTimeseriesARIMA_Workload_"+timestep);
+			collectedMetric.setMetricName("ForecastingTimeseriesARIMA_WorkloadARGenerated_"+timestep);
 			order.setName("order");
 			order.setValue("1");
 			forecastPeriod.setName("forecastPeriod");
@@ -514,7 +544,7 @@ public class MonitoringConnector {
 			//setting the output action
 			action.setName("OutputMetric");
 			metric.setName("metric");
-			metric.setValue("ForecastedWorkload"+timestep);
+			metric.setValue("ForecastedWorkloadARGenerated"+timestep);
 			value.setName("value");
 			value.setValue("METRIC");
 			resourceId.setName("resourceId");
