@@ -41,7 +41,7 @@ public class ConfigManager {
 	
 	public static String OWN_IP = DEFAULT_IP;
 	
-	public static final int DEFAULT_LISTENING_PORT = 81790;
+	public static final int DEFAULT_LISTENING_PORT = 6789;
 	public static String LISTENING_PORT = Integer.toString(DEFAULT_LISTENING_PORT);
 	
 	public static final int DEFAULT_OTHER_OBSERVER_PORT = 8001;
