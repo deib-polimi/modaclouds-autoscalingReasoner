@@ -76,6 +76,9 @@ public class Main {
 	@Parameter(names = "-solverThreads", description = "The threads used by the math solver (it only make sense when running CMPL remotely)")
 	public String solverThreads = Integer.toString(ConfigManager.DEFAULT_CMPL_THREADS);
 	
+	@Parameter(names = "-observerPort", description = "The other observer port")
+	public String observerPort = Integer.toString(ConfigManager.DEFAULT_OTHER_OBSERVER_PORT);
+	
 	public static String APP_NAME;
 	public static String APP_FILE_NAME;
 	public static String APP_VERSION;
@@ -133,8 +136,6 @@ public class Main {
 			journal.error("Error while parsing the configuration. Exiting.", e);
 			System.exit(-1);
 		}
-		
-		ConfigManager.printConfig();
 		
 		journal.info("Autoscaling Reasoner started");
 		journal.info("Starting the initialization phase");

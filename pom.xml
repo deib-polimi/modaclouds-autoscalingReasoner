@@ -4,7 +4,7 @@
 
 	<groupId>it.polimi.modaclouds</groupId>
 	<artifactId>recedingHorizonScaling4Cloud</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.2</version>
 	<packaging>jar</packaging>
 
 	<name>recedingHorizonScaling4Cloud</name>

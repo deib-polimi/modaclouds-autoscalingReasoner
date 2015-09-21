@@ -44,6 +44,9 @@ public class ConfigManager {
 	public static final int DEFAULT_LISTENING_PORT = 81790;
 	public static String LISTENING_PORT = Integer.toString(DEFAULT_LISTENING_PORT);
 	
+	public static final int DEFAULT_OTHER_OBSERVER_PORT = 8001;
+	public static String OTHER_OBSERVER_PORT = Integer.toString(DEFAULT_OTHER_OBSERVER_PORT);
+	
 	public static String PATH_TO_DESIGN_TIME_MODEL;
 	
 	public static String SSH_USER_NAME;

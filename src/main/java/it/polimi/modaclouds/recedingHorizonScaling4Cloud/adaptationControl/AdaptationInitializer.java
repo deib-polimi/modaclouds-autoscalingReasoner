@@ -9,15 +9,9 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ModelManager;
 import it.polimi.tower4clouds.rules.MonitoringRules;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.nio.file.Paths;
+import java.io.IOException;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,8 +53,6 @@ public class AdaptationInitializer {
 		
 		
 		MonitoringConnector monitor=new MonitoringConnector();
-		JAXBContext context;
-
 				
 		try {
 			//getting required monitoring rules
@@ -68,21 +60,21 @@ public class AdaptationInitializer {
 			MonitoringRules toInstall=monitor.buildRequiredRules();
 
 			//serializing built rules
-			context = JAXBContext.newInstance("it.polimi.tower4clouds.rules");
-			Marshaller marshaller = context.createMarshaller();
-			marshaller.setProperty("jaxb.formatted.output",Boolean.TRUE);
-			File rules = Paths.get("sarBuildingRulesTest.xml").toFile();
-			OutputStream out = new FileOutputStream(rules);
-			marshaller.marshal(monitor.buildRequiredRules(),out);
-			
+			monitor.saveRulesToFile(toInstall);
 			
 			//installing required rules
 			journal.info("Installing monitoring rules");
 			monitor.installRules(toInstall);
 			
 			//attaching required observers
-			//journal.info("Attaching required observers on port {}", ConfigManager.LISTENING_PORT);
-			//monitor.attachRequiredObservers();
+			journal.info("Attaching required observers on port {}", ConfigManager.LISTENING_PORT);
+			monitor.attachRequiredObservers();
+			
+			//attaching other observers if needed
+			if (ConfigManager.OTHER_OBSERVER_PORT != null && ConfigManager.OTHER_OBSERVER_PORT.length() > 0) {
+				journal.info("Attaching other observers on port {}", ConfigManager.OTHER_OBSERVER_PORT);
+				monitor.attachOtherObservers(toInstall);
+			}
 
 			//starting observer
 			journal.info("Starting the observer");
@@ -90,8 +82,8 @@ public class AdaptationInitializer {
 
 		} catch (JAXBException e) {
 			journal.error("JAXB error.", e);
-		} catch (FileNotFoundException e) {
-			journal.error("File not found!", e);
+		} catch (IOException e) {
+			journal.error("Error while dealing with the file.", e);
 		} 
 		
 		

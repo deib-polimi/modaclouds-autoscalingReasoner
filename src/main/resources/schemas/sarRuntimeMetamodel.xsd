@@ -38,7 +38,7 @@
 	<xs:complexType name="applicationTier">
 		<xs:sequence>
 			<xs:element maxOccurs="24" name="responseTimeThreshold" type="responseTimeThreshold"/>		
-			<xs:element maxOccurs="unbounded" name="functionality" type="functionality"/>
+			<xs:element maxOccurs="unbounded" name="Functionality" type="Functionality"/>
 			<xs:element maxOccurs="unbounded" name="workloadForecast" type="workloadForecast"/>
 			<xs:element maxOccurs="unbounded" name="instances" type="instance"/>
 		</xs:sequence>	
@@ -48,7 +48,7 @@
 		<xs:attribute name="classIndex" type="xs:int"/>
 		<xs:attribute name="responseTimeThresholdRuleID" type="xs:string" use="required"/>
 	</xs:complexType>
-	<xs:complexType name="functionality">
+	<xs:complexType name="Functionality">
 		<xs:sequence>
 			<xs:element maxOccurs="unbounded" name="workloadForecast" type="workloadForecast"/>
 		</xs:sequence>	

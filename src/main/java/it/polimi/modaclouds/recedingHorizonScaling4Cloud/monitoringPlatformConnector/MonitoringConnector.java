@@ -21,7 +21,15 @@ import it.polimi.tower4clouds.rules.MonitoringRules;
 import it.polimi.tower4clouds.rules.ObjectFactory;
 import it.polimi.tower4clouds.rules.Parameter;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Paths;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,8 +59,20 @@ public class MonitoringConnector {
 			}
 	}
 	
+	public File saveRulesToFile(MonitoringRules toInstall) throws JAXBException, IOException {
+		JAXBContext context = JAXBContext.newInstance("it.polimi.tower4clouds.rules");
+		Marshaller marshaller = context.createMarshaller();
+		marshaller.setProperty("jaxb.formatted.output",Boolean.TRUE);
+		File rules = Paths.get("sarBuildingRulesTest.xml").toFile();
+		try (OutputStream out = new FileOutputStream(rules)) {
+			marshaller.marshal(toInstall, out);
+		}
+		journal.debug("Rules saved to {}.", rules.toString());
+		return rules;
+	}
+	
 	public void attachObserver(String targetMetric, String observerIP, String observerPort) throws NotFoundException, IOException{
-		monitoring.registerHttpObserver(targetMetric, "http://"+observerIP+":"+observerPort+"/v1/results", "TOWER/JSON");
+		monitoring.registerHttpObserver(targetMetric, String.format("http://%s:%s/data", observerIP, observerPort), "TOWER/JSON");
 	}
 	
 	public  MonitoringRules buildRequiredRules(){
@@ -91,6 +111,24 @@ public class MonitoringConnector {
 
 	}
 	
+	public void attachOtherObservers(MonitoringRules toInstall) {
+		for (MonitoringRule rule : toInstall.getMonitoringRules()) {
+			for (Action action : rule.getActions().getActions()) {
+				if (action.getName().equals("OutputMetric")) {
+					for (Parameter par : action.getParameters()) {
+						if (par.getName().equals("metric")) {
+							try {
+								attachObserver(par.getValue(), ConfigManager.OWN_IP, ConfigManager.OTHER_OBSERVER_PORT);
+							} catch (Exception e) {
+								journal.error("Error while attaching to the other observer.", e);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	
 	private MonitoringRules buildCpuRules(){
 
@@ -101,7 +139,7 @@ public class MonitoringConnector {
 				CollectedMetric collectedMetric;
 				MonitoringMetricAggregation metricAggregation;
 				Parameter samplingTime;
-				Parameter samplingPorbability;
+				Parameter samplingProbability;
 				Actions actions;
 				Action action;
 				Parameter metric;
@@ -118,7 +156,7 @@ public class MonitoringConnector {
 						collectedMetric=factory.createCollectedMetric();
 						metricAggregation=factory.createMonitoringMetricAggregation();
 						samplingTime=factory.createParameter();
-						samplingPorbability=factory.createParameter();
+						samplingProbability=factory.createParameter();
 						actions=factory.createActions();
 						action=factory.createAction();
 						metric=factory.createParameter();
@@ -137,12 +175,12 @@ public class MonitoringConnector {
 						
 						//setting the collected metric
 						collectedMetric.setMetricName("CPUUtilization");
-						samplingPorbability.setName("samplingPorbability");
-						samplingPorbability.setValue("1");
+						samplingProbability.setName("samplingProbability");
+						samplingProbability.setValue("1");
 						samplingTime.setName("samplingTime");
 						samplingTime.setValue("1");
 						collectedMetric.getParameters().add(samplingTime);
-						collectedMetric.getParameters().add(samplingPorbability);
+						collectedMetric.getParameters().add(samplingProbability);
 						
 						//setting the aggregation fucntion
 						metricAggregation.setAggregateFunction("Average");
@@ -181,7 +219,7 @@ public class MonitoringConnector {
 		MonitoredTargets monitoredTargets;
 		MonitoredTarget monitoredTarget;
 		CollectedMetric collectedMetric;
-		Parameter samplingPorbability;
+		Parameter samplingProbability;
 		MonitoringMetricAggregation metricAggregation;
 		Actions actions;
 		Action action;
@@ -194,7 +232,7 @@ public class MonitoringConnector {
 		monitoredTargets=factory.createMonitoredTargets();
 		monitoredTarget=factory.createMonitoredTarget();
 		collectedMetric=factory.createCollectedMetric();
-		samplingPorbability=factory.createParameter();
+		samplingProbability=factory.createParameter();
 		metricAggregation=factory.createMonitoringMetricAggregation();
 		actions=factory.createActions();
 		action=factory.createAction();
@@ -222,9 +260,9 @@ public class MonitoringConnector {
 				
 		//setting the collected metric
 		collectedMetric.setMetricName("EffectiveResponseTime");
-		samplingPorbability.setName("samplingPorbability");
-		samplingPorbability.setValue("1");;
-		collectedMetric.getParameters().add(samplingPorbability);
+		samplingProbability.setName("samplingProbability");
+		samplingProbability.setValue("1");;
+		collectedMetric.getParameters().add(samplingProbability);
 		
 		//setting the aggregation fucntion
 		metricAggregation.setAggregateFunction("Average");
@@ -361,7 +399,7 @@ public class MonitoringConnector {
 		MonitoredTargets monitoredTargets;
 		MonitoredTarget monitoredTarget;
 		CollectedMetric collectedMetric;
-		Parameter samplingPorbability;
+		Parameter samplingProbability;
 		MonitoringMetricAggregation metricAggregation;
 		Actions actions;
 		Action action;
@@ -374,7 +412,7 @@ public class MonitoringConnector {
 		monitoredTargets=factory.createMonitoredTargets();
 		monitoredTarget=factory.createMonitoredTarget();
 		collectedMetric=factory.createCollectedMetric();
-		samplingPorbability=factory.createParameter();
+		samplingProbability=factory.createParameter();
 		metricAggregation=factory.createMonitoringMetricAggregation();
 		actions=factory.createActions();
 		action=factory.createAction();
@@ -389,9 +427,9 @@ public class MonitoringConnector {
 				
 		//setting the collected metric
 		collectedMetric.setMetricName("ResponseTime");
-		samplingPorbability.setName("samplingPorbability");
-		samplingPorbability.setValue("1");;
-		collectedMetric.getParameters().add(samplingPorbability);
+		samplingProbability.setName("samplingProbability");
+		samplingProbability.setValue("1");;
+		collectedMetric.getParameters().add(samplingProbability);
 		
 		//setting the aggregation fucntion
 		metricAggregation.setAggregateFunction("Count");
