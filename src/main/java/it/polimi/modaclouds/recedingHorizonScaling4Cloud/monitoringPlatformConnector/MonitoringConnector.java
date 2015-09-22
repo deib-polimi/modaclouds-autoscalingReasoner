@@ -2,9 +2,10 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConn
 
 
 
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Functionality;
+import it.polimi.modaclouds.qos_models.schema.ApplicationTier;
+import it.polimi.modaclouds.qos_models.schema.Container;
+import it.polimi.modaclouds.qos_models.schema.Functionality;
+import it.polimi.modaclouds.qos_models.util.XMLHelper;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ModelManager;
 import it.polimi.tower4clouds.common.net.UnexpectedAnswerFromServerException;
@@ -27,9 +28,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Paths;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,12 +59,9 @@ public class MonitoringConnector {
 	}
 	
 	public File saveRulesToFile(MonitoringRules toInstall) throws JAXBException, IOException {
-		JAXBContext context = JAXBContext.newInstance("it.polimi.tower4clouds.rules");
-		Marshaller marshaller = context.createMarshaller();
-		marshaller.setProperty("jaxb.formatted.output",Boolean.TRUE);
 		File rules = Paths.get("sarBuildingRulesTest.xml").toFile();
 		try (OutputStream out = new FileOutputStream(rules)) {
-			marshaller.marshal(toInstall, out);
+			XMLHelper.serialize(toInstall, out);
 		}
 		journal.debug("Rules saved to {}.", rules.toString());
 		return rules;

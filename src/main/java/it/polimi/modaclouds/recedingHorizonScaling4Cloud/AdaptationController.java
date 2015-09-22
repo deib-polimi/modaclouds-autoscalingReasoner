@@ -1,10 +1,10 @@
-package it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl;
+package it.polimi.modaclouds.recedingHorizonScaling4Cloud;
 
+import it.polimi.modaclouds.qos_models.schema.ApplicationTier;
+import it.polimi.modaclouds.qos_models.schema.Container;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector.CloudMLAdapter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.TierNotFoudException;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing.OptimizationInputWriter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing.OptimizationOutputParser;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.sshConnector.SshAdapter;

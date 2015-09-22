@@ -4,7 +4,7 @@
 
 	<groupId>it.polimi.modaclouds</groupId>
 	<artifactId>recedingHorizonScaling4Cloud</artifactId>
-	<version>0.0.2</version>
+	<version>0.1</version>
 	<packaging>jar</packaging>
 
 	<name>recedingHorizonScaling4Cloud</name>
@@ -13,7 +13,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<dist.file.name>modaclouds-autoscalingReasoner</dist.file.name>
-		<main.class>it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl.Main</main.class>
+		<main.class>it.polimi.modaclouds.recedingHorizonScaling4Cloud.Main</main.class>
 	</properties>
 
 	<repositories>
@@ -90,6 +90,18 @@
 			<artifactId>commons-configuration</artifactId>
 			<version>1.10</version>
 		</dependency>
+		
+		<dependency>
+            <groupId>it.polimi.modaclouds.qos-models</groupId>
+            <artifactId>qos-models</artifactId>
+            <version>3.0.2</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>log4j-over-slf4j</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
 	</dependencies>
 
@@ -126,40 +138,6 @@
 							<overWriteReleases>false</overWriteReleases>
 							<overWriteSnapshots>false</overWriteSnapshots>
 							<overWriteIfNewer>true</overWriteIfNewer>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
-				<groupId>org.jvnet.jaxb2.maven2</groupId>
-				<artifactId>maven-jaxb2-plugin</artifactId>
-				<version>0.11.0</version>
-				<executions>
-					<execution>
-						<id>common-schemas</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<args>
-								<arg>-XtoString</arg>
-								<arg>-Xequals</arg>
-								<arg>-XhashCode</arg>
-								<arg>-Xcopyable</arg>
-								<arg>-Xmergeable</arg>
-							</args>
-							<plugins>
-								<plugin>
-									<groupId>org.jvnet.jaxb2_commons</groupId>
-									<artifactId>jaxb2-basics</artifactId>
-									<version>0.6.5</version>
-								</plugin>
-							</plugins>
-							<extension>true</extension>
-							<schemaDirectory>${project.basedir}/src/main/resources/schemas</schemaDirectory>
-                                <!-- <generatePackage>it.polimi.modaclouds.space4cloud.line</generatePackage> -->
-							<generateDirectory>${project.basedir}/src/main/java</generateDirectory>
 						</configuration>
 					</execution>
 				</executions>

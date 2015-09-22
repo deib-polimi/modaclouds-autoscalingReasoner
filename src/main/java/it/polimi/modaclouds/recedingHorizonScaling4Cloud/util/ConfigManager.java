@@ -1,8 +1,8 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.util;
 
+import it.polimi.modaclouds.qos_models.schema.Container;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
 
 import java.io.File;
 import java.io.FileInputStream;

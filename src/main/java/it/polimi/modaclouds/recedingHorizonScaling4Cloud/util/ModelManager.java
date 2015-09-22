@@ -1,21 +1,22 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.util;
 
+import it.polimi.modaclouds.qos_models.schema.ApplicationTier;
+import it.polimi.modaclouds.qos_models.schema.Container;
+import it.polimi.modaclouds.qos_models.schema.Containers;
+import it.polimi.modaclouds.qos_models.schema.Functionality;
+import it.polimi.modaclouds.qos_models.schema.Instance;
+import it.polimi.modaclouds.qos_models.schema.WorkloadForecast;
+import it.polimi.modaclouds.qos_models.util.XMLHelper;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector.CloudMLAdapter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.CloudMLReturnedModelException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.TierNotFoudException;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Functionality;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Instance;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.WorkloadForecast;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.StringWriter;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -24,10 +25,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -71,13 +69,11 @@ public class ModelManager {
 			
 			journal.info("A path to the initial adaptation model has been specified; loading the initial model from it.");
 			try {
-				JAXBContext jc;
-
-				jc = JAXBContext.newInstance(Containers.class);
-				Unmarshaller unmarshaller = jc.createUnmarshaller();
 				File xml = ConfigManager.getPathToFile(ConfigManager.PATH_TO_DESIGN_TIME_MODEL).toFile();
-				model = (Containers) unmarshaller.unmarshal(xml);
-			} catch (JAXBException e) {
+				try (FileInputStream in = new FileInputStream(xml)) {
+					model = (Containers) XMLHelper.deserialize(in, Containers.class);
+				}
+			} catch (Exception e) {
 				journal.error("Error while loading the model.", e);
 			}
 		}
@@ -113,17 +109,13 @@ public class ModelManager {
 				}
 				outStream.close();
 
-				JAXBContext jc;
-
-				jc = JAXBContext.newInstance(Containers.class);
-				Unmarshaller unmarshaller = jc.createUnmarshaller();
-				model = (Containers) unmarshaller.unmarshal(targetFile);
+				try (FileInputStream in = new FileInputStream(targetFile)) {
+					model = (Containers) XMLHelper.deserialize(in, Containers.class);
+				}
 			} catch (ClientProtocolException e) {
 				journal.error("Error in the client protocol.", e);
-			} catch (IOException e) {
+			} catch (Exception e) {
 				journal.error("Error while accessing the file.", e);
-			} catch (JAXBException e) {
-				journal.error("Error while parsing the XML file.", e);
 			} finally {
 				try {
 					response1.close();
@@ -160,23 +152,15 @@ public class ModelManager {
 	}
 
 	public static String printCurrentModel() {
-		JAXBContext context;
-
 		try {
-
-			context = JAXBContext
-					.newInstance("it.polimi.modaclouds.recedingHorizonScaling4Cloud.model");
-			Marshaller marshaller = context.createMarshaller();
-			marshaller.setProperty("jaxb.formatted.output", Boolean.TRUE);
 			File currentModel = Paths.get(ConfigManager.getLocalTmp().toString(), "model_" + currentTimeStep + ".xml")
 					.toFile();
 			OutputStream out = new FileOutputStream(currentModel);
-			StringWriter sw = new StringWriter();
-
-			marshaller.marshal(model, out);
-			marshaller.marshal(model, sw);
-			journal.info(sw.toString());
-			return sw.toString();
+			
+			XMLHelper.serialize(model, out);
+			String res = XMLHelper.serialize(model);
+			journal.info(res);
+			return res;
 		} catch (JAXBException e) {
 			journal.error("Error while writing the XML file.", e);
 		} catch (FileNotFoundException e) {

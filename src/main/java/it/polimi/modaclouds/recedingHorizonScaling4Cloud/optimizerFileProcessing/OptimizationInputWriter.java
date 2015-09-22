@@ -1,10 +1,10 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import it.polimi.modaclouds.qos_models.schema.ApplicationTier;
+import it.polimi.modaclouds.qos_models.schema.Container;
+import it.polimi.modaclouds.qos_models.schema.Containers;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ModelManager;
 

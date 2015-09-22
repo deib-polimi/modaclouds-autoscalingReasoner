@@ -1,4 +1,4 @@
-package it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl;
+package it.polimi.modaclouds.recedingHorizonScaling4Cloud;
 
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 
