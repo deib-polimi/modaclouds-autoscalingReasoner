@@ -23,10 +23,14 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.CreateFileCopy;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ModelManager;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,10 +129,8 @@ public class SshAdapter {
 	
 	private void sendAllFilesInFolder(String pathToFolder, Object... substitutions) throws Exception {
 		Path folder = ConfigManager.getPathToFile(pathToFolder);
-		if (folder == null)
-			throw new RuntimeException(pathToFolder + " folder not found!");
 		
-		List<File> files = getAllFiles(folder.toFile());
+		List<File> files = getAllFiles(pathToFolder);
 		
 		List<File> folders = getAllUniqueFolders(files);
 		for (File f : folders) {
@@ -138,7 +140,17 @@ public class SshAdapter {
 		}
 		
 		for (File f : files) {
-			String relativePath = f.toString().substring(folder.toString().length() + 1, f.toString().indexOf(f.getName()));
+//			String relativePath = f.toString().substring(folder.toString().length() + 1, f.toString().indexOf(f.getName()));
+			
+			String relativePath = f.toString().substring(folder.toString().length());
+			if (relativePath.length() == 0)
+				continue;
+			int i = relativePath.lastIndexOf(File.separator);
+			if (i > 0)
+				relativePath = relativePath.substring(1, i);
+			else
+				relativePath = "";
+			
 			CreateFileCopy.print(f,
 					relativePath,
 					substitutions);
@@ -147,6 +159,21 @@ public class SshAdapter {
 		}
 		
 		journal.info("All files in the folder {} sent!", pathToFolder);
+	}
+	
+	private static List<File> getAllFiles(String pathToFolder) throws Exception {
+		URL url = ConfigManager.getURLToFile(pathToFolder);
+		if (url == null)
+			throw new RuntimeException(pathToFolder + " folder not found!");
+		Path folder = Paths.get(url.getPath());
+		
+		List<File> files;
+		if (url.toURI().getScheme().equals("jar")) {
+			files = getAllFilesFromJar(pathToFolder);
+		} else {
+			 files = getAllFiles(folder.toFile());
+		}
+		return files;
 	}
 	
 	private static List<File> getAllFiles(File dir) throws Exception {
@@ -160,10 +187,13 @@ public class SshAdapter {
 		for (int i = 0; i < dirs.size(); ++i) {
 			File d = dirs.get(i);
 			for (File f : d.listFiles()) {
-				if (f.isDirectory())
+				if (f.isDirectory()) {
 					dirs.add(f);
-				else
+				} else {
+					if (f.getName().startsWith("."))
+						continue;
 					files.add(f);
+				}
 			}
 		}
 		
@@ -191,6 +221,28 @@ public class SshAdapter {
 				}
 			}
 		}
+		
+		return res;
+	}
+	
+	private static List<File> getAllFilesFromJar(String filePath) throws Exception {
+		List<File> res = new ArrayList<>();
+		
+		URL url = ConfigManager.getURLToFile(filePath);
+			
+		if (!url.toURI().getScheme().equals("jar"))
+			return res;
+        
+        String jarFile = url.getPath();
+        jarFile = jarFile.substring("file:".length(), jarFile.lastIndexOf(".jar!") + 4);
+        
+        try (JarInputStream in = new JarInputStream(new FileInputStream(jarFile))) {
+        	for (JarEntry entry = in.getNextJarEntry(); entry != null; entry = in.getNextJarEntry()) {
+        		if (entry.isDirectory() || !entry.getName().startsWith(filePath))
+        			continue;
+        		res.add(ConfigManager.getPathToFile(entry.toString()).toFile());
+        	}
+        }
 		
 		return res;
 	}

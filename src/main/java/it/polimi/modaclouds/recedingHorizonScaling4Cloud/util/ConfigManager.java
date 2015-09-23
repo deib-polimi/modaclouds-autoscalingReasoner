@@ -50,7 +50,7 @@ public class ConfigManager {
 	public static String PATH_TO_DESIGN_TIME_MODEL;
 	
 	public static String SSH_USER_NAME;
-	public static String SSH_HOST;
+	public static String SSH_HOST = "localhost";
 	public static String SSH_PASSWORD;
 	
 	public static String CLOUDML_WEBSOCKET_IP = DEFAULT_IP;
@@ -409,20 +409,34 @@ public class ConfigManager {
 	}
 	
 	public static InputStream getInputStream(String filePath) {
-		Path p = getPathToFile(filePath);
-		if (p != null)
+		File f = new File(filePath);
+		if (f.exists())
 			try {
-				return new FileInputStream(p.toFile());
+				return new FileInputStream(f);
 			} catch (Exception e) { }
+		
+		InputStream in = ConfigManager.class.getResourceAsStream(filePath);
+		if (in == null)
+			in = ConfigManager.class.getResourceAsStream("/" + filePath);
+		if (in == null)
+			return null;
+		else
+			return in;
+	}
+	
+	public static Path getPathToFile(String filePath) {
+		URL url = getURLToFile(filePath);
+		if (url != null)
+			return Paths.get(url.getPath());
 		
 		return null;
 	}
 	
-	public static Path getPathToFile(String filePath) {
+	public static URL getURLToFile(String filePath) {
 		File f = new File(filePath);
 		if (f.exists())
 			try {
-				return f.toPath();
+				return f.toURI().toURL();
 			} catch (Exception e) { }
 		
 		URL url = ConfigManager.class.getResource(filePath);
@@ -431,7 +445,7 @@ public class ConfigManager {
 		if (url == null)
 			return null;
 		else
-			return Paths.get(url.getPath());
+			return url;
 	}
 	
 	private static InputStream findConfigFile() {
