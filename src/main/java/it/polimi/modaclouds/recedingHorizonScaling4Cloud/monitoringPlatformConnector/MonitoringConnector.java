@@ -61,7 +61,9 @@ public class MonitoringConnector {
 	public File saveRulesToFile(MonitoringRules toInstall) throws JAXBException, IOException {
 		File rules = Paths.get("sarBuildingRulesTest.xml").toFile();
 		try (OutputStream out = new FileOutputStream(rules)) {
-			XMLHelper.serialize(toInstall, out);
+			final String schemaLocation = "http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema https://raw.githubusercontent.com/deib-polimi/tower4clouds/master/rules/metamodels/monitoring_rules_schema.xsd";
+			
+			XMLHelper.serialize(toInstall, out, schemaLocation);
 		}
 		journal.debug("Rules saved to {}.", rules.toString());
 		return rules;

@@ -11,6 +11,7 @@ import it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector.CloudM
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.CloudMLReturnedModelException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.TierNotFoudException;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -156,9 +157,15 @@ public class ModelManager {
 			File currentModel = Paths.get(ConfigManager.getLocalTmp().toString(), "model_" + currentTimeStep + ".xml")
 					.toFile();
 			OutputStream out = new FileOutputStream(currentModel);
+			ByteArrayOutputStream outString = new ByteArrayOutputStream();
 			
-			XMLHelper.serialize(model, out);
-			String res = XMLHelper.serialize(model);
+			final String schemaLocation = "http://www.modaclouds.eu/xsd/2015/9/s4c_ops https://raw.githubusercontent.com/deib-polimi/modaclouds-qos-models/master/metamodels/s4cextension/s4c_ops.xsd";
+			
+			XMLHelper.serialize(model, out, schemaLocation);
+			
+			XMLHelper.serialize(model, outString, schemaLocation);
+			String res = outString.toString();
+			
 			journal.info(res);
 			return res;
 		} catch (JAXBException e) {
