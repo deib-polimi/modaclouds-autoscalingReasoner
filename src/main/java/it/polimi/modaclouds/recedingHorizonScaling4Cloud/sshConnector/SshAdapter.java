@@ -134,6 +134,9 @@ public class SshAdapter {
 		
 		List<File> folders = getAllUniqueFolders(files);
 		for (File f : folders) {
+			if (f.toString().equals(folder.toString()))
+				continue;
+			
 			String relativePath = f.toString().substring(folder.toString().length() + 1);
 			if (relativePath != null && relativePath.length() > 0)
 				exec(String.format("mkdir -p %s/%s", ConfigManager.RUN_WORKING_DIRECTORY, relativePath));
