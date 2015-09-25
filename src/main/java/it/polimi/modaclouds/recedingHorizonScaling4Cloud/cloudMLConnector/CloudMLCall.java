@@ -293,6 +293,14 @@ public class CloudMLCall {
 			}
 	
 			private void parseRuntimeDeploymentModel(String body) throws Exception {
+				try {
+					JSONObject jsonObject = new JSONObject(body.substring(27));
+					JSONArray instances=jsonObject.getJSONArray("vmInstances");
+					ModelManager.updateDeploymentInfo(instances);
+				} catch (JSONException | TierNotFoudException | CloudMLReturnedModelException e) {
+					getLogger().error("Error while parsing the deployment info returned by CloudML.", e);
+				}
+				
 				JSONObject jsonObject = new JSONObject(body.substring( body.indexOf('{') ));
 				JSONArray instances = jsonObject.getJSONArray("vmInstances");
 	
@@ -345,14 +353,6 @@ public class CloudMLCall {
 			}
 	
 			private void parseInstanceInformation(String body) throws Exception {
-				try {
-					JSONObject jsonObject = new JSONObject(body.substring(27));
-					JSONArray instances=jsonObject.getJSONArray("vmInstances");
-					ModelManager.updateDeploymentInfo(instances);
-				} catch (JSONException | TierNotFoudException | CloudMLReturnedModelException e) {
-					getLogger().error("Error while parsing the deployment info returned by CloudML.", e);
-				}
-				
 				JSONObject jsonObject = new JSONObject(body.substring(body.indexOf('{'), body.lastIndexOf('}')+1).replaceAll("/", "<>"));
 	
 				String tier = jsonObject.has("tier") ? jsonObject.getString("tier") : null;
