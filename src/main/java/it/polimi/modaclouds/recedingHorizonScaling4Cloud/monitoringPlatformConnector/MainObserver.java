@@ -30,7 +30,7 @@ public class MainObserver {
 	private static final Logger journal = LoggerFactory
 			.getLogger(MainObserver.class);
 	@POST
-    @Path("/v1/results")
+    @Path("/data")
     public Response receiveData(InputStream incomingData) {
 		
 		journal.info("New monitoring data received");
