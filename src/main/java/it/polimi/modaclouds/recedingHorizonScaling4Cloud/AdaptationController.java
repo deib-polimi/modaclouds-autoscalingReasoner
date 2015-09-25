@@ -154,7 +154,8 @@ public class AdaptationController extends TimerTask {
 					//scaling the remaining instances to add (if any)	
 					journal.info("Scaling out instanes");
 					if(numOfInstancesToScaleOut>0){
-						cloudml.scaleOut(ModelManager.getInstanceToScale(tier.getId()), numOfInstancesToScaleOut);
+//						cloudml.scaleOut(ModelManager.getInstanceToScale(tier.getId()), numOfInstancesToScaleOut);
+						cloudml.scaleOut(tier.getId(), numOfInstancesToScaleOut);
 						//cloudml.scaleOut(ModelManager.getInstanceToScale(tier.getId()), 1);
 					}
 					
