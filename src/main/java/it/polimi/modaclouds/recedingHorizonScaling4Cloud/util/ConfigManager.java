@@ -82,7 +82,8 @@ public class ConfigManager {
 	public static String DEFAULTS_WORKING_DIRECTORY = "/tmp/modaclouds";
 	public static String RUN_WORKING_DIRECTORY = DEFAULTS_WORKING_DIRECTORY;
 	
-	
+	public static final int DEFAULT_SCALE_LIMIT = 5;
+	public static String SCALE_LIMIT = Integer.toString(DEFAULT_SCALE_LIMIT);
 	
 	public static void initFolders() {
 		setWorkingSubDirectory();
@@ -478,7 +479,7 @@ public class ConfigManager {
 			for (Field f : fs) {
 				if (Modifier.isFinal(f.getModifiers()))
 					continue;
-				journal.info("{} = {}", f.getName(), f.get(null));
+				journal.debug("{} = {}", f.getName(), f.get(null));
 			}
 		} catch (Exception e) {
 			journal.error("Error while getting the value of the properties.", e);

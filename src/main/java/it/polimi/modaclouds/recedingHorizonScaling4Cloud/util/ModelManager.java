@@ -18,6 +18,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -283,6 +284,22 @@ public class ModelManager {
 		return toReturn.getId();
 
 	}
+	
+	public static void main(String[] args) throws Exception {
+		ConfigManager.loadConfiguration();
+		ConfigManager.PATH_TO_DESIGN_TIME_MODEL = Paths.get("/Users/ft/Desktop/httpAgentInitialModel.xml").toString();
+		ModelManager.loadModel();
+		
+		String body = new String(Files.readAllBytes(Paths.get("/Users/ft/Desktop/model.json")));
+		
+		try {
+			JSONObject jsonObject = new JSONObject(body.substring(27));
+			JSONArray instances=jsonObject.getJSONArray("vmInstances");
+			ModelManager.updateDeploymentInfo(instances);
+		} catch (JSONException | TierNotFoudException | CloudMLReturnedModelException e) {
+			journal.error("Error while parsing the deployment info returned by CloudML.", e);
+		}
+	}
 
 	public static void updateDeploymentInfo(JSONArray instances)
 			throws JSONException, TierNotFoudException,
@@ -290,15 +307,17 @@ public class ModelManager {
 
 		for (int i = 0; i < instances.length(); i++) {
 			JSONObject instance = instances.getJSONObject(i);
-			String instanceId = instance.get("id").toString();
-			String instanceType = instance.get("type").toString();
-			String instanceStatus = instance.get("status").toString();
+			String instanceId = instance.optString("id");
+			String instanceType = instance.optString("type");
+			String instanceStatus = instance.optString("status");
 
 			// if cloudml returns valid information (no field can be null)
 			if (!instanceId.equals("null") && !instanceType.equals("null")
 					&& !instanceStatus.equals("null")) {
 
 				instanceType = getTierIdFromInstanceType(instanceType);
+				
+				journal.trace("{ id: {}, tier: {}, status: {} }", instanceId, instanceType, instanceStatus);
 
 				if (getInstance(instanceId) != null) {
 					String tierId = getHostedTier(instanceId).getId();
@@ -340,8 +359,9 @@ public class ModelManager {
 								+ instanceId);
 			}
 
-			ModelManager.printCurrentModel();
 		}
+		
+		ModelManager.printCurrentModel();
 	}
 
 	private static String getTierIdFromInstanceType(String instanceType)

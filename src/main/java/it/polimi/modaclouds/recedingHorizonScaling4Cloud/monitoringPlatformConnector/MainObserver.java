@@ -48,23 +48,23 @@ public class MainObserver {
         
 
 		try {
-			
-			journal.info("Reading the received data");
 
 			JSONArray data=new JSONArray(dataBuilder.toString());
 			
 			for (int i=0; i<data.length(); i++) {
 
 				JSONObject datum=data.getJSONObject(i);
-
-				journal.info("Received a datum for metric:{} and resource:{}", datum.getString("metric"), datum.getString("resourceId"));
 				
-				if(datum.get("metric").equals("EstimatedDemand")){
-					ModelManager.updateServiceDemand(datum.getString("resourceId"),
-							datum.getDouble("value"));
-				}else if(datum.get("metric").toString().contains("ForecastedWorkload")){
-					ModelManager.updateServiceWorkloadPrediction(datum.getString("resourceId"),datum.getString("metric"),
-							datum.getDouble("value"));
+				String resource = datum.optString("resourceId");
+				String metric = datum.optString("metric");
+				double value = datum.optDouble("value", 0.0);
+
+				journal.trace("{ resource: {}, metric: {}, value: {} }", resource, metric, value);
+				
+				if (metric.equals("EstimatedDemand")) {
+					ModelManager.updateServiceDemand(resource, value);
+				} else if (metric.contains("ForecastedWorkload")) {
+					ModelManager.updateServiceWorkloadPrediction(resource, metric, value);
 				}
 	        }
 		} catch (JSONException e) {

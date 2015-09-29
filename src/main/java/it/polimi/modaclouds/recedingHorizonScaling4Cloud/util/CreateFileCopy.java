@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 public class CreateFileCopy {
 	
-//	@SuppressWarnings("unused")
+	@SuppressWarnings("unused")
 	private static final Logger journal = LoggerFactory.getLogger(CreateFileCopy.class);
 
 	public static Path print(File orig, String relativePath, Object... substitutions) throws IOException {
@@ -32,8 +32,6 @@ public class CreateFileCopy {
 		if (path.contains(".jar!")) {
 			path = path.substring(path.lastIndexOf(".jar!") + 5);
 		}
-		
-		journal.trace("{} -> {}", path, newFile.toString());
 		
 		try (Scanner sc =
 				new Scanner(ConfigManager.getInputStream(path))) {

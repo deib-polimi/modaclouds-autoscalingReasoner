@@ -32,6 +32,13 @@ public class CloudMLAdapter {
 	}
 	
 	public void scaleOut(String vmId, int times) {
+		try {
+			int limit = Integer.parseInt(ConfigManager.SCALE_LIMIT);
+			if (times > limit) {
+				journal.warn("You've requested to scale too many instances at once ({}). Falling back to the limit ({}).", times, limit);
+				times = limit;
+			}
+		} catch (Exception e) { }
 		client.scale(vmId, times);
 	}
 	
