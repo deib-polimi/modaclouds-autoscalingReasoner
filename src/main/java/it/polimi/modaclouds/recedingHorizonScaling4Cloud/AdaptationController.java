@@ -252,8 +252,11 @@ public class AdaptationController extends TimerTask {
 	}
 	
 	private boolean shouldPerformTest(Container c) {
-		// TODO: here
-		return true;
+		for (ApplicationTier tier : c.getApplicationTier()) {
+			if (tier.getInstances() != null && tier.getInstances().size() > 0)
+				return true;
+		}
+		return false;
 	}
 
 

@@ -167,7 +167,7 @@ public class ModelManager {
 			XMLHelper.serialize(model, outString, schemaLocation);
 			String res = outString.toString();
 			
-			journal.info(res);
+			journal.trace(res);
 			return res;
 		} catch (JAXBException e) {
 			journal.error("Error while writing the XML file.", e);
