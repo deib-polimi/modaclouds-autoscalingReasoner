@@ -683,6 +683,8 @@ public class ModelManager {
 		ApplicationTier tier = getTier(tierId);
 		double toReturn = 0;
 
+		
+		
 		for (Functionality f : tier.getFunctionality()) {
 			for (WorkloadForecast wf : f.getWorkloadForecast()) {
 				if (wf.getTimeStepAhead() == lookAhead) {
@@ -690,19 +692,37 @@ public class ModelManager {
 				}
 			}
 		}
+		
+		if(toReturn==0){
+			
+			double sum = 0;
+			int count = 0;
+			
+			for (WorkloadForecast wf : tier.getWorkloadForecast()) {
+				if (wf.getTimeStepAhead() != lookAhead) {
+					sum = sum + wf.getValue();
+					count++;
+				}
+			}
+			
+			toReturn=sum/count;
+			
+		}
 
 		WorkloadForecast toUpdate = null;
+		
 		for (WorkloadForecast wf : tier.getWorkloadForecast()) {
 			if (wf.getTimeStepAhead() == lookAhead) {
 				toUpdate = wf;
 			}
 		}
+		
 		if (toUpdate != null) {
-			toUpdate.setValue(toReturn/(model.getTimestepDuration()*1000));
+			toUpdate.setValue(toReturn);
 		} else {
 			toUpdate = new WorkloadForecast();
 			toUpdate.setTimeStepAhead(lookAhead);
-			toUpdate.setValue(toReturn/(model.getTimestepDuration()*1000));
+			toUpdate.setValue(toReturn);
 			tier.getWorkloadForecast().add(toUpdate);
 		}
 
