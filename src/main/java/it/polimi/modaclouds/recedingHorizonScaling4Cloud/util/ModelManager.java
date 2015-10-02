@@ -698,15 +698,15 @@ public class ModelManager {
 			}
 		}
 		if (toUpdate != null) {
-			toUpdate.setValue(toReturn);
+			toUpdate.setValue(toReturn/(model.getTimestepDuration()*1000));
 		} else {
 			toUpdate = new WorkloadForecast();
 			toUpdate.setTimeStepAhead(lookAhead);
-			toUpdate.setValue(toReturn);
+			toUpdate.setValue(toReturn/(model.getTimestepDuration()*1000));
 			tier.getWorkloadForecast().add(toUpdate);
 		}
 
-		return toReturn;
+		return toReturn/(model.getTimestepDuration()*1000);
 	}
 
 	public static String getInstanceToScale(String tierId) {
