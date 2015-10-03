@@ -86,3 +86,9 @@ The initial adapation model file, whose path is specified using the PATH_TO_INIT
 ```
 
 In this example AutoscalingReasoner will manage a signle ```<applicationTier>``` composed of multiple ```<functionality>```, which are basically web services, and of a set of 24 ```<responseTimeThreshold>```, one for each hour of the day, that have to be respected. Application tiers are grouped by the capacity of the VM type on which they are hosted at runtime into multiple ```<containers>```. Each ```<container>``` is characterized with some attributes concerning a specific VM type. For each container AutoscalingReasoner builds and solves an optimization model, currently calling a CPLEX server, and enacts the scaling actions derived from the solution. The initial model is also globally characterized by a timestepDuration, which indicate how often (in minutes) the adaptation process has to be performed, and and optimizationWindowLenght, which indicate the nuber of timesteps ahead to consider in the receding horizon control.
+
+##License##
+
+Licensed under the [Apache License, Version 2.0][1]
+
+[1]: http://www.apache.org/licenses/LICENSE-2.0
