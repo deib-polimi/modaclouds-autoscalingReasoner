@@ -724,8 +724,8 @@ public class ModelManager {
 			int count = 0;
 			
 			for (WorkloadForecast wf : tier.getWorkloadForecast()) {
-				if (wf.getTimeStepAhead() != lookAhead) {
-					sum = sum + wf.getValue();
+				if (wf.getTimeStepAhead() != lookAhead & wf.getValue()!=null) {
+					sum = sum + wf.getValue().doubleValue();
 					count++;
 				}
 			}
