@@ -2,9 +2,10 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.monitoringPlatformConn
 
 
 
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Functionality;
+import it.polimi.modaclouds.qos_models.schema.ApplicationTier;
+import it.polimi.modaclouds.qos_models.schema.Container;
+import it.polimi.modaclouds.qos_models.schema.Functionality;
+import it.polimi.modaclouds.qos_models.util.XMLHelper;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ModelManager;
 import it.polimi.tower4clouds.common.net.UnexpectedAnswerFromServerException;
@@ -21,9 +22,13 @@ import it.polimi.tower4clouds.rules.MonitoringRules;
 import it.polimi.tower4clouds.rules.ObjectFactory;
 import it.polimi.tower4clouds.rules.Parameter;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.OutputStream;
+import java.nio.file.Paths;
+
+import javax.xml.bind.JAXBException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,86 +37,69 @@ import org.slf4j.LoggerFactory;
 //need to build one different cpuRule per tier because of the demand rule required parameter?
 //need to properly set up (look for the right value if static) some dynamic parameters in the rules possibly received via some configuration
 public class MonitoringConnector {
-	
+
 	private static final Logger journal = LoggerFactory
 			.getLogger(MonitoringConnector.class);
-	
+
 	private ManagerAPI monitoring;
 	private ObjectFactory factory;
-	
+
 	public MonitoringConnector(){
 	  monitoring=new ManagerAPI(ConfigManager.MONITORING_PLATFORM_IP, Integer.parseInt(ConfigManager.MONITORING_PLATFORM_PORT));
 	  factory=new ObjectFactory();
-	
+
 	}
-	
-	public void installRules(MonitoringRules toInstall) {		 
+
+	public void installRules(MonitoringRules toInstall) {
 			try {
 				monitoring.installRules(toInstall);
 			} catch (IOException e) {
 				journal.error("Error while installing the rules.", e);
 			}
 	}
-	
-	public void uninstallPreviousRules(MonitoringRules toInstall){
-		MonitoringRules installedRules;
-		
-		try {
-			installedRules = monitoring.getRules();
-			
-			List<String> rulesIds= new ArrayList<String>();
-			
-			for(MonitoringRule rule: toInstall.getMonitoringRules()){
-				rulesIds.add(rule.getId());
-			}
-			
-			for(MonitoringRule rule: installedRules.getMonitoringRules()){
-				for(String toInstallRuleId: rulesIds){
-					if(rule.getId().equals(toInstallRuleId)){
-						monitoring.uninstallRule(rule.getId());
-					}
-				}
-			}
-		} catch (UnexpectedAnswerFromServerException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (NotFoundException e) {
-			e.printStackTrace();
+
+	public File saveRulesToFile(MonitoringRules toInstall) throws JAXBException, IOException {
+		File rules = Paths.get("sarBuildingRulesTest.xml").toFile();
+		try (OutputStream out = new FileOutputStream(rules)) {
+			final String schemaLocation = "http://www.modaclouds.eu/xsd/1.0/monitoring_rules_schema https://raw.githubusercontent.com/deib-polimi/tower4clouds/master/rules/metamodels/monitoring_rules_schema.xsd";
+
+			XMLHelper.serialize(toInstall, out, schemaLocation);
 		}
+		journal.debug("Rules saved to {}.", rules.toString());
+		return rules;
 	}
-	
+
 	public void attachObserver(String targetMetric, String observerIP, String observerPort) throws NotFoundException, IOException{
-		monitoring.registerHttpObserver(targetMetric, "http://"+observerIP+":"+observerPort+"/v1/results", "TOWER/JSON");
+		monitoring.registerHttpObserver(targetMetric, String.format("http://%s:%s/data", observerIP, observerPort), "TOWER/JSON");
 	}
-	
+
 	public  MonitoringRules buildRequiredRules(){
 		MonitoringRules toReturn=factory.createMonitoringRules();
-		
+
 		//building all required rules for demand monitoring if default demand values are not used
 		if(ModelManager.getDefaultDemand()==0){
 			toReturn.getMonitoringRules().addAll(this.buildCpuRules().getMonitoringRules());
 			toReturn.getMonitoringRules().addAll(this.buildDemandRules().getMonitoringRules());
 			toReturn.getMonitoringRules().addAll(this.buildRespondeTimeRules().getMonitoringRules());
 		}
-		
+
 		//building all required rules for workload prediction monitoring
 		toReturn.getMonitoringRules().addAll(this.buildWorkloadRules().getMonitoringRules());
 		toReturn.getMonitoringRules().addAll(this.buildWorkloadForecastRules().getMonitoringRules());
 
 		return toReturn;
 	}
-	
+
 	public void attachRequiredObservers(){
 		try {
 			//attaching demand observer is default demand values are not used
 			if(ModelManager.getDefaultDemand()==0){
-				this.attachObserver("EstimatedDemandARGenerated", ConfigManager.OWN_IP, ConfigManager.LISTENING_PORT);
+				this.attachObserver("EstimatedDemand", ConfigManager.OWN_IP, ConfigManager.LISTENING_PORT);
 			}
-			
+
 			//attaching workload forecasts observers
 			for(int i=1; i<=ModelManager.getOptimizationWindow();i++){
-				this.attachObserver("ForecastedWorkloadARGenerated"+i, ConfigManager.OWN_IP, ConfigManager.LISTENING_PORT);
+				this.attachObserver("ForecastedWorkload"+i, ConfigManager.OWN_IP, ConfigManager.LISTENING_PORT);
 			}
 		} catch (NotFoundException e) {
 			journal.error("File not found.", e);
@@ -120,8 +108,26 @@ public class MonitoringConnector {
 		}
 
 	}
-	
-	
+
+	public void attachOtherObservers(MonitoringRules toInstall) {
+		for (MonitoringRule rule : toInstall.getMonitoringRules()) {
+			for (Action action : rule.getActions().getActions()) {
+				if (action.getName().equals("OutputMetric")) {
+					for (Parameter par : action.getParameters()) {
+						if (par.getName().equals("metric")) {
+							try {
+								attachObserver(par.getValue(), ConfigManager.OWN_IP, ConfigManager.OTHER_OBSERVER_PORT);
+							} catch (Exception e) {
+								journal.error("Error while attaching to the other observer.", e);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+
 	private MonitoringRules buildCpuRules(){
 
 				MonitoringRules toReturn=factory.createMonitoringRules();
@@ -131,16 +137,16 @@ public class MonitoringConnector {
 				CollectedMetric collectedMetric;
 				MonitoringMetricAggregation metricAggregation;
 				Parameter samplingTime;
-				Parameter samplingPorbability;
+				Parameter samplingProbability;
 				Actions actions;
 				Action action;
 				Parameter metric;
 				Parameter value;
 				Parameter resourceId;
-				
+
 				for(Container c: ModelManager.getModel().getContainer()){
 					for(ApplicationTier t: c.getApplicationTier()){
-						
+
 						//initialize rule parameter
 						rule=factory.createMonitoringRule();
 						monitoredTargets=factory.createMonitoredTargets();
@@ -148,40 +154,40 @@ public class MonitoringConnector {
 						collectedMetric=factory.createCollectedMetric();
 						metricAggregation=factory.createMonitoringMetricAggregation();
 						samplingTime=factory.createParameter();
-						samplingPorbability=factory.createParameter();
+						samplingProbability=factory.createParameter();
 						actions=factory.createActions();
 						action=factory.createAction();
 						metric=factory.createParameter();
 						value=factory.createParameter();
 						resourceId=factory.createParameter();
-						
+
 						//setting rule attribute
-						rule.setId("cpuRuleARGenerated");
+						rule.setId("cpuRule");
 						rule.setTimeStep("10");
 						rule.setTimeWindow("10");
-								
+
 						//setting the monitored target
 						monitoredTarget.setClazz("VM");
 						monitoredTarget.setType(t.getId());
 						monitoredTargets.getMonitoredTargets().add(monitoredTarget);
-						
+
 						//setting the collected metric
 						collectedMetric.setMetricName("CPUUtilization");
-						samplingPorbability.setName("samplingPorbability");
-						samplingPorbability.setValue("1");
+						samplingProbability.setName("samplingProbability");
+						samplingProbability.setValue("1");
 						samplingTime.setName("samplingTime");
 						samplingTime.setValue("1");
 						collectedMetric.getParameters().add(samplingTime);
-						collectedMetric.getParameters().add(samplingPorbability);
-						
+						collectedMetric.getParameters().add(samplingProbability);
+
 						//setting the aggregation fucntion
 						metricAggregation.setAggregateFunction("Average");
 						metricAggregation.setGroupingClass("VM");
-						
+
 						//setting the output action
 						action.setName("OutputMetric");
 						metric.setName("metric");
-						metric.setValue(t.getId()+"CPUUtilizationARGenerated");
+						metric.setValue(t.getId()+"CPUUtilization");
 						value.setName("value");
 						value.setValue("METRIC");
 						resourceId.setName("resourceId");
@@ -190,54 +196,54 @@ public class MonitoringConnector {
 						action.getParameters().add(value);
 						action.getParameters().add(resourceId);
 						actions.getActions().add(action);
-						
+
 						//setting rule field and adding the created rule to the returned list
 						rule.setMonitoredTargets(monitoredTargets);
 						rule.setCollectedMetric(collectedMetric);
 						rule.setMetricAggregation(metricAggregation);
 						rule.setActions(actions);
 						toReturn.getMonitoringRules().add(rule);
-						
+
 					}
 				}
 
 				return toReturn;
 	}
-	
+
 	private MonitoringRules buildRespondeTimeRules(){
-		
+
 		MonitoringRules toReturn=factory.createMonitoringRules();
 		MonitoringRule rule;
 		MonitoredTargets monitoredTargets;
 		MonitoredTarget monitoredTarget;
 		CollectedMetric collectedMetric;
-		Parameter samplingPorbability;
+		Parameter samplingProbability;
 		MonitoringMetricAggregation metricAggregation;
 		Actions actions;
 		Action action;
 		Parameter metric;
 		Parameter value;
 		Parameter resourceId;
-		
+
 		//initialize rule parameter
 		rule=factory.createMonitoringRule();
 		monitoredTargets=factory.createMonitoredTargets();
 		monitoredTarget=factory.createMonitoredTarget();
 		collectedMetric=factory.createCollectedMetric();
-		samplingPorbability=factory.createParameter();
+		samplingProbability=factory.createParameter();
 		metricAggregation=factory.createMonitoringMetricAggregation();
 		actions=factory.createActions();
 		action=factory.createAction();
 		metric=factory.createParameter();
 		value=factory.createParameter();
 		resourceId=factory.createParameter();
-		
+
 		//setting rule attribute
-		rule.setId("respTimeRuleARGenerated");
+		rule.setId("respTimeRule");
 		rule.setTimeStep("10");
 		rule.setTimeWindow("10");
-		
-		
+
+
 		//setting the monitored target
 		for(Container c: ModelManager.getModel().getContainer()){
 			for(ApplicationTier t: c.getApplicationTier()){
@@ -249,21 +255,21 @@ public class MonitoringConnector {
 				}
 			}
 		}
-				
+
 		//setting the collected metric
 		collectedMetric.setMetricName("EffectiveResponseTime");
-		samplingPorbability.setName("samplingPorbability");
-		samplingPorbability.setValue("1");;
-		collectedMetric.getParameters().add(samplingPorbability);
-		
+		samplingProbability.setName("samplingProbability");
+		samplingProbability.setValue("1");;
+		collectedMetric.getParameters().add(samplingProbability);
+
 		//setting the aggregation fucntion
 		metricAggregation.setAggregateFunction("Average");
 		metricAggregation.setGroupingClass("Method");
-		
+
 		//setting the output action
 		action.setName("OutputMetric");
 		metric.setName("metric");
-		metric.setValue("AvarageEffectiveResponseTimeARGenerated");
+		metric.setValue("AvarageEffectiveResponseTime");
 		value.setName("value");
 		value.setValue("METRIC");
 		resourceId.setName("resourceId");
@@ -272,7 +278,7 @@ public class MonitoringConnector {
 		action.getParameters().add(value);
 		action.getParameters().add(resourceId);
 		actions.getActions().add(action);
-		
+
 		//setting rule field and adding the created rule to the returned list
 		rule.setMonitoredTargets(monitoredTargets);
 		rule.setCollectedMetric(collectedMetric);
@@ -282,9 +288,9 @@ public class MonitoringConnector {
 
 		return toReturn;
 	}
-	
+
 	private MonitoringRules buildDemandRules(){
-		
+
 		MonitoringRules toReturn=factory.createMonitoringRules();
 		MonitoringRule rule;
 		MonitoredTargets monitoredTargets;
@@ -302,7 +308,7 @@ public class MonitoringConnector {
 		Parameter value;
 		Parameter resourceId;
 
-		
+
 		for(Container c: ModelManager.getModel().getContainer()){
 			for(ApplicationTier t: c.getApplicationTier()){
 				//initialize rule parameter
@@ -321,11 +327,11 @@ public class MonitoringConnector {
 				metric=factory.createParameter();
 				value=factory.createParameter();
 				resourceId=factory.createParameter();
-				
+
 				//setting rule attribute
-				rule.setId("sdaHaproxyARGenerated");
+				rule.setId("sdaHaproxy");
 				rule.setTimeStep("10");
-				rule.setTimeWindow("10");	
+				rule.setTimeWindow("10");
 
 				//setting the monitored target
 				for(Functionality f: t.getFunctionality()){
@@ -334,9 +340,9 @@ public class MonitoringConnector {
 					monitoredTarget.setType(f.getId());
 					monitoredTargets.getMonitoredTargets().add(monitoredTarget);
 				}
-						
+
 				//setting the collected metric
-				collectedMetric.setMetricName("EstimationERPS_AvarageEffectiveResponseTimeARGenerated");
+				collectedMetric.setMetricName("EstimationERPS_AvarageEffectiveResponseTime");
 				window.setName("window");
 				window.setValue("60");
 				nCPU.setName("nCPU");
@@ -344,11 +350,11 @@ public class MonitoringConnector {
 				CPUUtilTarget.setName("CPUUtilTarget");
 				CPUUtilTarget.setValue(t.getId());
 				CPUUtilMetric.setName("CPUUtilMetric");
-				CPUUtilMetric.setValue(t.getId()+"CPUUtilizationARGenerated");
+				CPUUtilMetric.setValue(t.getId()+"CPUUtilization");
 				samplingTime.setName("samplingTime");
 				samplingTime.setValue("1");
 				filePath.setName("filePath");
-				filePath.setValue("/home/ubuntu/modaclouds-sda/");		
+				filePath.setValue("/home/ubuntu/modaclouds-sda/");
 				collectedMetric.getParameters().add(window);
 				collectedMetric.getParameters().add(nCPU);
 				collectedMetric.getParameters().add(CPUUtilTarget);
@@ -359,7 +365,7 @@ public class MonitoringConnector {
 				//setting the output action
 				action.setName("OutputMetric");
 				metric.setName("metric");
-				metric.setValue("EstimatedDemandARGenerated");
+				metric.setValue("EstimatedDemand");
 				value.setName("value");
 				value.setValue("METRIC");
 				resourceId.setName("resourceId");
@@ -368,7 +374,7 @@ public class MonitoringConnector {
 				action.getParameters().add(value);
 				action.getParameters().add(resourceId);
 				actions.getActions().add(action);
-				
+
 
 
 				//setting rule field and adding the created rule to the returned list
@@ -378,59 +384,59 @@ public class MonitoringConnector {
 				toReturn.getMonitoringRules().add(rule);
 			}
 		}
-		
+
 
 		return toReturn;
-		
+
 	}
-	
+
 	private MonitoringRules buildWorkloadRules(){
-		
+
 		MonitoringRules toReturn=factory.createMonitoringRules();
 		MonitoringRule rule;
 		MonitoredTargets monitoredTargets;
 		MonitoredTarget monitoredTarget;
 		CollectedMetric collectedMetric;
-		Parameter samplingPorbability;
+		Parameter samplingProbability;
 		MonitoringMetricAggregation metricAggregation;
 		Actions actions;
 		Action action;
 		Parameter metric;
 		Parameter value;
 		Parameter resourceId;
-		
+
 		//initialize rule parameter
 		rule=factory.createMonitoringRule();
 		monitoredTargets=factory.createMonitoredTargets();
 		monitoredTarget=factory.createMonitoredTarget();
 		collectedMetric=factory.createCollectedMetric();
-		samplingPorbability=factory.createParameter();
+		samplingProbability=factory.createParameter();
 		metricAggregation=factory.createMonitoringMetricAggregation();
 		actions=factory.createActions();
 		action=factory.createAction();
 		metric=factory.createParameter();
 		value=factory.createParameter();
 		resourceId=factory.createParameter();
-		
+
 		//setting rule attribute
-		rule.setId("workloadRuleARGenerated");
+		rule.setId("workloadRule");
 		rule.setTimeStep("10");
 		rule.setTimeWindow("10");
-				
+
 		//setting the collected metric
 		collectedMetric.setMetricName("ResponseTime");
-		samplingPorbability.setName("samplingPorbability");
-		samplingPorbability.setValue("1");;
-		collectedMetric.getParameters().add(samplingPorbability);
-		
+		samplingProbability.setName("samplingProbability");
+		samplingProbability.setValue("1");;
+		collectedMetric.getParameters().add(samplingProbability);
+
 		//setting the aggregation fucntion
 		metricAggregation.setAggregateFunction("Count");
 		metricAggregation.setGroupingClass("Method");
-		
+
 		//setting the output action
 		action.setName("OutputMetric");
 		metric.setName("metric");
-		metric.setValue("WorkloadARGenerated");
+		metric.setValue("Workload");
 		value.setName("value");
 		value.setValue("METRIC");
 		resourceId.setName("resourceId");
@@ -439,10 +445,10 @@ public class MonitoringConnector {
 		action.getParameters().add(value);
 		action.getParameters().add(resourceId);
 		actions.getActions().add(action);
-		
 
-		
-		
+
+
+
 		for(Container c: ModelManager.getModel().getContainer()){
 			for(ApplicationTier t: c.getApplicationTier()){
 				//setting the monitored target
@@ -454,7 +460,7 @@ public class MonitoringConnector {
 				}
 			}
 		}
-		
+
 		//setting rule field and adding the created rule to the returned list
 		rule.setMonitoredTargets(monitoredTargets);
 		rule.setCollectedMetric(collectedMetric);
@@ -463,9 +469,9 @@ public class MonitoringConnector {
 		toReturn.getMonitoringRules().add(rule);
 
 		return toReturn;
-		
+
 	}
-	
+
 	private  MonitoringRules buildWorkloadForecastRules(){
 		MonitoringRules toReturn=factory.createMonitoringRules();
 		MonitoringRule rule;
@@ -483,9 +489,9 @@ public class MonitoringConnector {
 		Parameter metric;
 		Parameter value;
 		Parameter resourceId;
-		
+
 		for(int timestep=1; timestep<=ModelManager.getOptimizationWindow(); timestep++){
-			
+
 			//initialize rule parameter
 			rule=factory.createMonitoringRule();
 			monitoredTargets=factory.createMonitoredTargets();
@@ -502,12 +508,12 @@ public class MonitoringConnector {
 			metric=factory.createParameter();
 			value=factory.createParameter();
 			resourceId=factory.createParameter();
-			
+
 			//setting rule attribute
-			rule.setId("sdaForecastARGenerated"+timestep);
+			rule.setId("sdaForecast"+timestep);
 			rule.setTimeStep("300");
 			rule.setTimeWindow("300");
-			
+
 			//setting the monitored target
 			for(Container c: ModelManager.getModel().getContainer()){
 				for(ApplicationTier t: c.getApplicationTier()){
@@ -519,9 +525,9 @@ public class MonitoringConnector {
 					}
 				}
 			}
-					
+
 			//setting the collected metric
-			collectedMetric.setMetricName("ForecastingTimeseriesARIMA_WorkloadARGenerated_"+timestep);
+			collectedMetric.setMetricName("ForecastingTimeseriesARIMA_Workload_"+timestep);
 			order.setName("order");
 			order.setValue("1");
 			forecastPeriod.setName("forecastPeriod");
@@ -544,7 +550,7 @@ public class MonitoringConnector {
 			//setting the output action
 			action.setName("OutputMetric");
 			metric.setName("metric");
-			metric.setValue("ForecastedWorkloadARGenerated"+timestep);
+			metric.setValue("ForecastedWorkload"+timestep);
 			value.setName("value");
 			value.setValue("METRIC");
 			resourceId.setName("resourceId");
@@ -553,25 +559,25 @@ public class MonitoringConnector {
 			action.getParameters().add(value);
 			action.getParameters().add(resourceId);
 			actions.getActions().add(action);
-					
+
 			//setting rule field and adding the created rule to the returned list
 			rule.setMonitoredTargets(monitoredTargets);
 			rule.setCollectedMetric(collectedMetric);
 			rule.setActions(actions);
 			toReturn.getMonitoringRules().add(rule);
 		}
-		
+
 
 
 		return toReturn;
 	}
-	
-	
+
+
 	public void changeRuleThreshold(String ruleId, Double threshold){
 		MonitoringRules installedRules;
 			try {
 				installedRules = monitoring.getRules();
-				
+
 				for(MonitoringRule rule: installedRules.getMonitoringRules()){
 					if(rule.getId().equals(ruleId)){
 						rule.getCondition().setValue(threshold.toString());
@@ -588,8 +594,8 @@ public class MonitoringConnector {
 				journal.error("Error while dealing with the files.", e);
 			} catch (NotFoundException e) {
 				journal.error("File not found.", e);
-			}			
-		
+			}
+
 	}
-	
+
 }

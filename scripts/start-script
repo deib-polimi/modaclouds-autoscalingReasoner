@@ -9,7 +9,7 @@ then
 fi
 
 JAR="$AR_HOME/modaclouds-autoscalingReasoner.jar"
-CLASS="it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl.Main"
+CLASS="it.polimi.modaclouds.recedingHorizonScaling4Cloud.Main"
 if [ ! -e "$JAR" ]
 then
     echo "Can't find jarfile to run"

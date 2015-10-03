@@ -1,10 +1,10 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.optimizerFileProcessing;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import it.polimi.modaclouds.qos_models.schema.ApplicationTier;
+import it.polimi.modaclouds.qos_models.schema.Container;
+import it.polimi.modaclouds.qos_models.schema.Containers;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ModelManager;
 
@@ -110,7 +110,7 @@ public class OptimizationInputWriter {
 			
 			sb.append("\n");
 
-			writeFile(DYNAMIC_INPUT_FILE_NAME + ".dat", toAdapt.getId() + File.separator + "dynamic", sb.toString());
+			writeFile(DYNAMIC_INPUT_FILE_NAME + ".dat", toAdapt.getId(), sb.toString());
 		}	
 		
 	}
@@ -147,7 +147,7 @@ public class OptimizationInputWriter {
 					"let rho:=\n%s\n;\n\n",
 					doubleFormatter.format(c.getReservedCost())));
 			
-			writeFile(STATIC_INPUT_FILE_NAME + ".dat", c.getId() + File.separator + "static", sb.toString());
+			writeFile(STATIC_INPUT_FILE_NAME + ".dat", c.getId(), sb.toString());
 		}
 	}
 

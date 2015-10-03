@@ -1,6 +1,6 @@
-package it.polimi.modaclouds.recedingHorizonScaling4Cloud.adaptationControl;
+package it.polimi.modaclouds.recedingHorizonScaling4Cloud;
 
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
+import it.polimi.modaclouds.qos_models.schema.Container;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ModelManager;
 
 import java.util.List;

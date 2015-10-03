@@ -1,8 +1,8 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.util;
 
+import it.polimi.modaclouds.qos_models.schema.Container;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ConfigurationFileException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.ProjectFileSystemException;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,13 +41,16 @@ public class ConfigManager {
 	
 	public static String OWN_IP = DEFAULT_IP;
 	
-	public static final int DEFAULT_LISTENING_PORT = 81790;
+	public static final int DEFAULT_LISTENING_PORT = 6789;
 	public static String LISTENING_PORT = Integer.toString(DEFAULT_LISTENING_PORT);
+	
+	public static final int DEFAULT_OTHER_OBSERVER_PORT = 8001;
+	public static String OTHER_OBSERVER_PORT = Integer.toString(DEFAULT_OTHER_OBSERVER_PORT);
 	
 	public static String PATH_TO_DESIGN_TIME_MODEL;
 	
 	public static String SSH_USER_NAME;
-	public static String SSH_HOST;
+	public static String SSH_HOST = "localhost";
 	public static String SSH_PASSWORD;
 	
 	public static String CLOUDML_WEBSOCKET_IP = DEFAULT_IP;
@@ -79,7 +82,8 @@ public class ConfigManager {
 	public static String DEFAULTS_WORKING_DIRECTORY = "/tmp/modaclouds";
 	public static String RUN_WORKING_DIRECTORY = DEFAULTS_WORKING_DIRECTORY;
 	
-	
+	public static final int DEFAULT_SCALE_LIMIT = 5;
+	public static String SCALE_LIMIT = Integer.toString(DEFAULT_SCALE_LIMIT);
 	
 	public static void initFolders() {
 		setWorkingSubDirectory();
@@ -124,12 +128,20 @@ public class ConfigManager {
 				);
 	}
 	
-	public static String RUN_AMPL_SOLVER = "/usr/optimization/CPLEX_Studio_Preview126/cplex/bin/x86-64_linux/cplexamp";
-	public static String RUN_AMPL_EXECUTABLE = "/usr/optimization/ILOG/ampl20060626.cplex101/ampl";
+	public static final String DEFAULT_RUN_AMPL_SOLVER = "/usr/optimization/CPLEX_Studio_Preview126/cplex/bin/x86-64_linux/cplexamp"; 
+	public static String RUN_AMPL_SOLVER = DEFAULT_RUN_AMPL_SOLVER;
 	
-	public static String RUN_CMPL_SOLVER = "cbc"; // glpk, cbc, scip, gurobi, cplex
-	public static String RUN_CMPL_EXECUTABLE = "/usr/share/Cmpl/cmpl";
-	public static int CMPL_THREADS = 4;
+	public static final String DEFAULT_RUN_AMPL_EXECUTABLE = "/usr/optimization/ILOG/ampl20060626.cplex101/ampl";
+	public static String RUN_AMPL_EXECUTABLE = DEFAULT_RUN_AMPL_EXECUTABLE;
+	
+	public static final String DEFAULT_RUN_CMPL_SOLVER = "cbc"; // glpk, cbc, scip, gurobi, cplex
+	public static String RUN_CMPL_SOLVER = DEFAULT_RUN_CMPL_SOLVER;
+	
+	public static final String DEFAULT_RUN_CMPL_EXECUTABLE = "/usr/share/Cmpl/cmpl";
+	public static String RUN_CMPL_EXECUTABLE = DEFAULT_RUN_CMPL_EXECUTABLE;
+	
+	public static final int DEFAULT_CMPL_THREADS = 4;
+	public static int CMPL_THREADS = DEFAULT_CMPL_THREADS;
 	
 	public static int getCMPLThreads() {
 		int threads = CMPL_THREADS;
@@ -141,10 +153,12 @@ public class ConfigManager {
 		return threads;
 	}
 
-	public static Solver MATH_SOLVER = Solver.AMPL;
+	public static Solver MATH_SOLVER = Solver.DEFAULT;
 	
 	public static enum Solver {
 		AMPL("AMPL"), CMPL("CMPL");
+		
+		public static Solver DEFAULT = AMPL;
 
 		private String name;
 
@@ -174,7 +188,7 @@ public class ConfigManager {
 			for (Solver s : values)
 				if (s.name.equals(name))
 					return s;
-			return values[0];
+			return DEFAULT;
 		}
 
 	}
@@ -242,6 +256,10 @@ public class ConfigManager {
 	public static final String PROPERTY_NAME_OBJECT_STORE_IP = "MODACLOUDS_AR_OBJ_STORE_IP";
 	public static final String PROPERTY_NAME_OBJECT_STORE_PORT = "MODACLOUDS_AR_OBJ_STORE_PORT";
 	public static final String PROPERTY_NAME_OBJECT_STORE_MODEL_PATH = "MODACLOUDS_AR_OBJ_STORE_PATH";
+	public static final String PROPERTY_NAME_SOLVER_NAME = "MODACLOUDS_AR_SOLVER_NAME";
+	public static final String PROPERTY_NAME_SOLVER_SOLVER = "MODACLOUDS_AR_SOLVER_SOLVER";
+	public static final String PROPERTY_NAME_SOLVER_EXECUTABLE = "MODACLOUDS_AR_SOLVER_EXECUTABLE";
+	public static final String PROPERTY_NAME_SOLVER_THREADS = "MODACLOUDS_AR_SOLVER_THREADS";
 
 	public static void setFromEnrivonmentVariables() throws ConfigurationFileException {
 		setPropertyIfNotNull("OWN_IP", System.getenv(PROPERTY_NAME_OWN_IP));
@@ -258,6 +276,12 @@ public class ConfigManager {
 		setPropertyIfNotNull("OBJECT_STORE_IP", System.getenv(PROPERTY_NAME_OBJECT_STORE_IP));
 		setPropertyIfNotNull("OBJECT_STORE_PORT", System.getenv(PROPERTY_NAME_OBJECT_STORE_PORT));
 		setPropertyIfNotNull("OBJECT_STORE_MODEL_PATH", System.getenv(PROPERTY_NAME_OBJECT_STORE_MODEL_PATH));
+		
+		setSolver(
+				System.getenv(PROPERTY_NAME_SOLVER_NAME),
+				System.getenv(PROPERTY_NAME_SOLVER_SOLVER),
+				System.getenv(PROPERTY_NAME_SOLVER_EXECUTABLE),
+				System.getenv(PROPERTY_NAME_SOLVER_THREADS));
 	}
 	
 	public static void setFromSystemProperties() throws ConfigurationFileException {
@@ -275,6 +299,12 @@ public class ConfigManager {
 		setPropertyIfNotNull("OBJECT_STORE_IP", System.getProperty(PROPERTY_NAME_OBJECT_STORE_IP));
 		setPropertyIfNotNull("OBJECT_STORE_PORT", System.getProperty(PROPERTY_NAME_OBJECT_STORE_PORT));
 		setPropertyIfNotNull("OBJECT_STORE_MODEL_PATH", System.getProperty(PROPERTY_NAME_OBJECT_STORE_MODEL_PATH));
+		
+		setSolver(
+				System.getProperty(PROPERTY_NAME_SOLVER_NAME),
+				System.getProperty(PROPERTY_NAME_SOLVER_SOLVER),
+				System.getProperty(PROPERTY_NAME_SOLVER_EXECUTABLE),
+				System.getProperty(PROPERTY_NAME_SOLVER_THREADS));
 	}
 
 	public static void setFromArguments(Map<String, String> paramsMap) throws ConfigurationFileException {
@@ -292,6 +322,37 @@ public class ConfigManager {
 		setPropertyIfNotNull("OBJECT_STORE_IP", paramsMap.get("objStorIp"));
 		setPropertyIfNotNull("OBJECT_STORE_PORT", paramsMap.get("objStorePort"));
 		setPropertyIfNotNull("OBJECT_STORE_MODEL_PATH", paramsMap.get("objStorePathToModel"));
+		setPropertyIfNotNull("MATH_SOLVER", paramsMap.get("objStorePathToModel"));
+		
+		setSolver(paramsMap.get("solverName"), paramsMap.get("solverSolver"), paramsMap.get("solverExecutable"), paramsMap.get("solverThreads"));
+	}
+	
+	public static void setSolver(String name, String solver, String executable, String threads) {
+		Solver newSolver = Solver.DEFAULT;
+		if (name != null && name.length() > 0) {
+			newSolver = Solver.getByName(name);
+		}
+		
+		if ((solver != null && solver.length() > 0) || (executable != null && executable.length() > 0) || (threads != null && threads.length() > 0))
+			MATH_SOLVER = newSolver;
+		
+		switch (newSolver) {
+		case AMPL:
+			setPropertyIfNotNull("RUN_AMPL_SOLVER", solver);
+			setPropertyIfNotNull("RUN_AMPL_EXECUTABLE", executable);
+			break;
+		case CMPL:
+			setPropertyIfNotNull("RUN_CMPL_SOLVER", solver);
+			setPropertyIfNotNull("RUN_CMPL_EXECUTABLE", executable);
+			if (threads != null && threads.length() > 0) {
+				try {
+					CMPL_THREADS = Integer.parseInt(threads);
+				} catch (Exception e) {
+					journal.error("Error while parsing the number of threads parameter.", e);
+				}
+			}
+			break;
+		}
 	}
 
 	public static void inizializeFileSystem() throws ProjectFileSystemException{
@@ -332,7 +393,11 @@ public class ConfigManager {
 	
 	public static void loadConfiguration(Map<String, String> paramsMap) throws ConfigurationFileException {
 		if (!isAlreadySet || paramsMap != null) {
-			setFromFile();
+			try {
+				setFromFile();
+			} catch (Exception e) {
+				journal.warn("Error while setting from the file, maybe it doesn't exist.", e);
+			}
 			setFromEnrivonmentVariables();
 			setFromSystemProperties();
 			if (paramsMap != null) {
@@ -345,20 +410,34 @@ public class ConfigManager {
 	}
 	
 	public static InputStream getInputStream(String filePath) {
-		Path p = getPathToFile(filePath);
-		if (p != null)
+		File f = new File(filePath);
+		if (f.exists())
 			try {
-				return new FileInputStream(p.toFile());
+				return new FileInputStream(f);
 			} catch (Exception e) { }
+		
+		InputStream in = ConfigManager.class.getResourceAsStream(filePath);
+		if (in == null)
+			in = ConfigManager.class.getResourceAsStream("/" + filePath);
+		if (in == null)
+			return null;
+		else
+			return in;
+	}
+	
+	public static Path getPathToFile(String filePath) {
+		URL url = getURLToFile(filePath);
+		if (url != null)
+			return Paths.get(url.getPath());
 		
 		return null;
 	}
 	
-	public static Path getPathToFile(String filePath) {
+	public static URL getURLToFile(String filePath) {
 		File f = new File(filePath);
 		if (f.exists())
 			try {
-				return f.toPath();
+				return f.toURI().toURL();
 			} catch (Exception e) { }
 		
 		URL url = ConfigManager.class.getResource(filePath);
@@ -367,7 +446,7 @@ public class ConfigManager {
 		if (url == null)
 			return null;
 		else
-			return Paths.get(url.getPath());
+			return url;
 	}
 	
 	private static InputStream findConfigFile() {
@@ -400,7 +479,7 @@ public class ConfigManager {
 			for (Field f : fs) {
 				if (Modifier.isFinal(f.getModifiers()))
 					continue;
-				journal.info("{} = {}", f.getName(), f.get(null));
+				journal.debug("{} = {}", f.getName(), f.get(null));
 			}
 		} catch (Exception e) {
 			journal.error("Error while getting the value of the properties.", e);

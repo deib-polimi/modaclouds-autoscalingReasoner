@@ -1,21 +1,24 @@
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.util;
 
+import it.polimi.modaclouds.qos_models.schema.ApplicationTier;
+import it.polimi.modaclouds.qos_models.schema.Container;
+import it.polimi.modaclouds.qos_models.schema.Containers;
+import it.polimi.modaclouds.qos_models.schema.Functionality;
+import it.polimi.modaclouds.qos_models.schema.Instance;
+import it.polimi.modaclouds.qos_models.schema.WorkloadForecast;
+import it.polimi.modaclouds.qos_models.util.XMLHelper;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector.CloudMLAdapter;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.CloudMLReturnedModelException;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.TierNotFoudException;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.ApplicationTier;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Container;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Containers;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Functionality;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.Instance;
-import it.polimi.modaclouds.recedingHorizonScaling4Cloud.model.WorkloadForecast;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.StringWriter;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -24,10 +27,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -71,13 +71,11 @@ public class ModelManager {
 			
 			journal.info("A path to the initial adaptation model has been specified; loading the initial model from it.");
 			try {
-				JAXBContext jc;
-
-				jc = JAXBContext.newInstance(Containers.class);
-				Unmarshaller unmarshaller = jc.createUnmarshaller();
 				File xml = ConfigManager.getPathToFile(ConfigManager.PATH_TO_DESIGN_TIME_MODEL).toFile();
-				model = (Containers) unmarshaller.unmarshal(xml);
-			} catch (JAXBException e) {
+				try (FileInputStream in = new FileInputStream(xml)) {
+					model = (Containers) XMLHelper.deserialize(in, Containers.class);
+				}
+			} catch (Exception e) {
 				journal.error("Error while loading the model.", e);
 			}
 		}
@@ -113,17 +111,13 @@ public class ModelManager {
 				}
 				outStream.close();
 
-				JAXBContext jc;
-
-				jc = JAXBContext.newInstance(Containers.class);
-				Unmarshaller unmarshaller = jc.createUnmarshaller();
-				model = (Containers) unmarshaller.unmarshal(targetFile);
+				try (FileInputStream in = new FileInputStream(targetFile)) {
+					model = (Containers) XMLHelper.deserialize(in, Containers.class);
+				}
 			} catch (ClientProtocolException e) {
 				journal.error("Error in the client protocol.", e);
-			} catch (IOException e) {
+			} catch (Exception e) {
 				journal.error("Error while accessing the file.", e);
-			} catch (JAXBException e) {
-				journal.error("Error while parsing the XML file.", e);
 			} finally {
 				try {
 					response1.close();
@@ -160,23 +154,21 @@ public class ModelManager {
 	}
 
 	public static String printCurrentModel() {
-		JAXBContext context;
-
 		try {
-
-			context = JAXBContext
-					.newInstance("it.polimi.modaclouds.recedingHorizonScaling4Cloud.model");
-			Marshaller marshaller = context.createMarshaller();
-			marshaller.setProperty("jaxb.formatted.output", Boolean.TRUE);
 			File currentModel = Paths.get(ConfigManager.getLocalTmp().toString(), "model_" + currentTimeStep + ".xml")
 					.toFile();
 			OutputStream out = new FileOutputStream(currentModel);
-			StringWriter sw = new StringWriter();
-
-			marshaller.marshal(model, out);
-			marshaller.marshal(model, sw);
-			journal.info(sw.toString());
-			return sw.toString();
+			ByteArrayOutputStream outString = new ByteArrayOutputStream();
+			
+			final String schemaLocation = "http://www.modaclouds.eu/xsd/2015/9/s4c_ops https://raw.githubusercontent.com/deib-polimi/modaclouds-qos-models/master/metamodels/s4cextension/s4c_ops.xsd";
+			
+			XMLHelper.serialize(model, out, schemaLocation);
+			
+			XMLHelper.serialize(model, outString, schemaLocation);
+			String res = outString.toString();
+			
+			journal.trace(res);
+			return res;
 		} catch (JAXBException e) {
 			journal.error("Error while writing the XML file.", e);
 		} catch (FileNotFoundException e) {
@@ -292,6 +284,22 @@ public class ModelManager {
 		return toReturn.getId();
 
 	}
+	
+	public static void main(String[] args) throws Exception {
+		ConfigManager.loadConfiguration();
+		ConfigManager.PATH_TO_DESIGN_TIME_MODEL = Paths.get("/Users/ft/Desktop/httpAgentInitialModel.xml").toString();
+		ModelManager.loadModel();
+		
+		String body = new String(Files.readAllBytes(Paths.get("/Users/ft/Desktop/model.json")));
+		
+		try {
+			JSONObject jsonObject = new JSONObject(body.substring(27));
+			JSONArray instances=jsonObject.getJSONArray("vmInstances");
+			ModelManager.updateDeploymentInfo(instances);
+		} catch (JSONException | TierNotFoudException | CloudMLReturnedModelException e) {
+			journal.error("Error while parsing the deployment info returned by CloudML.", e);
+		}
+	}
 
 	public static void updateDeploymentInfo(JSONArray instances)
 			throws JSONException, TierNotFoudException,
@@ -299,15 +307,17 @@ public class ModelManager {
 
 		for (int i = 0; i < instances.length(); i++) {
 			JSONObject instance = instances.getJSONObject(i);
-			String instanceId = instance.get("id").toString();
-			String instanceType = instance.get("type").toString();
-			String instanceStatus = instance.get("status").toString();
+			String instanceId = instance.optString("id");
+			String instanceType = instance.optString("type");
+			String instanceStatus = instance.optString("status");
 
 			// if cloudml returns valid information (no field can be null)
 			if (!instanceId.equals("null") && !instanceType.equals("null")
 					&& !instanceStatus.equals("null")) {
 
 				instanceType = getTierIdFromInstanceType(instanceType);
+				
+				journal.trace("{ id: {}, tier: {}, status: {} }", instanceId, instanceType, instanceStatus);
 
 				if (getInstance(instanceId) != null) {
 					String tierId = getHostedTier(instanceId).getId();
@@ -349,8 +359,9 @@ public class ModelManager {
 								+ instanceId);
 			}
 
-			ModelManager.printCurrentModel();
 		}
+		
+		ModelManager.printCurrentModel();
 	}
 
 	private static String getTierIdFromInstanceType(String instanceType)
@@ -672,6 +683,8 @@ public class ModelManager {
 		ApplicationTier tier = getTier(tierId);
 		double toReturn = 0;
 
+		
+		
 		for (Functionality f : tier.getFunctionality()) {
 			for (WorkloadForecast wf : f.getWorkloadForecast()) {
 				if (wf.getTimeStepAhead() == lookAhead) {
@@ -679,13 +692,31 @@ public class ModelManager {
 				}
 			}
 		}
+		
+		if(toReturn==0){
+			
+			double sum = 0;
+			int count = 0;
+			
+			for (WorkloadForecast wf : tier.getWorkloadForecast()) {
+				if (wf.getTimeStepAhead() != lookAhead) {
+					sum = sum + wf.getValue();
+					count++;
+				}
+			}
+			
+			toReturn=sum/count;
+			
+		}
 
 		WorkloadForecast toUpdate = null;
+		
 		for (WorkloadForecast wf : tier.getWorkloadForecast()) {
 			if (wf.getTimeStepAhead() == lookAhead) {
 				toUpdate = wf;
 			}
 		}
+		
 		if (toUpdate != null) {
 			toUpdate.setValue(toReturn);
 		} else {
@@ -695,7 +726,7 @@ public class ModelManager {
 			tier.getWorkloadForecast().add(toUpdate);
 		}
 
-		return toReturn;
+		return toReturn/(model.getTimestepDuration()*1000);
 	}
 
 	public static String getInstanceToScale(String tierId) {

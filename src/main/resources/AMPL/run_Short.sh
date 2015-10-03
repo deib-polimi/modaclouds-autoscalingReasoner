@@ -16,6 +16,10 @@ while [ $indexnIaaS -le $indexnIaaSMAX ]
 do
 	before="$(date +%%s)"
 	date
+	
+	# Remove previous results
+	rm $output/rawData/*/*
+    rm $output/rawGlobal/*
 
 	dest="$data/IaaS_"$indexnIaaS"/rawGlobal"
 	orig="$data/IaaS_"$indexnIaaS
@@ -40,14 +44,8 @@ do
 	echo "Elapsed time:" $elapsed_seconds
 	echo $elapsed_seconds >  $dest/$timeFileName
 
-
-	#Removing the dat file
-	rm $input/*
-
 	#Copy output file in the IaaS folder
 	cp -r $output/* $orig/
-	rm $output/rawData/*/*
-	rm $output/rawGlobal/*
 
 	indexnIaaS=`expr $indexnIaaS + 1`
 done
