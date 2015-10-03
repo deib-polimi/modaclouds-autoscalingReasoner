@@ -1,3 +1,20 @@
+<!--
+
+    Copyright (C) 2014 Politecnico di Milano (michele.guerriero@mail.polimi.it)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
@@ -6,6 +23,7 @@
 	<artifactId>recedingHorizonScaling4Cloud</artifactId>
 	<version>0.1</version>
 	<packaging>jar</packaging>
+	<inceptionYear>2014</inceptionYear>
 
 	<name>recedingHorizonScaling4Cloud</name>
 	<url>http://maven.apache.org</url>
@@ -15,6 +33,14 @@
 		<dist.file.name>modaclouds-autoscalingReasoner</dist.file.name>
 		<main.class>it.polimi.modaclouds.recedingHorizonScaling4Cloud.Main</main.class>
 	</properties>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
 
 	<repositories>
 		<repository>
@@ -45,18 +71,18 @@
 			<artifactId>jcommander</artifactId>
 			<version>1.47</version>
 		</dependency>
-		
+
 		<dependency>
-            <groupId>javax.websocket</groupId>
-            <artifactId>javax.websocket-api</artifactId>
-            <version>1.1</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-container-jdk-client</artifactId>
-            <version>1.11</version>
-        </dependency>
+			<groupId>javax.websocket</groupId>
+			<artifactId>javax.websocket-api</artifactId>
+			<version>1.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.glassfish.tyrus</groupId>
+			<artifactId>tyrus-container-jdk-client</artifactId>
+			<version>1.11</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
@@ -90,18 +116,18 @@
 			<artifactId>commons-configuration</artifactId>
 			<version>1.10</version>
 		</dependency>
-		
+
 		<dependency>
-            <groupId>it.polimi.modaclouds.qos-models</groupId>
-            <artifactId>qos-models</artifactId>
-            <version>3.0.2</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>log4j-over-slf4j</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+			<groupId>it.polimi.modaclouds.qos-models</groupId>
+			<artifactId>qos-models</artifactId>
+			<version>3.0.2</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>log4j-over-slf4j</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 
 	</dependencies>
 
@@ -121,6 +147,45 @@
 					<source>1.7</source>
 					<target>1.7</target>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>2.11</version>
+				<inherited>false</inherited>
+				<configuration>
+					<aggregate>true</aggregate>
+					<header>NOTICE</header>
+					<properties>
+						<owner>Politecnico di Milano</owner>
+						<email>michele.guerriero@mail.polimi.it</email>
+					</properties>
+					<mapping>
+						<g4>JAVADOC_STYLE</g4>
+						<tex>PERCENT3_STYLE</tex>
+					</mapping>
+					<excludes>
+						<exclude>**/*.md</exclude>
+						<exclude>**/README*</exclude>
+						<exclude>**/*.log</exclude>
+						<exclude>**/src/test/resources/**</exclude>
+						<exclude>**/src/main/resources/**</exclude>
+						<exclude>**/src/main/java/META-INF/*</exclude>
+						<exclude>LICENSE*</exclude>
+						<exclude>**/.*</exclude>
+						<exclude>**/.*/**/*.*</exclude>
+						<exclude>**/scripts/*</exclude>
+					</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<id>check-headers</id>
+						<phase>initialize</phase>
+						<goals>
+							<goal>format</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 
 			<plugin>
