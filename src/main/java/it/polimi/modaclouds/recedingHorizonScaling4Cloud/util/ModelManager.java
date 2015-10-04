@@ -312,15 +312,23 @@ public class ModelManager {
 	
 	public static void main(String[] args) throws Exception {
 		ConfigManager.loadConfiguration();
-		ConfigManager.PATH_TO_DESIGN_TIME_MODEL = Paths.get("/Users/ft/Desktop/httpAgentInitialModel.xml").toString();
+		ConfigManager.PATH_TO_DESIGN_TIME_MODEL = Paths.get("/Users/ft/Desktop/autoscalingReasoner/httpAgentInitialModel.xml").toString();
 		ModelManager.loadModel();
 		
-		String body = new String(Files.readAllBytes(Paths.get("/Users/ft/Desktop/model.json")));
+		String body = new String(Files.readAllBytes(Paths.get("/Users/ft/Desktop/autoscalingReasoner/model.json")));
 		
 		try {
 			JSONObject jsonObject = new JSONObject(body.substring(27));
 			JSONArray instances=jsonObject.getJSONArray("vmInstances");
 			ModelManager.updateDeploymentInfo(instances);
+			
+			journal.debug("{}", getWorkloadPrediction("HTTPAgent", 1)*model.getTimestepDuration()*1000);
+			journal.debug("{}", getWorkloadPrediction("HTTPAgent", 2)*model.getTimestepDuration()*1000);
+			journal.debug("{}", getWorkloadPrediction("HTTPAgent", 3)*model.getTimestepDuration()*1000);
+			journal.debug("{}", getWorkloadPrediction("HTTPAgent", 4)*model.getTimestepDuration()*1000);
+			journal.debug("{}", getWorkloadPrediction("HTTPAgent", 5)*model.getTimestepDuration()*1000);
+			
+			ModelManager.printCurrentModel();
 		} catch (JSONException | TierNotFoudException | CloudMLReturnedModelException e) {
 			journal.error("Error while parsing the deployment info returned by CloudML.", e);
 		}
@@ -335,6 +343,9 @@ public class ModelManager {
 			String instanceId = instance.optString("id");
 			String instanceType = instance.optString("type");
 			String instanceStatus = instance.optString("status");
+			
+			if (instanceId.length() == 0)
+				continue;
 
 			// if cloudml returns valid information (no field can be null)
 			if (!instanceId.equals("null") && !instanceType.equals("null")
@@ -723,10 +734,12 @@ public class ModelManager {
 			double sum = 0;
 			int count = 0;
 			
-			for (WorkloadForecast wf : tier.getWorkloadForecast()) {
-				if (wf.getTimeStepAhead() != lookAhead) {
-					sum = sum + wf.getValue();
-					count++;
+			for (Functionality f : tier.getFunctionality()) {
+				for (WorkloadForecast wf : f.getWorkloadForecast()) {
+					if (wf.getTimeStepAhead() != lookAhead & wf.getValue()!=null && !wf.getValue().isNaN()) {
+						sum = sum + wf.getValue().doubleValue();
+						count++;
+					}
 				}
 			}
 			
