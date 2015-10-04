@@ -734,12 +734,19 @@ public class ModelManager {
 			double sum = 0;
 			int count = 0;
 			
+<<<<<<< HEAD
 			for (Functionality f : tier.getFunctionality()) {
 				for (WorkloadForecast wf : f.getWorkloadForecast()) {
 					if (wf.getTimeStepAhead() != lookAhead & wf.getValue()!=null && !wf.getValue().isNaN()) {
 						sum = sum + wf.getValue().doubleValue();
 						count++;
 					}
+=======
+			for (WorkloadForecast wf : tier.getWorkloadForecast()) {
+				if (wf.getTimeStepAhead() != lookAhead & wf.getValue()!=null) {
+					sum = sum + wf.getValue().doubleValue();
+					count++;
+>>>>>>> 46a2d56597b5795d89a30718a9175ea8a4244c72
 				}
 			}
 			
