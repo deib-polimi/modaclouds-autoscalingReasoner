@@ -742,7 +742,8 @@ public class ModelManager {
 					}
 				}
 			}
-			
+			if (count == 0)
+				count = 1;
 			toReturn=sum/count;
 			
 		}
