@@ -46,6 +46,10 @@ public class SshAdapter {
 		shell = new Shell();
 	}
 	
+	public SshAdapter(String ip, String user, String password, String key) {
+		shell = new Shell(ip, user, password, key);
+	}
+	
 	private void sendFile(String localFile, String remoteFile) throws Exception {
 		shell.sendFile(localFile, remoteFile);
 	}
@@ -329,12 +333,28 @@ public class SshAdapter {
 			}
 		}
 	}
+	
+	public boolean staticFilesNotAvailable() throws Exception {
+		List<String> res = shell.exec(String.format("ls -l %s | grep \"No such file\"", ConfigManager.RUN_WORKING_DIRECTORY));
+		
+		for (String s : res)
+			if (s.contains("No such file"))
+				return true;
+		
+		return false;
+	}
 
 	// main execution function
 	public static void executeOptimization(Container c) {
 		SshAdapter adapter = new SshAdapter();
 		
 		try {
+			if (adapter.staticFilesNotAvailable()) {
+				journal.info("Sending again the fixed files...");
+				
+				sendFixedFiles();
+			}
+			
 			journal.info("Sending all the optimization dynamic input files...");
 			adapter.sendAllDataFiles("dynamic");
 
