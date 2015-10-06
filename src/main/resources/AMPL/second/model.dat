@@ -1,5 +1,6 @@
 #Assegnamento dei parametri.
 
+let Tw:=5;
 
 param nClasses:=%6$d; #number of classes
 
@@ -19,3 +20,22 @@ let nTslot:=(Tlong*60)/Tslot;
 
 #param lpred{k in K, t in 1..nTon}; #prediction of workload
 let {k in K, t in 1..nTon} lpred[k,t]:=0;
+
+
+let equil:=0;
+let resptime:=0;
+let tot:=0;
+for {k in K}{
+    let brokenSla[k]:=0;
+    let brokenEquil[k]:=0;
+    let sat[k]:=0;
+    let Sat[k]:=0;
+    let satlevel[k]:=0;
+    let iter[k]:=0;
+    for {j in 1..(nTslot+nTon+1)}{
+        let Nres[k,j]:=0;
+        let Nond[k,j]:=0;
+        let pred[k,j]:=0;
+        let util[k,j]:=0;
+        }
+    }

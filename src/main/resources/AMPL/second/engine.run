@@ -3,8 +3,10 @@ param folder symbolic;
 for {j in 1..1}{
 	for {k in K}{
 		for {w in 1..Tw}{
+		    #Assegnamento noise:
+            let {t in 1..Tw} ns[t]:=0;
+            
 			#Assegnemento ai parametri locali dei valoti globali.
-			include noise.run;
 			let lpred[k,w]:=Lambda[k,j+w-1] * (1 + ns[w]);
 			let r_bar[k,w]:=Nres[k,j+w];
 			let d_bar[k,w]:=Nond[k,j+w];
@@ -14,7 +16,13 @@ for {j in 1..1}{
 	}
 	#Ottimizzazione del problema.
 	solve Global;
-	include check_infeasible.run;
+	if match (solve_message, "infeasible") > 0 
+    then {
+        printf "\n##############################\n";
+        printf "### INFEASIBLE! check logs ###\n";
+        printf "##############################\n";
+        #break;
+    }
 	let tot:= tot + (delta*sum{k in K}d[k,1] + rho*sum{k in K}r[k,1]);
 	printf "%%4.6f\n", cost > ('output/rawGlobal/cost.txt'); #debug
 	display cost;
@@ -32,6 +40,15 @@ for {j in 1..1}{
 			let Nond[k,j+t]:=Nond[k,j+t] + Mond[k,j];
 		}
 	}
-	include display_iteration.run; #debug
+	
+	#Debug: stampa su file dei valori delle espressioni relative allo sla ed ai vincoli del modello
+    
+    display {k in K, t in 1..Tw} (j, ((r_bar[k,t]+d_bar[k,t]+sum{tau in 1..t}(r[k,tau]+d[k,tau]))/(C*mu[k]*(r_bar[k,t]+d_bar[k,t]+sum{tau in 1..t}(r[k,tau]+d[k,tau]))-Lambda[k,j+t-1]))+D[k], Rcross[k] ) >('output/rawGlobal/sla.txt');
+    display {k in K, t in 1..Tw} (j, sum{tau in 1..t} (r[k,tau]+d[k,tau]), ((Lambda[k,j+t-1]/(C*mu[k]))-(r_bar[k,t]+d_bar[k,t])-epsilon)) >('output/rawGlobal/equilibrio.txt');
+    display {k in K, t in 1..Tw} (j, sum{tau in 1..t} (r[k,tau]+d[k,tau]), -(r_bar[k,t]+d_bar[k,t])-lpred[k,t]*(Rcross[k]-D[k])/(1-C*mu[k]*(Rcross[k]-D[k]))) >('output/rawGlobal/Rsoglia.txt');
+    display {k in K, t in 1..Tw} (j, r_bar[k,t], d_bar[k,t], Nres[k,j], Nond[k,j], r[k,t], d[k,t], Mres[k,j], Mond[k,j], lpred[k,t], mu[k], Rcross[k]) >('output/rawGlobal/dati.txt');
+    
+    #Debug: rumore.
+    display {t in 1..Tw} ns[t] >('output/rawGlobal/noise.txt');
 }
 
