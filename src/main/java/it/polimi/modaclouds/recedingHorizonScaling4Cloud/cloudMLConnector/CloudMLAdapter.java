@@ -19,6 +19,9 @@ package it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector.CloudMLCall.CloudML;
 import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ConfigManager;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,11 +65,25 @@ public class CloudMLAdapter {
 	}
 	
 	public void stopInstances(String instances) {
-		client.stopInstances(instances);
+		if (instances == null)
+			return;
+		String[] splitted = instances.split(",");
+		List<String> idList = new ArrayList<>();
+		for (String s : splitted)
+			idList.add(s);
+		
+		client.stopInstances(idList, false);
 	}
 	
 	public void startInstances(String instances) {
-		client.startInstances(instances);
+		if (instances == null)
+			return;
+		String[] splitted = instances.split(",");
+		List<String> idList = new ArrayList<>();
+		for (String s : splitted)
+			idList.add(s);
+		
+		client.startInstances(idList, false);
 	}
-
+	
 }
