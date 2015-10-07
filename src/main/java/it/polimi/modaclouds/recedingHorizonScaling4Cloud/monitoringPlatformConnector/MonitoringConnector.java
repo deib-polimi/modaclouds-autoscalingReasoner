@@ -87,20 +87,26 @@ public class MonitoringConnector {
 	public void attachObserver(String targetMetric, String observerIP, String observerPort) throws NotFoundException, IOException{
 		monitoring.registerHttpObserver(targetMetric, String.format("http://%s:%s/data", observerIP, observerPort), "TOWER/JSON");
 	}
+	
+	public static final int DEFAULT_WINDOW = 10;
+	
+	public  MonitoringRules buildRequiredRules() {
+		return buildRequiredRules(DEFAULT_WINDOW);
+	}
 
-	public  MonitoringRules buildRequiredRules(){
+	public  MonitoringRules buildRequiredRules(int window){
 		MonitoringRules toReturn=factory.createMonitoringRules();
 
 		//building all required rules for demand monitoring if default demand values are not used
 		if(ModelManager.getDefaultDemand()==0){
-			toReturn.getMonitoringRules().addAll(this.buildCpuRules().getMonitoringRules());
-			toReturn.getMonitoringRules().addAll(this.buildDemandRules().getMonitoringRules());
-			toReturn.getMonitoringRules().addAll(this.buildRespondeTimeRules().getMonitoringRules());
+			toReturn.getMonitoringRules().addAll(this.buildCpuRules(window).getMonitoringRules());
+			toReturn.getMonitoringRules().addAll(this.buildDemandRules(window).getMonitoringRules());
+			toReturn.getMonitoringRules().addAll(this.buildRespondeTimeRules(window).getMonitoringRules());
 		}
 
 		//building all required rules for workload prediction monitoring
-		toReturn.getMonitoringRules().addAll(this.buildWorkloadRules().getMonitoringRules());
-		toReturn.getMonitoringRules().addAll(this.buildWorkloadForecastRules().getMonitoringRules());
+		toReturn.getMonitoringRules().addAll(this.buildWorkloadRules(window).getMonitoringRules());
+		toReturn.getMonitoringRules().addAll(this.buildWorkloadForecastRules(window).getMonitoringRules());
 
 		return toReturn;
 	}
@@ -142,44 +148,41 @@ public class MonitoringConnector {
 		}
 	}
 
-
-	private MonitoringRules buildCpuRules(){
+	private MonitoringRules buildCpuRules(int window) {
 
 				MonitoringRules toReturn=factory.createMonitoringRules();
-				MonitoringRule rule;
-				MonitoredTargets monitoredTargets;
-				MonitoredTarget monitoredTarget;
-				CollectedMetric collectedMetric;
-				MonitoringMetricAggregation metricAggregation;
-				Parameter samplingTime;
-				Parameter samplingProbability;
-				Actions actions;
-				Action action;
-				Parameter metric;
-				Parameter value;
-				Parameter resourceId;
+				
+				int totalRules = 0;
+				for(Container c: ModelManager.getModel().getContainer()){
+					for(@SuppressWarnings("unused") ApplicationTier t: c.getApplicationTier()){
+						++totalRules;
+					}
+				}
 
 				for(Container c: ModelManager.getModel().getContainer()){
 					for(ApplicationTier t: c.getApplicationTier()){
 
 						//initialize rule parameter
-						rule=factory.createMonitoringRule();
-						monitoredTargets=factory.createMonitoredTargets();
-						monitoredTarget=factory.createMonitoredTarget();
-						collectedMetric=factory.createCollectedMetric();
-						metricAggregation=factory.createMonitoringMetricAggregation();
-						samplingTime=factory.createParameter();
-						samplingProbability=factory.createParameter();
-						actions=factory.createActions();
-						action=factory.createAction();
-						metric=factory.createParameter();
-						value=factory.createParameter();
-						resourceId=factory.createParameter();
+						MonitoringRule rule=factory.createMonitoringRule();
+						MonitoredTargets monitoredTargets=factory.createMonitoredTargets();
+						MonitoredTarget monitoredTarget=factory.createMonitoredTarget();
+						CollectedMetric collectedMetric=factory.createCollectedMetric();
+						Parameter samplingProbability=factory.createParameter();
+						Parameter samplingTime=factory.createParameter();
+						MonitoringMetricAggregation metricAggregation=factory.createMonitoringMetricAggregation();
+						Actions actions=factory.createActions();
+						Action action=factory.createAction();
+						Parameter metric=factory.createParameter();
+						Parameter value=factory.createParameter();
+						Parameter resourceId=factory.createParameter();
 
 						//setting rule attribute
-						rule.setId("cpuRule");
-						rule.setTimeStep("10");
-						rule.setTimeWindow("10");
+						if (totalRules > 1)
+							rule.setId("cpuRule_" + t.getId());
+						else
+							rule.setId("cpuRule");
+						rule.setTimeStep(Integer.toString(window));
+						rule.setTimeWindow(Integer.toString(window));
 
 						//setting the monitored target
 						monitoredTarget.setClazz("VM");
@@ -191,7 +194,7 @@ public class MonitoringConnector {
 						samplingProbability.setName("samplingProbability");
 						samplingProbability.setValue("1");
 						samplingTime.setName("samplingTime");
-						samplingTime.setValue("1");
+						samplingTime.setValue(Integer.toString(window));
 						collectedMetric.getParameters().add(samplingTime);
 						collectedMetric.getParameters().add(samplingProbability);
 
@@ -225,38 +228,28 @@ public class MonitoringConnector {
 				return toReturn;
 	}
 
-	private MonitoringRules buildRespondeTimeRules(){
+	private MonitoringRules buildRespondeTimeRules(int window) {
 
 		MonitoringRules toReturn=factory.createMonitoringRules();
-		MonitoringRule rule;
-		MonitoredTargets monitoredTargets;
-		MonitoredTarget monitoredTarget;
-		CollectedMetric collectedMetric;
-		Parameter samplingProbability;
-		MonitoringMetricAggregation metricAggregation;
-		Actions actions;
-		Action action;
-		Parameter metric;
-		Parameter value;
-		Parameter resourceId;
 
 		//initialize rule parameter
-		rule=factory.createMonitoringRule();
-		monitoredTargets=factory.createMonitoredTargets();
-		monitoredTarget=factory.createMonitoredTarget();
-		collectedMetric=factory.createCollectedMetric();
-		samplingProbability=factory.createParameter();
-		metricAggregation=factory.createMonitoringMetricAggregation();
-		actions=factory.createActions();
-		action=factory.createAction();
-		metric=factory.createParameter();
-		value=factory.createParameter();
-		resourceId=factory.createParameter();
+		MonitoringRule rule=factory.createMonitoringRule();
+		MonitoredTargets monitoredTargets=factory.createMonitoredTargets();
+		MonitoredTarget monitoredTarget=factory.createMonitoredTarget();
+		CollectedMetric collectedMetric=factory.createCollectedMetric();
+		Parameter samplingProbability=factory.createParameter();
+		Parameter samplingTime=factory.createParameter();
+		MonitoringMetricAggregation metricAggregation=factory.createMonitoringMetricAggregation();
+		Actions actions=factory.createActions();
+		Action action=factory.createAction();
+		Parameter metric=factory.createParameter();
+		Parameter value=factory.createParameter();
+		Parameter resourceId=factory.createParameter();
 
 		//setting rule attribute
 		rule.setId("respTimeRule");
-		rule.setTimeStep("10");
-		rule.setTimeWindow("10");
+		rule.setTimeStep(Integer.toString(window));
+		rule.setTimeWindow(Integer.toString(window));
 
 
 		//setting the monitored target
@@ -274,7 +267,10 @@ public class MonitoringConnector {
 		//setting the collected metric
 		collectedMetric.setMetricName("EffectiveResponseTime");
 		samplingProbability.setName("samplingProbability");
-		samplingProbability.setValue("1");;
+		samplingProbability.setValue("1");
+		samplingTime.setName("samplingTime");
+		samplingTime.setValue(Integer.toString(window));
+		collectedMetric.getParameters().add(samplingTime);
 		collectedMetric.getParameters().add(samplingProbability);
 
 		//setting the aggregation fucntion
@@ -304,49 +300,33 @@ public class MonitoringConnector {
 		return toReturn;
 	}
 
-	private MonitoringRules buildDemandRules(){
+	private MonitoringRules buildDemandRules(int window) {
 
 		MonitoringRules toReturn=factory.createMonitoringRules();
-		MonitoringRule rule;
-		MonitoredTargets monitoredTargets;
-		MonitoredTarget monitoredTarget;
-		CollectedMetric collectedMetric;
-		Parameter window;
-		Parameter nCPU;
-		Parameter CPUUtilTarget;
-		Parameter CPUUtilMetric;
-		Parameter samplingTime;
-		Parameter filePath;
-		Actions actions;
-		Action action;
-		Parameter metric;
-		Parameter value;
-		Parameter resourceId;
-
 
 		for(Container c: ModelManager.getModel().getContainer()){
 			for(ApplicationTier t: c.getApplicationTier()){
 				//initialize rule parameter
-				rule=factory.createMonitoringRule();
-				monitoredTargets=factory.createMonitoredTargets();
-				monitoredTarget=factory.createMonitoredTarget();
-				collectedMetric=factory.createCollectedMetric();
-				window=factory.createParameter();
-				nCPU=factory.createParameter();
-				CPUUtilTarget=factory.createParameter();
-				CPUUtilMetric=factory.createParameter();
-				samplingTime=factory.createParameter();
-				filePath=factory.createParameter();
-				actions=factory.createActions();
-				action=factory.createAction();
-				metric=factory.createParameter();
-				value=factory.createParameter();
-				resourceId=factory.createParameter();
+				MonitoringRule rule=factory.createMonitoringRule();
+				MonitoredTargets monitoredTargets=factory.createMonitoredTargets();
+				MonitoredTarget monitoredTarget=factory.createMonitoredTarget();
+				CollectedMetric collectedMetric=factory.createCollectedMetric();
+				Parameter windowPar=factory.createParameter();
+				Parameter nCPU=factory.createParameter();
+				Parameter CPUUtilTarget=factory.createParameter();
+				Parameter CPUUtilMetric=factory.createParameter();
+				Parameter samplingTime=factory.createParameter();
+				Parameter filePath=factory.createParameter();
+				Actions actions=factory.createActions();
+				Action action=factory.createAction();
+				Parameter metric=factory.createParameter();
+				Parameter value=factory.createParameter();
+				Parameter resourceId=factory.createParameter();
 
 				//setting rule attribute
 				rule.setId("sdaHaproxy");
-				rule.setTimeStep("10");
-				rule.setTimeWindow("10");
+				rule.setTimeStep(Integer.toString(window));
+				rule.setTimeWindow(Integer.toString(window));
 
 				//setting the monitored target
 				for(Functionality f: t.getFunctionality()){
@@ -358,8 +338,8 @@ public class MonitoringConnector {
 
 				//setting the collected metric
 				collectedMetric.setMetricName("EstimationERPS_AvarageEffectiveResponseTime");
-				window.setName("window");
-				window.setValue("60");
+				windowPar.setName("window");
+				windowPar.setValue("60");
 				nCPU.setName("nCPU");
 				nCPU.setValue(Integer.toString(c.getNCore()));
 				CPUUtilTarget.setName("CPUUtilTarget");
@@ -367,10 +347,10 @@ public class MonitoringConnector {
 				CPUUtilMetric.setName("CPUUtilMetric");
 				CPUUtilMetric.setValue(t.getId()+"CPUUtilization");
 				samplingTime.setName("samplingTime");
-				samplingTime.setValue("1");
+				samplingTime.setValue(Integer.toString(window));
 				filePath.setName("filePath");
 				filePath.setValue("/home/ubuntu/modaclouds-sda/");
-				collectedMetric.getParameters().add(window);
+				collectedMetric.getParameters().add(windowPar);
 				collectedMetric.getParameters().add(nCPU);
 				collectedMetric.getParameters().add(CPUUtilTarget);
 				collectedMetric.getParameters().add(CPUUtilMetric);
@@ -405,43 +385,36 @@ public class MonitoringConnector {
 
 	}
 
-	private MonitoringRules buildWorkloadRules(){
+	private MonitoringRules buildWorkloadRules(int window) {
 
 		MonitoringRules toReturn=factory.createMonitoringRules();
-		MonitoringRule rule;
-		MonitoredTargets monitoredTargets;
-		MonitoredTarget monitoredTarget;
-		CollectedMetric collectedMetric;
-		Parameter samplingProbability;
-		MonitoringMetricAggregation metricAggregation;
-		Actions actions;
-		Action action;
-		Parameter metric;
-		Parameter value;
-		Parameter resourceId;
 
 		//initialize rule parameter
-		rule=factory.createMonitoringRule();
-		monitoredTargets=factory.createMonitoredTargets();
-		monitoredTarget=factory.createMonitoredTarget();
-		collectedMetric=factory.createCollectedMetric();
-		samplingProbability=factory.createParameter();
-		metricAggregation=factory.createMonitoringMetricAggregation();
-		actions=factory.createActions();
-		action=factory.createAction();
-		metric=factory.createParameter();
-		value=factory.createParameter();
-		resourceId=factory.createParameter();
+		MonitoringRule rule=factory.createMonitoringRule();
+		MonitoredTargets monitoredTargets=factory.createMonitoredTargets();
+		MonitoredTarget monitoredTarget=factory.createMonitoredTarget();
+		CollectedMetric collectedMetric=factory.createCollectedMetric();
+		Parameter samplingProbability=factory.createParameter();
+		Parameter samplingTime=factory.createParameter();
+		MonitoringMetricAggregation metricAggregation=factory.createMonitoringMetricAggregation();
+		Actions actions=factory.createActions();
+		Action action=factory.createAction();
+		Parameter metric=factory.createParameter();
+		Parameter value=factory.createParameter();
+		Parameter resourceId=factory.createParameter();
 
 		//setting rule attribute
 		rule.setId("workloadRule");
-		rule.setTimeStep("10");
-		rule.setTimeWindow("10");
+		rule.setTimeStep(Integer.toString(window));
+		rule.setTimeWindow(Integer.toString(window));
 
 		//setting the collected metric
 		collectedMetric.setMetricName("ResponseTime");
 		samplingProbability.setName("samplingProbability");
-		samplingProbability.setValue("1");;
+		samplingProbability.setValue("1");
+		samplingTime.setName("samplingTime");
+		samplingTime.setValue(Integer.toString(window));
+		collectedMetric.getParameters().add(samplingTime);
 		collectedMetric.getParameters().add(samplingProbability);
 
 		//setting the aggregation fucntion
@@ -487,47 +460,32 @@ public class MonitoringConnector {
 
 	}
 
-	private  MonitoringRules buildWorkloadForecastRules(){
+	private  MonitoringRules buildWorkloadForecastRules(int window) {
 		MonitoringRules toReturn=factory.createMonitoringRules();
-		MonitoringRule rule;
-		MonitoredTargets monitoredTargets;
-		MonitoredTarget monitoredTarget;
-		CollectedMetric collectedMetric;
-		Parameter order;
-		Parameter forecastPeriod;
-		Parameter autoregressive;
-		Parameter movingAverage;
-		Parameter integrated;
-		Parameter samplingTime;
-		Actions actions;
-		Action action;
-		Parameter metric;
-		Parameter value;
-		Parameter resourceId;
 
 		for(int timestep=1; timestep<=ModelManager.getOptimizationWindow(); timestep++){
 
 			//initialize rule parameter
-			rule=factory.createMonitoringRule();
-			monitoredTargets=factory.createMonitoredTargets();
-			monitoredTarget=factory.createMonitoredTarget();
-			collectedMetric=factory.createCollectedMetric();
-			order=factory.createParameter();
-			forecastPeriod=factory.createParameter();
-			autoregressive=factory.createParameter();
-			movingAverage=factory.createParameter();
-			integrated=factory.createParameter();
-			samplingTime=factory.createParameter();
-			actions=factory.createActions();
-			action=factory.createAction();
-			metric=factory.createParameter();
-			value=factory.createParameter();
-			resourceId=factory.createParameter();
+			MonitoringRule rule=factory.createMonitoringRule();
+			MonitoredTargets monitoredTargets=factory.createMonitoredTargets();
+			MonitoredTarget monitoredTarget=factory.createMonitoredTarget();
+			CollectedMetric collectedMetric=factory.createCollectedMetric();
+			Parameter order=factory.createParameter();
+			Parameter forecastPeriod=factory.createParameter();
+			Parameter autoregressive=factory.createParameter();
+			Parameter movingAverage=factory.createParameter();
+			Parameter integrated=factory.createParameter();
+			Parameter samplingTime=factory.createParameter();
+			Actions actions=factory.createActions();
+			Action action=factory.createAction();
+			Parameter metric=factory.createParameter();
+			Parameter value=factory.createParameter();
+			Parameter resourceId=factory.createParameter();
 
 			//setting rule attribute
 			rule.setId("sdaForecast"+timestep);
-			rule.setTimeStep("300");
-			rule.setTimeWindow("300");
+			rule.setTimeStep(Integer.toString(window));
+			rule.setTimeWindow(Integer.toString(window));
 
 			//setting the monitored target
 			for(Container c: ModelManager.getModel().getContainer()){
@@ -554,7 +512,7 @@ public class MonitoringConnector {
 			integrated.setName("integrated");
 			integrated.setValue("1");
 			samplingTime.setName("samplingTime");
-			samplingTime.setValue("1");
+			samplingTime.setValue(Integer.toString(window));
 			collectedMetric.getParameters().add(order);
 			collectedMetric.getParameters().add(forecastPeriod);
 			collectedMetric.getParameters().add(autoregressive);
