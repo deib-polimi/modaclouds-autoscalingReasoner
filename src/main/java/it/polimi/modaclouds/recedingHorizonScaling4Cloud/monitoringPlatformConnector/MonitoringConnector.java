@@ -89,7 +89,7 @@ public class MonitoringConnector {
 	}
 	
 	public static final int DEFAULT_WINDOW = 10;
-	public static final int DEFAULT_WINDOW_WORKLOAD_FORECAST = 300;
+	public static final int DEFAULT_WINDOW_WORKLOAD_FORECAST = 30;
 	
 	public  MonitoringRules buildRequiredRules() {
 		return buildRequiredRules(DEFAULT_WINDOW, DEFAULT_WINDOW_WORKLOAD_FORECAST);
