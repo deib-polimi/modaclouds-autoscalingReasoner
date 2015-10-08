@@ -107,7 +107,7 @@ public class MonitoringConnector {
 
 		//building all required rules for workload prediction monitoring
 		toReturn.getMonitoringRules().addAll(this.buildWorkloadRules(window).getMonitoringRules());
-		toReturn.getMonitoringRules().addAll(this.buildWorkloadForecastRules(windowWorkloadForecast).getMonitoringRules());
+		toReturn.getMonitoringRules().addAll(this.buildWorkloadForecastRules(window, windowWorkloadForecast).getMonitoringRules());
 
 		return toReturn;
 	}
@@ -461,7 +461,7 @@ public class MonitoringConnector {
 
 	}
 
-	private  MonitoringRules buildWorkloadForecastRules(int window) {
+	private  MonitoringRules buildWorkloadForecastRules(int window, int windowWorkloadForecast) {
 		MonitoringRules toReturn=factory.createMonitoringRules();
 
 		for(int timestep=1; timestep<=ModelManager.getOptimizationWindow(); timestep++){
@@ -485,8 +485,8 @@ public class MonitoringConnector {
 
 			//setting rule attribute
 			rule.setId("sdaForecast"+timestep);
-			rule.setTimeStep(Integer.toString(window));
-			rule.setTimeWindow(Integer.toString(window));
+			rule.setTimeStep(Integer.toString(windowWorkloadForecast));
+			rule.setTimeWindow(Integer.toString(windowWorkloadForecast));
 
 			//setting the monitored target
 			for(Container c: ModelManager.getModel().getContainer()){
@@ -505,7 +505,7 @@ public class MonitoringConnector {
 			order.setName("order");
 			order.setValue("1");
 			forecastPeriod.setName("forecastPeriod");
-			forecastPeriod.setValue(Integer.toString(6*timestep*ModelManager.getTimestepDuration()));
+			forecastPeriod.setValue(Integer.toString(6*timestep*ModelManager.getTimestepDuration()*10/window));
 			autoregressive.setName("autoregressive");
 			autoregressive.setValue("1");
 			movingAverage.setName("movingAverage");
@@ -513,7 +513,7 @@ public class MonitoringConnector {
 			integrated.setName("integrated");
 			integrated.setValue("1");
 			samplingTime.setName("samplingTime");
-			samplingTime.setValue(Integer.toString(window));
+			samplingTime.setValue(Integer.toString(windowWorkloadForecast));
 			collectedMetric.getParameters().add(order);
 			collectedMetric.getParameters().add(forecastPeriod);
 			collectedMetric.getParameters().add(autoregressive);
