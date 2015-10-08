@@ -2,12 +2,12 @@
 
 #Set
 
-param nClasses; #number of classes
+param nClasses:=%6$d; #number of classes
 set K=1..nClasses; #set of classes
 
 #General parameters
 
-param epsilon; #precision
+param epsilon:=0.001; #precision
 param Tlong; #long term time horizon, measure in hours
 param Tshort; #short term time horizon, measure in hours
 param Tslot; #duration of one timeslot, measure in minutes

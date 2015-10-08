@@ -2,10 +2,6 @@
 
 let Tw:=5;
 
-param nClasses:=%6$d; #number of classes
-
-param epsilon:=0.001; #precision
-
 #param Tlong; #extended numeber of interval of time
 let Tlong:=24;
 
