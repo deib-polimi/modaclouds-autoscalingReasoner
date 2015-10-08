@@ -15,6 +15,10 @@
  */
 package it.polimi.modaclouds.recedingHorizonScaling4Cloud.cloudMLConnector;
 
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.CloudMLReturnedModelException;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.exceptions.TierNotFoudException;
+import it.polimi.modaclouds.recedingHorizonScaling4Cloud.util.ModelManager;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -42,6 +46,7 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -574,6 +579,15 @@ public class CloudMLCall {
 					try {
 						getLogger().info("Updating the runtime environment...");
 						parseRuntimeDeploymentModel(s);
+						
+						JSONObject jsonObject;
+						try {
+							jsonObject = new JSONObject(s.substring(27));
+							JSONArray instances=jsonObject.getJSONArray("vmInstances");
+							ModelManager.updateDeploymentInfo(instances);
+						} catch (JSONException | TierNotFoudException | CloudMLReturnedModelException e) {
+							getLogger().error("Error while parsing the deployment info returned by CloudML.", e);
+						}
 					} catch (Exception e) {
 						getLogger().error("Error while updating the runtime environment.", e);
 					}
