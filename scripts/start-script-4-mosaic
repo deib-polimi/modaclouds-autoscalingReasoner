@@ -4,13 +4,13 @@ set -e -E -u -o pipefail -o noclobber -o noglob +o braceexpand || exit 1
 trap 'printf "[ee] failed: %s\n" "${BASH_COMMAND}" >&2' ERR || exit 1
 
 if test "$( getent passwd -- mos-services | cut -f 3 -d : || printf '%s' "${UID}" )" -ne "${UID}" ; then
-	exec sudo -u mos-services -g mos-services -E -n -- "${0}" "${@}"
-	exit 1
+    exec sudo -u mos-services -g mos-services -E -n -- "${0}" "${@}"
+    exit 1
 fi
 
 if ! test "${#}" -eq 0 ; then
-	printf '[ii] invalid arguments; aborting!\n' >&2
-	exit 1
+    printf '[ii] invalid arguments; aborting!\n' >&2
+    exit 1
 fi
 
 umask 0027
@@ -18,23 +18,36 @@ umask 0027
 exec </dev/null >&2
 
 _variable_defaults=(
-		
-		# NOTE:  Add other definitions that could come from the packaging descriptor, and are needed at runtime.
-		#   It enables hard-coding some definitions, which could later be overriden with environment variables.
-		
-		_TOWER4CLOUDS_RDF_HISTORY_DB_DISTRIBUTION='@{definitions:environment:TOWER4CLOUDS_RDF_HISTORY_DB_DISTRIBUTION}'
-		_TOWER4CLOUDS_RDF_HISTORY_DB_ENDPOINT_IP='@{definitions:environment:TOWER4CLOUDS_RDF_HISTORY_DB_ENDPOINT_IP}'
-		_TOWER4CLOUDS_RDF_HISTORY_DB_ENDPOINT_PORT='@{definitions:environment:TOWER4CLOUDS_RDF_HISTORY_DB_ENDPOINT_PORT}'
-		_RABBITMQ_ENDPOINT_IP='@{definitions:environment:RABBITMQ_ENDPOINT_IP}'
-		_RABBITMQ_ENDPOINT_PORT='@{definitions:environment:RABBITMQ_ENDPOINT_PORT}'
-		_FUSEKI_ENDPOINT_IP='@{definitions:environment:FUSEKI_ENDPOINT_IP}'
-		_FUSEKI_ENDPOINT_PORT='@{definitions:environment:FUSEKI_ENDPOINT_PORT}'
-		_FUSEKI_DB_PATH='@{definitions:environment:FUSEKI_DB_PATH}'
-		_TOWER4CLOUDS_RDF_HISTORY_DB_TMPDIR='@{definitions:environment:TOWER4CLOUDS_RDF_HISTORY_DB_TMPDIR}'
+        
+        # NOTE:  Add other definitions that could come from the packaging descriptor, and are needed at runtime.
+        #   It enables hard-coding some definitions, which could later be overriden with environment variables.
+        
+        _MODACLOUDS_AR_DISTRIBUTION='@{definitions:environment:MODACLOUDS_AR_DISTRIBUTION}'
+        _MODACLOUDS_AR_OWN_IP='@{definitions:environment:MODACLOUDS_AR_OWN_IP}'
+        _MODACLOUDS_AR_LISTENER_PORT='@{definitions:environment:MODACLOUDS_AR_LISTENER_PORT}'
+        _MODACLOUDS_AR_PATH_TO_MODEL='@{definitions:environment:MODACLOUDS_AR_PATH_TO_MODEL}'
+        _MODACLOUDS_AR_SSH_USER='@{definitions:environment:MODACLOUDS_AR_SSH_USER}'
+        _MODACLOUDS_AR_SSH_HOST='@{definitions:environment:MODACLOUDS_AR_SSH_HOST}'
+        _MODACLOUDS_AR_SSH_PASS='@{definitions:environment:MODACLOUDS_AR_SSH_PASS}'
+        _MODACLOUDS_AR_CLOUDML_IP='@{definitions:environment:MODACLOUDS_AR_CLOUDML_IP}'
+        _MODACLOUDS_AR_CLOUDML_PORT='@{definitions:environment:MODACLOUDS_AR_CLOUDML_PORT}'
+        _MODACLOUDS_TOWER4CLOUDS_MANAGER_IP='@{definitions:environment:MODACLOUDS_TOWER4CLOUDS_MANAGER_IP}'
+        _MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT='@{definitions:environment:MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT}'
+        _MODACLOUDS_AR_DEF_DEMAND='@{definitions:environment:MODACLOUDS_AR_DEF_DEMAND}'
+        _MODACLOUDS_AR_OBJ_STORE_IP='@{definitions:environment:MODACLOUDS_AR_OBJ_STORE_IP}'
+        _MODACLOUDS_AR_OBJ_STORE_PORT='@{definitions:environment:MODACLOUDS_AR_OBJ_STORE_PORT}'
+        _MODACLOUDS_AR_OBJ_STORE_PATH='@{definitions:environment:MODACLOUDS_AR_OBJ_STORE_PATH}'
+        _MODACLOUDS_AR_SOLVER_NAME='@{definitions:environment:MODACLOUDS_AR_SOLVER_NAME}'
+        _MODACLOUDS_AR_SOLVER_EXECUTABLE='@{definitions:environment:MODACLOUDS_AR_SOLVER_EXECUTABLE}'
+        _MODACLOUDS_AR_SOLVER_THREADS='@{definitions:environment:MODACLOUDS_AR_SOLVER_THREADS}'
+        
+        _MODACLOUDS_AR_TMPDIR='@{definitions:environment:MODACLOUDS_AR_TMPDIR}'
+        _MODACLOUDS_AR_JAVA_HOME='@{definitions:environment:MODACLOUDS_AR_JAVA_HOME}'
+        _MODACLOUDS_AR_PATH='@{definitions:environment:MODACLOUDS_AR_PATH}'
 
-		_JAVA_HOME='@{definitions:environment:JAVA_HOME}'
-		_PATH='@{definitions:environment:PATH}'
-		_TMPDIR='@{definitions:environment:TMPDIR}'
+        _JAVA_HOME='@{definitions:environment:JAVA_HOME}'
+        _PATH='@{definitions:environment:PATH}'
+        _TMPDIR='@{definitions:environment:TMPDIR}'
 )
 declare "${_variable_defaults[@]}"
 
@@ -44,32 +57,45 @@ _identifier="${modaclouds_service_identifier:-0000000000000000000000000000000000
 
 # NOTE:  Don't touch, it tries to "auto-discover" the proper temporary folder.
 if test -n "${modaclouds_service_temporary:-}" ; then
-	_TMPDIR="${modaclouds_service_temporary:-}"
+    _TMPDIR="${modaclouds_service_temporary:-}"
 elif test -n "${modaclouds_temporary:-}" ; then
-	_TMPDIR="${modaclouds_temporary}/services/${_identifier}"
+    _TMPDIR="${modaclouds_temporary}/services/${_identifier}"
 else
-	_TMPDIR="${_TMPDIR}/${_identifier}"
+    _TMPDIR="${_TMPDIR}/${_identifier}"
 fi
 
 
 _variable_overrides=(
-		
-		# NOTE:  Add the same definitions as in the previous case, but keep the pattern as bellow.
-		#   It enables overriding some definitions with environment variables, or fallbacks to the hard-coded ones.
-		
-		_TOWER4CLOUDS_RDF_HISTORY_DB_DISTRIBUTION="${MODACLOUDS_TOWER4CLOUDS_RDF_HISTORY_DB_DISTRIBUTION:-${_TOWER4CLOUDS_RDF_HISTORY_DB_DISTRIBUTION}}"
-		_TOWER4CLOUDS_RDF_HISTORY_DB_ENDPOINT_IP="${MODACLOUDS_TOWER4CLOUDS_RDF_HISTORY_DB_ENDPOINT_IP:-${_TOWER4CLOUDS_RDF_HISTORY_DB_ENDPOINT_IP}}"
-		_TOWER4CLOUDS_RDF_HISTORY_DB_ENDPOINT_PORT="${MODACLOUDS_TOWER4CLOUDS_RDF_HISTORY_DB_ENDPOINT_PORT:-${_TOWER4CLOUDS_RDF_HISTORY_DB_ENDPOINT_PORT}}"
-		_RABBITMQ_ENDPOINT_IP="${MODACLOUDS_RABBITMQ_ENDPOINT_IP:-${_RABBITMQ_ENDPOINT_IP}}"
-		_RABBITMQ_ENDPOINT_PORT="${MODACLOUDS_RABBITMQ_ENDPOINT_PORT:-${_RABBITMQ_ENDPOINT_PORT}}"
-		_FUSEKI_ENDPOINT_IP="${MODACLOUDS_FUSEKI_ENDPOINT_IP:-${_FUSEKI_ENDPOINT_IP}}"
-		_FUSEKI_ENDPOINT_PORT="${MODACLOUDS_FUSEKI_ENDPOINT_PORT:-${_FUSEKI_ENDPOINT_PORT}}"
-		_FUSEKI_DB_PATH="${MODACLOUDS_FUSEKI_DB_PATH:-${_FUSEKI_DB_PATH}}"
-		_TOWER4CLOUDS_RDF_HISTORY_DB_TMPDIR="${MODACLOUDS_TOWER4CLOUDS_RDF_HISTORY_DB_TMPDIR:-${_TOWER4CLOUDS_RDF_HISTORY_DB_TMPDIR}}"
+        
+        # NOTE:  Add the same definitions as in the previous case, but keep the pattern as bellow.
+        #   It enables overriding some definitions with environment variables, or fallbacks to the hard-coded ones.
+        
+        _MODACLOUDS_AR_DISTRIBUTION="${MODACLOUDS_AR_DISTRIBUTION:-${_MODACLOUDS_AR_DISTRIBUTION}}"
+        _MODACLOUDS_AR_OWN_IP="${MODACLOUDS_AR_OWN_IP:-${_MODACLOUDS_AR_OWN_IP}}"
+        _MODACLOUDS_AR_LISTENER_PORT="${MODACLOUDS_AR_LISTENER_PORT:-${_MODACLOUDS_AR_LISTENER_PORT}}"
+        _MODACLOUDS_AR_PATH_TO_MODEL="${MODACLOUDS_AR_PATH_TO_MODEL:-${_MODACLOUDS_AR_PATH_TO_MODEL}}"
+        _MODACLOUDS_AR_SSH_USER="${MODACLOUDS_MODACLOUDS_AR_SSH_USER:-${_MODACLOUDS_AR_SSH_USER}}"
+        _MODACLOUDS_AR_SSH_HOST="${MODACLOUDS_MODACLOUDS_AR_SSH_HOST:-${_MODACLOUDS_AR_SSH_HOST}}"
+        _MODACLOUDS_AR_SSH_PASS="${MODACLOUDS_MODACLOUDS_AR_SSH_PASS:-${_MODACLOUDS_AR_SSH_PASS}}"
+        _MODACLOUDS_AR_CLOUDML_IP="${MODACLOUDS_MODACLOUDS_AR_CLOUDML_IP:-${_MODACLOUDS_AR_CLOUDML_IP}}"
+        _MODACLOUDS_AR_CLOUDML_PORT="${MODACLOUDS_AR_CLOUDML_PORT:-${_MODACLOUDS_AR_CLOUDML_PORT}}"
+        _MODACLOUDS_TOWER4CLOUDS_MANAGER_IP="${MODACLOUDS_TOWER4CLOUDS_MANAGER_IP:-${_MODACLOUDS_TOWER4CLOUDS_MANAGER_IP}}"
+        _MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT="${MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT:-${_MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT}}"
+        _MODACLOUDS_AR_DEF_DEMAND="${MODACLOUDS_AR_DEF_DEMAND:-${_MODACLOUDS_AR_DEF_DEMAND}}"
+        _MODACLOUDS_AR_OBJ_STORE_IP="${MODACLOUDS_AR_OBJ_STORE_IP:-${_MODACLOUDS_AR_OBJ_STORE_IP}}"
+        _MODACLOUDS_AR_OBJ_STORE_PORT="${MODACLOUDS_AR_OBJ_STORE_PORT:-${_MODACLOUDS_AR_OBJ_STORE_PORT}}"
+        _MODACLOUDS_AR_OBJ_STORE_PATH="${MODACLOUDS_AR_OBJ_STORE_PATH:-${_MODACLOUDS_AR_OBJ_STORE_PATH}}"
+        _MODACLOUDS_AR_SOLVER_NAME="${MODACLOUDS_AR_SOLVER_NAME:-${_MODACLOUDS_AR_SOLVER_NAME}}"
+        _MODACLOUDS_AR_SOLVER_EXECUTABLE="${MODACLOUDS_AR_SOLVER_EXECUTABLE:-${_MODACLOUDS_AR_SOLVER_EXECUTABLE}}"
+        _MODACLOUDS_AR_SOLVER_THREADS="${MODACLOUDS_AR_SOLVER_THREADS:-${_MODACLOUDS_AR_SOLVER_THREADS}}"        
+        
+        _MODACLOUDS_AR_TMPDIR="${MODACLOUDS_AR_TMPDIR:-${_MODACLOUDS_AR_TMPDIR}}"
+        _MODACLOUDS_AR_PATH="${MODACLOUDS_AR_PATH:-${_MODACLOUDS_AR_PATH}}"
+        _MODACLOUDS_AR_JAVA_HOME="${MODACLOUDS_AR_JAVA_HOME:-${_MODACLOUDS_AR_JAVA_HOME}}"
 
-		_JAVA_HOME="${MODACLOUDS_TOWER4CLOUDS_RDF_HISTORY_DB_JAVA_HOME:-${_JAVA_HOME}}"
-		_PATH="${MODACLOUDS_TOWER4CLOUDS_RDF_HISTORY_DB_PATH:-${_PATH}}"
-		_TMPDIR="${MODACLOUDS_TOWER4CLOUDS_RDF_HISTORY_DB_TMPDIR:-${_TMPDIR}}"
+        _JAVA_HOME="${MODACLOUDS_AR_JAVA_HOME:-${_JAVA_HOME}}"
+        _PATH="${MODACLOUDS_AR_PATH:-${_PATH}}"
+        _TMPDIR="${MODACLOUDS_AR_TMPDIR:-${_TMPDIR}}"
 )
 declare "${_variable_overrides[@]}"
 
@@ -78,24 +104,24 @@ export PATH="${_PATH}"
 
 
 if test ! -e "${_TMPDIR}" ; then
-	mkdir -p -- "${_TMPDIR}"
-	mkdir -- "${_TMPDIR}/tmp"
-	mkdir -- "${_TMPDIR}/home"
+    mkdir -p -- "${_TMPDIR}"
+    mkdir -- "${_TMPDIR}/tmp"
+    mkdir -- "${_TMPDIR}/home"
 fi
 
 
 # NOTE:  Don't touch, it tries to ensure that only one instance (with the same identifier) of the same service is running.
 exec {_lock}<"${_TMPDIR}"
 if ! flock -x -n "${_lock}" ; then
-	printf '[ee] failed to acquire lock; aborting!\n' >&2
-	exit 1
+    printf '[ee] failed to acquire lock; aborting!\n' >&2
+    exit 1
 fi
 
 
 # NOTE:  Don't touch, it changes the current working directory to an empty one, specific to the service instance.
 if test -d "${_TMPDIR}/cwd" ; then
-	chmod -R u+w -- "${_TMPDIR}/cwd"
-	rm -R -- "${_TMPDIR}/cwd"
+    chmod -R u+w -- "${_TMPDIR}/cwd"
+    rm -R -- "${_TMPDIR}/cwd"
 fi
 mkdir -- "${_TMPDIR}/cwd"
 
@@ -103,27 +129,39 @@ cd -- "${_TMPDIR}/cwd"
 
 
 _environment=(
-		PATH="${_PATH}"
-		TMPDIR="${_TMPDIR}/tmp"
-		HOME="${_TMPDIR}/home"
-		USER='modaclouds-services'
+        PATH="${_PATH}"
+        TMPDIR="${_TMPDIR}/tmp"
+        HOME="${_TMPDIR}/home"
+        USER='modaclouds-services'
 )
 
 
 _environment+=(
-		
-		# NOTE:  Add here the environment variables you want to pass to the actual process.
-		#   (I.e. just defining them in the previous sections doesn't export them.)
-		
-		# NOTE:  No other variables, except the ones present in the `_environment` array are exported to the service.
-		#   (I.e. the service starts with a clean environment.)
-		
-		MODACLOUDS_HDB_LISTENER_PORT="${_TOWER4CLOUDS_RDF_HISTORY_DB_ENDPOINT_PORT}"
-		MODACLOUDS_HDB_QUEUE_ENDPOINT_IP="${_RABBITMQ_ENDPOINT_IP}"
-		MODACLOUDS_HDB_QUEUE_ENDPOINT_PORT="${_RABBITMQ_ENDPOINT_PORT}"
-		MODACLOUDS_HDB_DB_ENDPOINT_IP="${_FUSEKI_ENDPOINT_IP}"
-		MODACLOUDS_HDB_DB_ENDPOINT_PORT="${_FUSEKI_ENDPOINT_PORT}"
-		MODACLOUDS_HDB_DB_DATASET_PATH="${_FUSEKI_DB_PATH}"
+        
+        # NOTE:  Add here the environment variables you want to pass to the actual process.
+        #   (I.e. just defining them in the previous sections doesn't export them.)
+        
+        # NOTE:  No other variables, except the ones present in the `_environment` array are exported to the service.
+        #   (I.e. the service starts with a clean environment.)
+        
+        MODACLOUDS_AR_DISTRIBUTION="${_MODACLOUDS_AR_DISTRIBUTION}
+        MODACLOUDS_AR_OWN_IP="${_MODACLOUDS_AR_OWN_IP}}"
+        MODACLOUDS_AR_LISTENER_PORT="${_MODACLOUDS_AR_LISTENER_PORT}}"
+        MODACLOUDS_AR_PATH_TO_MODEL="${_MODACLOUDS_AR_PATH_TO_MODEL}}"
+        MODACLOUDS_AR_SSH_USER="${_MODACLOUDS_AR_SSH_USER}}"
+        MODACLOUDS_AR_SSH_HOST="${_MODACLOUDS_AR_SSH_HOST}}"
+        MODACLOUDS_AR_SSH_PASS="${_MODACLOUDS_AR_SSH_PASS}}"
+        MODACLOUDS_AR_CLOUDML_IP="${_MODACLOUDS_AR_CLOUDML_IP}}"
+        MODACLOUDS_AR_CLOUDML_PORT="${_MODACLOUDS_AR_CLOUDML_PORT}}"
+        MODACLOUDS_TOWER4CLOUDS_MANAGER_IP="${_MODACLOUDS_TOWER4CLOUDS_MANAGER_IP}}"
+        MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT="${_MODACLOUDS_TOWER4CLOUDS_MANAGER_PORT}}"
+        MODACLOUDS_AR_DEF_DEMAND="${_MODACLOUDS_AR_DEF_DEMAND}}"
+        MODACLOUDS_AR_OBJ_STORE_IP="${_MODACLOUDS_AR_OBJ_STORE_IP}}"
+        MODACLOUDS_AR_OBJ_STORE_PORT="${_MODACLOUDS_AR_OBJ_STORE_PORT}}"
+        MODACLOUDS_AR_OBJ_STORE_PATH="${_MODACLOUDS_AR_OBJ_STORE_PATH}}"
+        MODACLOUDS_AR_SOLVER_NAME="${_MODACLOUDS_AR_SOLVER_NAME}}"
+        MODACLOUDS_AR_SOLVER_EXECUTABLE="${_MODACLOUDS_AR_SOLVER_EXECUTABLE}}"
+        MODACLOUDS_AR_SOLVER_THREADS="${_MODACLOUDS_AR_SOLVER_THREADS}}"
 )
 
 
@@ -131,7 +169,7 @@ printf '[--]\n' >&2
 printf '[ii] parameters:\n' >&2
 printf '[ii]   * environment:\n' >&2
 for _variable in "${_environment[@]}" ; do
-	printf '[ii]       * `%s`;\n' "${_variable}" >&2
+    printf '[ii]       * `%s`;\n' "${_variable}" >&2
 done
 printf '[ii]   * working directory: `%s`;\n' "${PWD}" >&2
 printf '[--]\n' >&2
@@ -140,12 +178,13 @@ printf '[ii] starting service...\n' >&2
 printf '[--]\n' >&2
 
 
+CLASS="it.polimi.modaclouds.recedingHorizonScaling4Cloud.Main"
+
 # NOTE:  Actually execute the service.
 exec \
-	env \
-			-i "${_environment[@]}" \
-	"${_JAVA_HOME}/bin/java" \
-			-jar "${_TOWER4CLOUDS_RDF_HISTORY_DB_DISTRIBUTION}/service.jar"
-
+    env \
+            -i "${_environment[@]}" \
+    "${_JAVA_HOME}/bin/java" \
+            -cp "${_MODACLOUDS_AR_DISTRIBUTION}/service.jar:${_MODACLOUDS_AR_DISTRIBUTION}/lib/*" $CLASS "$@"
 
 exit 1

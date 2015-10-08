@@ -76,6 +76,9 @@ public class MainObserver {
 
 				journal.trace("{ resource: {}, metric: {}, value: {} }", resource, metric, value);
 				
+				if (value < 0)
+					journal.trace("Value < 0, ignored.");
+				
 				if (metric.equals("EstimatedDemand")) {
 					ModelManager.updateServiceDemand(resource, value * 1000);
 				} else if (metric.contains("ForecastedWorkload")) {

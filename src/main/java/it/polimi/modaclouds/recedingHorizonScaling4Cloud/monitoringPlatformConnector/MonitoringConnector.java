@@ -89,12 +89,13 @@ public class MonitoringConnector {
 	}
 	
 	public static final int DEFAULT_WINDOW = 10;
+	public static final int DEFAULT_WINDOW_WORKLOAD_FORECAST = 300;
 	
 	public  MonitoringRules buildRequiredRules() {
-		return buildRequiredRules(DEFAULT_WINDOW);
+		return buildRequiredRules(DEFAULT_WINDOW, DEFAULT_WINDOW_WORKLOAD_FORECAST);
 	}
 
-	public  MonitoringRules buildRequiredRules(int window){
+	public  MonitoringRules buildRequiredRules(int window, int windowWorkloadForecast){
 		MonitoringRules toReturn=factory.createMonitoringRules();
 
 		//building all required rules for demand monitoring if default demand values are not used
@@ -106,7 +107,7 @@ public class MonitoringConnector {
 
 		//building all required rules for workload prediction monitoring
 		toReturn.getMonitoringRules().addAll(this.buildWorkloadRules(window).getMonitoringRules());
-		toReturn.getMonitoringRules().addAll(this.buildWorkloadForecastRules(window).getMonitoringRules());
+		toReturn.getMonitoringRules().addAll(this.buildWorkloadForecastRules(windowWorkloadForecast).getMonitoringRules());
 
 		return toReturn;
 	}
