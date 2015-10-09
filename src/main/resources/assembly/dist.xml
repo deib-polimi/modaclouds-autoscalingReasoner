@@ -45,18 +45,23 @@
             <destName>config.xml</destName>
         </file>
         
-		<file>
+        <file>
+            <source>scripts/start-script-4-mosaic</source>
+            <destName>mosaic/s4c-ops/${project.version}/scripts/service-run.bash</destName>
+            <fileMode>0755</fileMode>
+        </file>
+        <file>
             <source>scripts/start-script-4-mosaic</source>
             <destName>mosaic/s4c-ops/${project.version}/service-run.bash</destName>
             <fileMode>0755</fileMode>
         </file>
         <file>
             <source>${project.build.directory}/${project.artifactId}-${project.version}.jar</source>
-            <destName>mosaic/s4c-ops/${project.version}/service.jar</destName>
+            <destName>mosaic/s4c-ops/${project.version}/scripts/service.jar</destName>
         </file>
         <file>
             <source>src/main/resources/config-empty.xml</source>
-            <destName>mosaic/s4c-ops/${project.version}/config.xml</destName>
+            <destName>mosaic/s4c-ops/${project.version}/scripts/config.xml</destName>
         </file>
 	</files>
 
