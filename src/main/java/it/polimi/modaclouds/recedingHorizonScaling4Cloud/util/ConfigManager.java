@@ -100,6 +100,9 @@ public class ConfigManager {
 	public static final int DEFAULT_SCALE_LIMIT = 5;
 	public static String SCALE_LIMIT = Integer.toString(DEFAULT_SCALE_LIMIT);
 	
+	public static final int DEFAULT_CORES = 2;
+	public static String CORES = Integer.toString(DEFAULT_CORES);
+	
 	public static void initFolders() {
 		setWorkingSubDirectory();
 		createNewLocalTmp();
@@ -338,6 +341,7 @@ public class ConfigManager {
 		setPropertyIfNotNull("OBJECT_STORE_PORT", paramsMap.get("objStorePort"));
 		setPropertyIfNotNull("OBJECT_STORE_MODEL_PATH", paramsMap.get("objStorePathToModel"));
 		setPropertyIfNotNull("MATH_SOLVER", paramsMap.get("objStorePathToModel"));
+		setPropertyIfNotNull("OTHER_OBSERVER_PORT", paramsMap.get("observerPort"));
 		
 		setSolver(paramsMap.get("solverName"), paramsMap.get("solverSolver"), paramsMap.get("solverExecutable"), paramsMap.get("solverThreads"));
 	}
