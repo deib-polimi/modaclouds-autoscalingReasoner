@@ -1,0 +1,6 @@
+#!/bin/bash
+#runCmpl with parameter
+
+executable="%1$s"
+ 
+exec $executable $@

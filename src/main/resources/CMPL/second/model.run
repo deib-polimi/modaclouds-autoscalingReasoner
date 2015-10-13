@@ -1,0 +1,43 @@
+cd %3$s/second;
+reset;
+option log_file '../%4$s';
+
+#CPLEX SOLVER
+option solver '%2$s';
+option cplex_options 'lpdisplay=0';
+option cplex_options 'concurrentopt';
+option cplex_options 'threads=0';
+option randseed 3;
+
+# Caricamento dei modelli e dei dati
+
+model model.mod;
+
+data model.dat;
+
+#Global problem
+problem Global: r,d, equilibrium, Rthreshold, maxVm, cost;
+
+data input/staticInput.dat;
+data input/dynamicInput.dat;
+
+#solution
+include engine.run;
+
+#Scrittura nel file logs.txt di tutti i dati
+
+#Parametri locali.
+display d,r,d_bar,r_bar > ('output/rawGlobal/logs.txt');
+
+#Service rate, Delay e Response Time limite.
+display {k in K} (1/mu[k], mu[k], D[k], Rcross[k], brokenSla[k]) > ('output/rawGlobal/logs.txt');
+
+#Livello di saturazione e conteggio degli sforamenti.
+display {k in K} (satlevel[k], Sat[k], sat[k]) > ('output/rawGlobal/logs.txt');
+
+#Pararmetri globali e utilizzo rispetto all'oracolo e alla predizione.
+display Mond, Mres, Nond, Nres, Lambda, pred, util > ('output/rawGlobal/logs.txt');
+
+display tot, sum{k in K}brokenEquil[k], sum{k in K}brokenSla[k], sum{k in K}sat[k] > ('output/rawGlobal/total.txt');
+
+close ../%4$s;

@@ -1,0 +1,27 @@
+%%arg -solver %s
+%%arg -solutionAscii %s
+%%display var AmountVM* PartialArrRate*
+%%display ignoreCons
+%%display nonZeros
+%%opt cplex threads %4$d
+%%opt cbc threads %4$d
+%%opt glpk threads %4$d
+
+#Modello del sistema.
+
+%%data %s
+
+variables:
+    #number of flat VM instances to allocate for class k requests, at timeslot t
+    r[K, 1..Tw]: integer[0..];
+    
+    #number of on-demand VM instances to allocate for class k requests, at timeslot t
+    d[K, 1..Tw]: integer[0..];
+
+constraints:
+    equilibrium: { k in K, t in 1..Tw: sum{tau in 1..t: (r[k,tau] + d[k,tau])} >= ((lpred[k,t] / (C*mu[k])) - r_bar[k,t] -d_bar[k,t] - epsilon); }
+    Rthreshold: { k in K, t in 1..Tw: sum{tau in 1..t: (r[k,tau] + d[k,tau])} >= -(r_bar[k,t] + d_bar[k,t]) - lpred[k,t] * (Rcross[k] - D[k]) / (1 - C*mu[k]*(Rcross[k] - D[k])); }
+    maxVm: { t in 1..Tw: sum{k in K: (r[k,t] + r_bar[k,t])} <= W; }
+
+objectives:
+    Total_Cost: sum{k in K: (rho*(sum{t in 1..Tw: r[k,t]}) + delta*(sum{t in 1..Tw: d[k,t]}))}->min;

@@ -1,0 +1,104 @@
+#Set
+
+#number of classes
+%nClasses < %6$d >
+
+#set of classes
+%K set < 1..nClasses > 
+
+#General parameters
+
+#precision
+%epsilon < 0.001 >
+
+#long term time horizon, measure in hours
+%Tlong < 24 >
+
+#short term time horizon, measure in hours
+%Tshort < 0 >
+
+#duration of one timeslot, measure in minutes
+%Tslot < 5 >
+
+#number of time intervals Tslot within the period Tlong
+%nTslot < (Tlong*60)/Tslot >
+
+#number of time intervals Tslot within the period Tshort
+%nTon < 60/Tslot >
+
+#number of timeslot of the sliding window
+%Tw < 5 >
+
+#capacity of 1 VM instance
+%C < >
+
+#real arrival rate of class k requests
+%Lambda[K, 1..(nTslot+4)] = 0 
+
+#prediction of workload
+%lpred[K, 1..nTon] = 0
+
+#maximum service rate of 1 VM instance for class k requests
+%mu[K] = 0
+
+#cost of 1 on-demand VM instance for one hour
+%delta < 0 >
+
+#cost of 1 flat VM instance for one hour
+%rho < 0 >
+
+#delay of the delay center in sec
+%D[K] = 0
+
+#response time threshold
+%Rcross[K] = 0
+
+#general parameter of the number of flat VM allocated in each timeslot t, for class k request
+%Mres[K, 1..nTslot] = 0
+
+#general parameter of the number of on-demand VM allocated in each timeslot t, for class k request
+%Mond[K, 1..nTslot] = 0
+
+#general parameter of the number of free flat VM instances for class k requests, at timeslot t
+%Nres[K, 1..(nTslot+nTon+1)] = 0
+
+#general parameter of the number of free on-demand VM instances for class k requests, at timeslot t
+%Nond[K, 1..(nTslot+nTon+1)] = 0
+
+#number of free flat VM instances for class k request, at timeslot t
+%r_bar[K, 1..Tw] = 0
+
+#number of free on-demand VM instances for class k request, at timeslot t
+%d_bar[K, 1..Tw] = 0
+
+#noise
+%ns[1..Tw] = 0
+
+#maximum number of instances at the same timeslot for all class k
+%W < 0 >
+
+#Parametri relativi alle metriche analizzate
+
+#Average utilization with predicted workload.
+%util[K, 1..(nTslot+nTon+1)] = 0
+
+#Global paramter of the predicted workload.
+%pred[K, 1..(nTslot+nTon+1)] = 0
+
+#Number of time in which SLA is not followed.
+%brokenSla[K] = 0
+%brokenEquil[K] = 0
+
+#Saturation level of each class of request.
+%satlevel[K] = 0
+
+#Number of saturation for predicted workload.
+%sat[K] = 0
+
+#Number of saturation for real workload.
+%Sat[K] = 0
+
+%resptime < 0 >
+%equil < 0 >
+%tot < 0 >
+%iter[K] = 0
