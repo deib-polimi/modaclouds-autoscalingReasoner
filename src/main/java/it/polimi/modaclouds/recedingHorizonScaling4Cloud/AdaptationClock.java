@@ -79,6 +79,5 @@ public class AdaptationClock {
 
     public static void main(String args[]) {
         new AdaptationClock(5);
-        System.out.format("Task scheduled.%n");
     }
 }

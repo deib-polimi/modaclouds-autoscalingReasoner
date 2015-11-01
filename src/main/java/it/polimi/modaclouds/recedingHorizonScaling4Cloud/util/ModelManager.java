@@ -106,6 +106,7 @@ public class ModelManager {
 		}
 		// if no path to the initial adaptation model is received as argument the default choice is to retrieve it from the object store
 		//is no object store parameters are provided default one are used
+		// if for any reason the request to the object store fails it retry every 10s
 		else {
 			
 			journal.info("No path specified for the initial adaptation model; trying to retrieve the model from the object store.");
@@ -121,9 +122,22 @@ public class ModelManager {
 								ConfigManager.OBJECT_STORE_PORT,
 								ConfigManager.OBJECT_STORE_MODEL_PATH));
 				httpGet.setHeader("accept", "*/*");
-				response1 = httpclient.execute(httpGet);
+				
+				boolean requestOk = false;
+				
+				while(!requestOk){
+	                response1 = httpclient.execute(httpGet);
 
-				journal.info("{}", response1.getStatusLine());
+	                journal.info("{}", response1.getStatusLine());
+	                
+	                if(response1.getStatusLine().getStatusCode()==200){
+	                    requestOk=true;
+	                } else{
+	                    Thread.sleep(10000);;
+	                }
+				}
+				
+
 				HttpEntity entity1 = response1.getEntity();
 
 				File targetFile = Paths.get(ConfigManager.getLocalTmp().toString(), "s4cOpsInitialModel.xml").toFile();
